@@ -22,9 +22,6 @@
     ],
     "*.yaml": [
       "prettier --write"
-    ],
-    "./helm/**/*": [
-      "helm lint ./helm"
     ]
   },
   "keywords": [],

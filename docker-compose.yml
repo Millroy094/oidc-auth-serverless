@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  ministack:
+    image: ministackorg/ministack:latest
+    container_name: oidc-ministack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3,lambda,apigatewayv2,iam,sqs,sns,dynamodb,dynamodbstreams,logs,ssm,secretsmanager
+      - LOG_LEVEL=INFO
+      - AWS_DEFAULT_REGION=us-east-1
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_NETWORK=oidc_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4566/_ministack/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./ministack-data/state:/tmp/ministack-state"
+    networks:
+      - oidc_network
+    restart: unless-stopped
+
+  stackport:
+    image: davireis/stackport:latest
+    container_name: oidc-stackport
+    ports:
+      - "8080:8080"
+    environment:
+      - AWS_ENDPOINT_URL=http://ministack:4566
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    depends_on:
+      ministack:
+        condition: service_healthy
+    networks:
+      - oidc_network
+    restart: unless-stopped
+
+networks:
+  oidc_network:
+    name: oidc_network
+    driver: bridge

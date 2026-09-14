@@ -1,7 +1,4 @@
 import express from 'express';
-import path from 'path';
-import https from 'https';
-import fs from 'fs';
 import dynamoose from 'dynamoose';
 import Provider from 'oidc-provider';
 import cors from 'cors';
@@ -25,16 +22,19 @@ declare global {
 }
 
 class Application {
-  private readonly expressApp;
+  public readonly expressApp;
   private readonly environment;
+  private initialized = false;
 
   constructor() {
     this.expressApp = express();
     this.environment = config.get('env');
   }
 
-  private setupDependencies(): void {
-    if (['development', 'test'].includes(this.environment)) {
+  private setupDynamoDB(): void {
+    const isDev = this.environment === 'development';
+    
+    if (isDev) {
       dynamoose.aws.ddb.local();
     } else {
       const ddb = new dynamoose.aws.ddb.DynamoDB({
@@ -49,35 +49,21 @@ class Application {
   }
 
   private setupMiddleware(): void {
-    if (this.environment === 'development') {
-      this.expressApp.use(
-        cors({
-          origin: ['http://localhost:5173'],
-          credentials: true,
-        }),
-      );
-    }
+    const isDev = this.environment === 'development';
+    
+    // CORS configuration
+    const corsOrigins = isDev 
+      ? ['http://localhost:5173', 'http://localhost:3000']
+      : (process.env.CORS_ORIGINS?.split(',') || ['*']);
+    
+    this.expressApp.use(cors({ origin: corsOrigins, credentials: true }));
     this.expressApp.use(cookieParser());
     this.expressApp.use(bodyParser.json());
     this.expressApp.use(addOIDCProvider);
-  }
-
-  private setupWebsite(): void {
-    if (this.environment !== 'development') {
-      this.expressApp.use(express.static(`${path.resolve()}/public`));
-      this.expressApp.use((req, res, next) => {
-        if (/(.ico|.js|.css|.jpg|.png|.map)$/i.test(req.path)) {
-          next();
-        } else {
-          res.header(
-            'Cache-Control',
-            'private, no-cache, no-store, must-revalidate',
-          );
-          res.header('Expires', '-1');
-          res.header('Pragma', 'no-cache');
-          res.sendFile(`${path.resolve()}/public/index.html`);
-        }
-      });
+    
+    // Trust proxy for Lambda/CloudFront
+    if (!isDev) {
+      this.expressApp.set('trust proxy', 1);
     }
   }
 
@@ -86,33 +72,23 @@ class Application {
     this.expressApp.use('/api/user', userRoutes);
     this.expressApp.use('/api/admin', adminRoutes);
     this.expressApp.use('/api/health-check', healthCheckRoutes);
-  }
-
-  private setupFallOut(): void {
     this.expressApp.use(errorHandler);
   }
 
-  private openConnection(): void {
-    const httpsServer = https.createServer(
-      {
-        key: fs.readFileSync('./certs/key.pem'),
-        cert: fs.readFileSync('./certs/cert.pem'),
-      },
-      this.expressApp,
-    );
-
-    httpsServer.listen(3000, () => {
-      console.log('HTTPS Server running on port 3000');
-    });
-  }
-
-  public start() {
-    this.setupDependencies();
+  public async initialize(): Promise<void> {
+    if (this.initialized) return;
+    
+    this.setupDynamoDB();
     this.setupMiddleware();
     this.setupRoutes();
-    this.setupWebsite();
-    this.setupFallOut();
-    this.openConnection();
+    
+    this.initialized = true;
+  }
+
+  public startLocalServer(port = 3000): void {
+    this.expressApp.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
   }
 }
 

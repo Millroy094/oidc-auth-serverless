@@ -1,0 +1,75 @@
+resource "aws_apigatewayv2_api" "main" {
+  name          = var.api_name
+  protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_origins = var.cors_origins
+    allow_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
+    allow_headers = ["*"]
+    max_age       = 86400
+  }
+}
+
+resource "aws_apigatewayv2_stage" "main" {
+  api_id      = aws_apigatewayv2_api.main.id
+  name        = var.stage_name
+  auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_logs.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      resourcePath   = "$context.resourcePath"
+      status         = "$context.status"
+      protocol       = "$context.protocol"
+      responseLength = "$context.responseLength"
+      integrationLatency = "$context.integration.latency"
+    })
+  }
+}
+
+resource "aws_cloudwatch_log_group" "api_logs" {
+  name              = "/aws/apigateway/${var.api_name}"
+  retention_in_days = 30
+}
+
+resource "aws_apigatewayv2_integration" "lambda" {
+  api_id           = aws_apigatewayv2_api.main.id
+  integration_type = "AWS_PROXY"
+  payload_format_version = "2.0"
+
+  integration_method = "POST"
+  integration_uri    = var.lambda_function_invoke_arn
+}
+
+resource "aws_apigatewayv2_route" "root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "$default"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+}
+
+resource "aws_lambda_permission" "api_gateway_invoke" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = var.lambda_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
+}
+
+output "invoke_url" {
+  value       = aws_apigatewayv2_stage.main.invoke_url
+  description = "API Gateway invoke URL"
+}
+
+output "api_endpoint" {
+  value       = aws_apigatewayv2_api.main.api_endpoint
+  description = "API endpoint"
+}
+
+output "api_id" {
+  value       = aws_apigatewayv2_api.main.id
+  description = "API Gateway ID"
+}

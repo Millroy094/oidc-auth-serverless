@@ -27,9 +27,8 @@ export default ({ mode }: { mode: string }) => {
     server: {
       proxy: {
         '/api': {
-          target: process.env.VITE_BACKEND_ENDPOINT,
+          target: process.env.VITE_BACKEND_ENDPOINT || 'http://localhost:3000',
           changeOrigin: true,
-          rewrite: (path: string) => path.replace(/^\/api/, ''),
           secure: false,
         },
       },
