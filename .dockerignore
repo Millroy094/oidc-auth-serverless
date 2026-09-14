@@ -1,0 +1,10 @@
+node_modules
+**/build
+**/dist
+**/coverage
+tests
+scripts
+helm
+infra
+.vscode
+.github

@@ -1,0 +1,4 @@
+export const USERNAME_LOGIN_STAGE = 'USERNAME';
+export const PASSWORD_LOGIN_STAGE = 'PASSWORD';
+export const MFA_LOGIN_STAGE = 'MFA';
+export const RECOVERY_CODE_STAGE = 'RECOVERY_CODE';
