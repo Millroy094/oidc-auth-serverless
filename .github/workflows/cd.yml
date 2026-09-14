@@ -1,0 +1,128 @@
+name: Deploy OAuth Server
+on:
+  workflow_dispatch:
+    inputs:
+      imageTag:
+        description: 'Tag of container image'     
+        required: true
+jobs:
+  provision-and-deploy:
+    environment: Production
+    runs-on: ubuntu-latest
+    outputs:
+      lb_host: ${{ steps.get-lb-host.outputs.lb_host }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        id: aws_credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+      - name: Setup Open Tofu
+        uses: opentofu/setup-opentofu@v1
+      - name: Provision OAuth Server EKS Cluster
+        working-directory: "./infra/cluster"
+        run: |
+          tofu init --backend-config="bucket=${{vars.AWS_TERRAFORM_STATE_BUCKET_NAME}}" --backend-config="key=${{vars.AWS_TERRAFORM_CLUSTER_STATE_KEY}}.tfstate"
+          tofu apply -auto-approve
+        env:
+          TF_VAR_aws_account_id: "${{secrets.AWS_ACCOUNT_ID}}"
+          TF_VAR_aws_access_key: "${{secrets.AWS_ACCESS_KEY_ID}}"
+          TF_VAR_aws_secret_key: "${{secrets.AWS_SECRET_ACCESS_KEY}}"
+      - name: Provision OAuth Server Service Accounts For EKS Cluster
+        working-directory: "./infra/service-accounts"
+        run: |
+          tofu init --backend-config="bucket=${{vars.AWS_TERRAFORM_STATE_BUCKET_NAME}}" --backend-config="key=${{vars.AWS_TERRAFORM_SERVICE_ACCOUNTS_STATE_KEY}}.tfstate"
+          tofu apply -auto-approve
+        env:
+          TF_VAR_aws_account_id: "${{secrets.AWS_ACCOUNT_ID}}"
+          TF_VAR_aws_access_key: "${{secrets.AWS_ACCESS_KEY_ID}}"
+          TF_VAR_aws_secret_key: "${{secrets.AWS_SECRET_ACCESS_KEY}}"
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'latest'
+      - name: Generate KUBECONFIG for EKS
+        run: |
+          aws eks update-kubeconfig --name oauth-server-cluster --region eu-west-2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      - name: Helm Deploy OAuth Server
+        run: |
+          helm upgrade --install oauth-server ./helm \
+            --set GitHub.Container.Image=${{ github.event.repository.name }} \
+            --set GitHub.Container.Tag=${{ github.event.inputs.imageTag }} \
+            --set ImageCredentials.Registry=ghcr.io \
+            --set ImageCredentials.Username=${{ github.actor }} \
+            --set ImageCredentials.Email=${{ github.event.pusher.email }} \
+            --set ImageCredentials.Password=${{ secrets.GHCR_K8_PASSWORD }} \
+            --set Server.Authentication.Issuer=${{ vars.AUTH_ISSUER }} \
+            --set Server.Aws.Region=eu-west-2 \
+            --set Server.Aws.Key=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --set Server.Aws.Secret=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            --set Server.Email.Service=${{ vars.EMAIL_SERVICE }} \
+            --set Server.Email.EmailAddress=${{ vars.EMAIL_SERVICE_SENDER_ADDRESS }} \
+            --set Server.Authentication.AccessTokenSecret=${{ secrets.ACCESS_TOKEN_SECRET }} \
+            --set Server.Authentication.RefreshTokenSecret=${{ secrets.REFRESH_TOKEN_SECRET }} \
+            --set Server.Encryption.Secret=${{ secrets.ENCRYPTION_SECRET }} \
+            --set Server.Encryption.SecretIV=${{ secrets.ENCRYPTION_SECRET_IV }} \
+            --set Server.Email.EmailPassword='${{ secrets.EMAIL_SERVICE_PASSWORD }}' \
+            --set 'Server.CookieSecrets={${{ secrets.COOKIE_SECRETS }}}'
+      - name: Get LoadBalancer Host
+        working-directory: "./scripts"
+        id: get-lb-host
+        run: | 
+          chmod +x get-lb-hostname.sh
+          ./get-lb-hostname.sh
+      - name: Wait for Pods to be Ready
+        run: |
+          kubectl wait --for=condition=ready pod --all --timeout=300s
+      - name: Create Admin User
+        working-directory: "./scripts"
+        env:
+          PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-west-2
+        run: |
+          chmod +x create-admin-user.sh
+          ./create-admin-user.sh
+  e2e-tests:
+    runs-on: ubuntu-latest
+    environment: Production
+    needs: provision-and-deploy
+    env:
+      BASE_URL: "https://${{ needs.provision-and-deploy.outputs.lb_host }}"
+      MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
+      ADMIN_EMAIL: "admin@admin.com"
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      CI: "true"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.11.0'
+      - name: Install Playwright Browsers & dependencies
+        run: cd ./tests && npm ci && npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: npm run test:e2e
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 30
