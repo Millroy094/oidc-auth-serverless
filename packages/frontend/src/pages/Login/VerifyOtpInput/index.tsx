@@ -5,7 +5,7 @@ import {
   EMAIL_VERIFICATION,
   SMS_MFA,
 } from '../../../constants';
-import { Button, FormHelperText, Grid, Typography } from '@mui/material';
+import { Button } from '../../../components/ui/button';
 import OTPInput from 'react-otp-input';
 import useTimer from '../../../hooks/useTimer';
 import sendOtp from '../../../api/user/send-otp';
@@ -24,12 +24,17 @@ const OtpResendSection: FC<{ handleResendOtp: () => void; timer: number }> = ({
   handleResendOtp,
   timer,
 }) => (
-  <Grid item container alignItems="center" justifyContent="center">
-    <Typography>Haven't received OTP?</Typography>
-    <Button onClick={handleResendOtp} disabled={timer !== 0}>
+  <div className="flex items-center justify-center gap-2">
+    <span className="text-sm text-foreground">Haven't received OTP?</span>
+    <Button 
+      variant="link"
+      onClick={handleResendOtp} 
+      disabled={timer !== 0}
+      className="text-sm p-0 h-auto"
+    >
       {timer ? `Click here in ${timer} seconds` : 'Click here'}
     </Button>
-  </Grid>
+  </div>
 );
 
 const VerifyOtpInput: FC<IVerifyOtpInput> = React.memo(
@@ -53,52 +58,50 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = React.memo(
     }, [type, email, resetTimer, feedbackAxiosError]);
 
     return (
-      <Grid container direction="column" alignItems="center" spacing={4}>
-        <Grid item>
-          <Typography align="center">
-            <OtpMessage type={type} />
-          </Typography>
-        </Grid>
+      <div className="flex flex-col items-center gap-6">
+        <div className="text-center text-sm text-foreground">
+          <OtpMessage type={type} />
+        </div>
 
         {type !== APP_MFA && (
           <OtpResendSection handleResendOtp={handleResendOtp} timer={timer} />
         )}
 
-        <Grid item>
+        <div>
           <Controller
             name="otp"
             control={control}
             render={({ field: { onChange, value }, fieldState: { error } }) => (
-              <Grid container spacing={1} justifyContent="center">
-                <Grid item>
+              <div className="flex flex-col items-center gap-2">
+                <div>
                   <OTPInput
                     value={value}
                     onChange={onChange}
                     numInputs={6}
-                    renderInput={(props) => <input {...props} />}
+                    renderInput={(props) => (
+                      <input
+                        {...props}
+                        className="w-12 h-12 text-xl border border-input rounded-md text-center focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    )}
                     inputType="tel"
                     containerStyle={{
                       display: 'flex',
                       gap: '10px',
                       justifyContent: 'center',
                     }}
-                    inputStyle={{
-                      width: '50px',
-                      height: '50px',
-                      fontSize: '20px',
-                    }}
                   />
-                </Grid>
+                </div>
                 {error && (
-                  <Grid item container justifyContent="center">
-                    <FormHelperText error>OTP must be 6 digits</FormHelperText>
-                  </Grid>
+                  <div className="text-center">
+                    <p className="text-sm text-red-500">OTP must be 6 digits</p>
+                  </div>
                 )}
-              </Grid>
+              </div>
             )}
           />
-        </Grid>
-      </Grid>
+        </div>
+      </div>
     );
   },
 );

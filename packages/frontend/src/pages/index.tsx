@@ -13,7 +13,6 @@ import { PUBLIC_ROUTES } from '../constants';
 import useFeedback from '../hooks/useFeedback';
 import globalRouter from '../utils/global-router';
 import { useAuth } from '../context/AuthProvider';
-import { Container } from '@mui/material';
 
 const Login = lazy(() => import('./Login'));
 const Confirm = lazy(() => import('./Confirm'));
@@ -56,15 +55,7 @@ function Pages() {
   return (
     <Suspense
       fallback={
-        <Container
-          maxWidth="md"
-          sx={{
-            minHeight: '500px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
+        <div className="max-w-2xl mx-auto min-h-[500px] flex justify-center items-center">
           <MutatingDots
             visible
             height="100"
@@ -76,7 +67,7 @@ function Pages() {
             wrapperStyle={{}}
             wrapperClass=""
           />
-        </Container>
+        </div>
       }
     >
       <Routes>

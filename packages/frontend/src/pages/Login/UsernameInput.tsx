@@ -1,7 +1,7 @@
 import { FC } from 'react';
-import { TextField, Grid } from '@mui/material';
 import { UseFormRegister } from 'react-hook-form';
 import { ILoginFormInput } from './types';
+import { Input } from '../../components/ui/input';
 
 interface UsernameInputProps {
   register: UseFormRegister<ILoginFormInput>;
@@ -11,16 +11,17 @@ interface UsernameInputProps {
 
 const UsernameInput: FC<UsernameInputProps> = ({ register, errors }) => {
   return (
-    <Grid item>
-      <TextField
+    <div>
+      <Input
         {...register('email')}
-        label="Email Address"
-        variant="outlined"
-        fullWidth
-        error={!!errors.email}
-        helperText={errors.email?.message}
+        type="email"
+        placeholder="Email Address"
+        className={errors.email ? 'border-red-500' : ''}
       />
-    </Grid>
+      {errors.email && (
+        <p className="text-sm text-red-500 mt-1">{errors.email?.message}</p>
+      )}
+    </div>
   );
 };
 

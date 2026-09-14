@@ -1,12 +1,6 @@
 import { FC, useState } from 'react';
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Typography,
-} from '@mui/material';
+import { Button } from '../../../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardFooter } from '../../../../../components/ui/card';
 import RecoveryCodeModal from './RecoveryCodeModal';
 
 interface IRecoveryCodeProps {
@@ -30,33 +24,27 @@ const RecoveryCodes: FC<IRecoveryCodeProps> = (props) => {
 
   return (
     <>
-      <Card elevation={0}>
-        <CardHeader title="Recovery codes" />
+      <Card>
+        <CardHeader>
+          <h2 className="text-lg font-semibold">Recovery codes</h2>
+        </CardHeader>
         <CardContent>
-          <Typography variant="body1">
+          <p className="text-sm text-slate-700">
             Recovery codes can be used when your MFA method isn't available to
             you or if you have completely lost access to your MFA method.
-          </Typography>
+          </p>
         </CardContent>
-        <CardActions
-          sx={{
-            padding: '20px 20px 0 20px',
-            display: 'flex',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Typography
-            variant="button"
-            color={recoveryCodeCount === 0 ? 'red' : 'green'}
-          >{`${recoveryCodeCount}/10 Recovery codes left`}</Typography>
+        <CardFooter className="flex justify-between items-center">
+          <p className={`text-sm font-medium ${recoveryCodeCount === 0 ? 'text-red-600' : 'text-green-600'}`}>
+            {recoveryCodeCount}/10 Recovery codes left
+          </p>
           <Button
-            variant="outlined"
-            color="success"
+            variant="outline"
             onClick={onGenerateRecoveryCodes}
           >
             Generate recovery codes
           </Button>
-        </CardActions>
+        </CardFooter>
       </Card>
       <RecoveryCodeModal open={open} onClose={onClose} />
     </>

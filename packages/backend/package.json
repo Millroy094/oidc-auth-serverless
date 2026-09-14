@@ -5,7 +5,7 @@
   "main": "handler.ts",
   "type": "module",
   "scripts": {
-    "build": "esbuild handler.ts --bundle --platform=node --target=node20 --outfile=build/handler.js --external:aws-sdk --external:dynamoose",
+    "build": "pnpm generateJwks && esbuild handler.ts --bundle --platform=node --target=node24 --outfile=build/handler.js --external:aws-sdk --external:dynamoose",
     "generateJwks": "node --experimental-specifier-resolution=node --loader ts-node/esm ./scripts/generate-jwk.ts",
     "test:unit": "jest --passWithNoTests --updateSnapshot --coverage"
   },

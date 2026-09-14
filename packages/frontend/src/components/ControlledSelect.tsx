@@ -1,11 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  FormControl,
-  FormHelperText,
-  InputLabel,
-  MenuItem,
   Select,
-} from '@mui/material';
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import { Label } from './ui/label';
 import { FC } from 'react';
 import { Control, Controller, FieldErrors } from 'react-hook-form';
 
@@ -24,38 +24,38 @@ interface ControlledSelectProps {
 }
 
 const ControlledSelect: FC<ControlledSelectProps> = (props) => {
-  const { name, control, label, options, multiple, errors } = props;
+  const { name, control, label, options, errors } = props;
   const id = label.toLocaleLowerCase();
-  const labelId = `${id}-label`;
+
   return (
-    <FormControl fullWidth>
-      <InputLabel id={labelId}>{label}</InputLabel>
+    <div className="w-full space-y-2">
+      <Label htmlFor={id}>{label}</Label>
       <Controller
         render={({ field }) => (
-          <Select
-            labelId={labelId}
-            id={id}
-            label={label}
-            multiple={multiple}
-            {...field}
-            error={!!errors[name]}
-          >
-            {options.map(({ label, value }) => (
-              <MenuItem key={value} value={value}>
-                {label}
-              </MenuItem>
-            ))}
-          </Select>
+          <>
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger id={id} className={errors[name] ? 'border-destructive' : ''}>
+                <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map(({ label, value }) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
         )}
         name={name}
         control={control}
       />
       {errors && errors[name] && (
-        <FormHelperText error>
+        <p className="text-sm text-destructive">
           {(errors[name]?.message as string) ?? ''}
-        </FormHelperText>
+        </p>
       )}
-    </FormControl>
+    </div>
   );
 };
 

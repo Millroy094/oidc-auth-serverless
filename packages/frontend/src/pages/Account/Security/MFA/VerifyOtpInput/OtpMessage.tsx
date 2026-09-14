@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import { Typography, Grid } from '@mui/material';
 import { APP_MFA, EMAIL_MFA, SMS_MFA } from '../../../../../constants';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -13,27 +12,27 @@ const OtpMessage: FC<IOtpMessageProps> = (props) => {
   switch (type) {
     case APP_MFA:
       return (
-        <>
-          <Typography variant="h6">Scan the QR Code</Typography>
-          <Typography>
+        <div className="flex flex-col items-center gap-4">
+          <h3 className="text-lg font-semibold">Scan the QR Code</h3>
+          <p className="text-sm text-slate-600 text-center">
             Scan the QR Code in your authenticator app and enter the code below
-          </Typography>
-          <Grid container item justifyContent="center">
+          </p>
+          <div className="flex justify-center">
             <QRCodeSVG value={uri} />
-          </Grid>
-        </>
+          </div>
+        </div>
       );
     case EMAIL_MFA:
       return (
-        <Typography align="center">
+        <p className="text-sm text-slate-600 text-center">
           Please enter the 6 digit OTP sent to your email
-        </Typography>
+        </p>
       );
     case SMS_MFA:
       return (
-        <Typography align="center">
+        <p className="text-sm text-slate-600 text-center">
           Please enter the 6 digit OTP sent to your phone
-        </Typography>
+        </p>
       );
     default:
       return null;

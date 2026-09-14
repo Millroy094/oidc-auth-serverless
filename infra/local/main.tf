@@ -45,7 +45,7 @@ module "lambda" {
 
   function_name = "${var.project_name}-backend-local"
   environment   = "local"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs24.x"
   timeout       = 30
   memory_size   = 512
 

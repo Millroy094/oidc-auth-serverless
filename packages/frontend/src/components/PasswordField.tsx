@@ -1,7 +1,8 @@
 import React, { FC, useState } from 'react';
-import { IconButton, InputAdornment, TextField } from '@mui/material';
-import { VisibilityOff, Visibility } from '@mui/icons-material';
+import { EyeOff, Eye } from 'lucide-react';
 import { UseFormRegister } from 'react-hook-form';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 import { IRegisterFormInput } from '../pages/Register/types';
 import { ILoginFormInput } from '../pages/Login/types';
 
@@ -36,33 +37,35 @@ const PasswordField: FC<PasswordFieldProps> = (props) => {
   ) => {
     event.preventDefault();
   };
+
   return (
-    <TextField
-      {...register(name)}
-      label={label ?? name}
-      required={required ?? false}
-      error={error}
-      helperText={helperText}
-      type={showPassword ? 'text' : 'password'}
-      variant="outlined"
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end" sx={{ p: 1 }}>
-            <IconButton
-              aria-label="toggle password visibility"
-              onClick={handleClickShowPassword}
-              onMouseDown={handleMouseDownPassword}
-              edge="end"
-            >
-              {showPassword ? <VisibilityOff /> : <Visibility />}
-            </IconButton>
-          </InputAdornment>
-        ),
-      }}
-      onFocus={onFocus}
-      onBlur={onBlur}
-      fullWidth
-    />
+    <div className="w-full space-y-2">
+      <label htmlFor={String(name)} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+        {label ?? name} {required && <span className="text-destructive">*</span>}
+      </label>
+      <div className="relative flex items-center">
+        <Input
+          {...register(name)}
+          id={String(name)}
+          type={showPassword ? 'text' : 'password'}
+          className={error ? 'border-destructive' : ''}
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="absolute right-2 h-8 w-8"
+          aria-label="toggle password visibility"
+          onClick={handleClickShowPassword}
+          onMouseDown={handleMouseDownPassword}
+        >
+          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </Button>
+      </div>
+      {helperText && <p className={`text-sm ${error ? 'text-destructive' : 'text-muted-foreground'}`}>{helperText}</p>}
+    </div>
   );
 };
 

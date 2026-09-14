@@ -1,24 +1,12 @@
 import React, { FC, useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Divider,
-  Grid,
-  Paper,
-  Switch,
-  Tooltip,
-  Typography,
-} from '@mui/material';
+import { Button } from '../../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardFooter } from '../../../../components/ui/card';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 import getMFASettings from '../../../../api/user/get-mfa-settings';
 import useFeedback from '../../../../hooks/useFeedback';
 import SetupModal from './SetupModal';
 import changeMFAPreference from '../../../../api/user/change-mfa-preference';
 import resetMfa from '../../../../api/user/reset-mfa';
-import { NewReleases, Verified } from '@mui/icons-material';
 import RecoveryCodes from './RecoveryCodes';
 import Passkeys from './Passkeys';
 
@@ -95,128 +83,94 @@ const MFA: FC = () => {
 
   return (
     <>
-      <Card elevation={0}>
-        <CardHeader title="Mulit-Factor Authentication" />
+      <Card>
+        <CardHeader>
+          <h2 className="text-lg font-semibold">Mulit-Factor Authentication</h2>
+        </CardHeader>
         <CardContent>
-          <Typography variant="body1">
+          <p className="text-sm text-slate-700">
             You can make your login more secure by enabling 2FA for your
             account. Once enabled you will be required to through an additional
             step of verification whilst logging in.
-          </Typography>
+          </p>
         </CardContent>
-        <CardActions
-          sx={{ display: 'flex', justifyContent: 'flex-end', padding: '10px' }}
-        >
-          <Grid container spacing={2}>
+        <CardFooter>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
             {mfaTypes.map((mfaType) => (
-              <Grid item key={mfaType.type}>
-                <Paper
-                  elevation={2}
-                  sx={{ p: '10px', width: '240px', height: '120px' }}
-                >
-                  <Grid
-                    container
-                    direction="column"
-                    justifyContent="space-between"
-                    height="100%"
-                  >
-                    <Grid
-                      item
-                      container
-                      alignItems="center"
-                      justifyContent="space-between"
+              <div
+                key={mfaType.type}
+                className="border border-slate-200 rounded-lg p-3 flex flex-col justify-between h-32 bg-white shadow-sm"
+              >
+                <div className="flex justify-between items-start">
+                  <h3 className="font-medium text-sm">
+                    {mfaType.type.toUpperCase()} MFA
+                  </h3>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      disabled={!mfaType.verified}
+                      value={mfaType.type}
+                      checked={mfaPreference === mfaType.type}
+                      onChange={onChange}
+                      className="w-4 h-4"
+                    />
+                  </label>
+                </div>
+
+                <div className="py-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-xs font-medium text-slate-600">
+                      Subscriber
+                    </p>
+                    {mfaType.subscriber && mfaType.verified && (
+                      <CheckCircle className="w-3 h-3 text-green-600" aria-label="Verified" />
+                    )}
+                    {mfaType.subscriber && !mfaType.verified && (
+                      <AlertCircle className="w-3 h-3 text-red-600" aria-label="Not Verified" />
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-600 truncate" title={mfaType.subscriber || 'None'}>
+                    {mfaType.subscriber || 'None'}
+                  </p>
+                </div>
+
+                <div className="flex justify-end">
+                  {!mfaType.verified ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setSetupModal({
+                          open: true,
+                          type: mfaType.type,
+                          defaultValue: mfaType.subscriber || '',
+                        })
+                      }
                     >
-                      <Grid item>
-                        <Typography variant="body1">{`${mfaType.type.toUpperCase()} MFA`}</Typography>
-                      </Grid>
-                      <Grid item>
-                        <Switch
-                          size="small"
-                          disabled={!mfaType.verified}
-                          color="error"
-                          value={mfaType.type}
-                          checked={mfaPreference === mfaType.type}
-                          onChange={onChange}
-                        />
-                      </Grid>
-                    </Grid>
-                    <Grid item sx={{ p: '10px 0' }}>
-                      <Grid container item alignContent="center" spacing={1}>
-                        <Grid item>
-                          <Typography variant="subtitle2">
-                            Subscriber
-                          </Typography>
-                        </Grid>
-                        {mfaType.subscriber && mfaType.verified && (
-                          <Grid item>
-                            <Tooltip title="Verified">
-                              <Verified fontSize="small" color="success" />
-                            </Tooltip>
-                          </Grid>
-                        )}
-                        {mfaType.subscriber && !mfaType.verified && (
-                          <Grid item>
-                            <Tooltip title="Not Verified">
-                              <NewReleases fontSize="small" color="error" />
-                            </Tooltip>
-                          </Grid>
-                        )}
-                      </Grid>
-                      <Tooltip title={mfaType.subscriber || 'None'}>
-                        <Box
-                          sx={{
-                            textOverflow: 'ellipsis',
-                            overflow: 'hidden',
-                            width: '240px',
-                            whiteSpace: 'normal',
-                          }}
-                        >
-                          <Typography noWrap variant="caption">
-                            {mfaType.subscriber || 'None'}
-                          </Typography>
-                        </Box>
-                      </Tooltip>
-                    </Grid>
-                    <Grid container item justifyContent="flex-end">
-                      {!mfaType.verified ? (
-                        <Button
-                          variant="outlined"
-                          color="success"
-                          size="small"
-                          onClick={() =>
-                            setSetupModal({
-                              open: true,
-                              type: mfaType.type,
-                              defaultValue: mfaType.subscriber || '',
-                            })
-                          }
-                        >
-                          Setup MFA
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outlined"
-                          color="success"
-                          size="small"
-                          onClick={() => onReset(mfaType.type)}
-                        >
-                          Reset MFA
-                        </Button>
-                      )}
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
+                      Setup MFA
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onReset(mfaType.type)}
+                    >
+                      Reset MFA
+                    </Button>
+                  )}
+                </div>
+              </div>
             ))}
-          </Grid>
-        </CardActions>
+          </div>
+        </CardFooter>
       </Card>
+
       <Passkeys
         mfaPreference={mfaPreference}
         onMfaPreferenceChange={onChange}
         fetchMFASettings={fetchMFASettings}
       />
-      <Divider sx={{ m: '30px 10px' }} />
+      <div className="border-t border-slate-200 my-8 mx-2" />
       <RecoveryCodes
         recoveryCodeCount={recoveryCodeCount}
         fetchMFASettings={fetchMFASettings}

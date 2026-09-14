@@ -1,8 +1,8 @@
 import { FC } from 'react';
-import { Grid, Button, Typography } from '@mui/material';
-import PasswordField from '../../components/PasswordField'; // Ensure you have this component defined
+import { Button } from '../../components/ui/button';
+import PasswordField from '../../components/PasswordField';
 import { UseFormRegister } from 'react-hook-form';
-import { ILoginFormInput } from './types'; // Ensure you have this type defined somewhere
+import { ILoginFormInput } from './types';
 
 interface PasswordInputProps {
   register: UseFormRegister<ILoginFormInput>;
@@ -19,11 +19,9 @@ const PasswordInput: FC<PasswordInputProps> = ({
   navigateToForgotPassword,
 }) => {
   return (
-    <Grid container item direction="column" spacing={2}>
-      <Grid item>
-        <Typography variant="body2">{email}</Typography>
-      </Grid>
-      <Grid item>
+    <div className="space-y-4">
+      <div className="text-sm text-foreground">{email}</div>
+      <div>
         <PasswordField
           name="password"
           label="Password"
@@ -31,13 +29,17 @@ const PasswordInput: FC<PasswordInputProps> = ({
           error={!!errors.password}
           helperText={errors.password?.message}
         />
-      </Grid>
-      <Grid item alignSelf="flex-end">
-        <Button color="error" onClick={navigateToForgotPassword}>
-          <Typography variant="caption">Forgot Password?</Typography>
+      </div>
+      <div className="flex justify-end">
+        <Button 
+          variant="link" 
+          onClick={navigateToForgotPassword}
+          className="text-sm p-0 h-auto"
+        >
+          Forgot Password?
         </Button>
-      </Grid>
-    </Grid>
+      </div>
+    </div>
   );
 };
 

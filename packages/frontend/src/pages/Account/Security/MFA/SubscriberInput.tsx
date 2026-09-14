@@ -1,7 +1,8 @@
-import { TextField } from '@mui/material';
+import { Input } from '../../../../components/ui/input';
 import React, { FC } from 'react';
 import { MobileNumberInput } from '../../../../components/MobileNumberInput';
 import { APP_MFA, EMAIL_MFA, SMS_MFA } from '../../../../constants';
+
 interface ISubscriberInput {
   value: string;
   onChange: React.Dispatch<React.SetStateAction<string>>;
@@ -22,42 +23,51 @@ const SubscriberInput: FC<ISubscriberInput> = (props) => {
 
   if (type === APP_MFA) {
     return (
-      <TextField
-        label="Device Name"
-        name="subscriber"
-        onChange={onChangeTextField}
-        value={value}
-        fullWidth
-        error={error}
-        helperText={error ? 'Required' : ''}
-        disabled={disabled}
-      />
+      <div className="w-full">
+        <label htmlFor="subscriber" className="block text-sm font-medium mb-1">
+          Device Name
+        </label>
+        <Input
+          id="subscriber"
+          name="subscriber"
+          onChange={onChangeTextField}
+          value={value}
+          disabled={disabled}
+          className={error ? 'border-red-500' : ''}
+        />
+        {error && <p className="text-sm text-red-500 mt-1">Required</p>}
+      </div>
     );
   } else if (type === SMS_MFA) {
     return (
-      <MobileNumberInput
-        name="subscriber"
-        onChange={onChangePhoneNumber}
-        value={value}
-        fullWidth
-        error={error}
-        helperText={error ? 'Invalid number' : ''}
-        disabled={disabled}
-      />
+      <div className="w-full">
+        <MobileNumberInput
+          label="Mobile Number"
+          onChange={onChangePhoneNumber}
+          value={value}
+          error={error}
+          helperText={error ? 'Invalid number' : ''}
+          readOnly={disabled}
+        />
+      </div>
     );
   } else if (type === EMAIL_MFA) {
     return (
-      <TextField
-        label="Email"
-        name="subscriber"
-        onChange={onChangeTextField}
-        value={value}
-        type="email"
-        fullWidth
-        error={error}
-        helperText={error ? 'Invalid Email' : ''}
-        disabled={disabled}
-      />
+      <div className="w-full">
+        <label htmlFor="subscriber" className="block text-sm font-medium mb-1">
+          Email
+        </label>
+        <Input
+          id="subscriber"
+          name="subscriber"
+          onChange={onChangeTextField}
+          value={value}
+          type="email"
+          disabled={disabled}
+          className={error ? 'border-red-500' : ''}
+        />
+        {error && <p className="text-sm text-red-500 mt-1">Invalid Email</p>}
+      </div>
     );
   }
 

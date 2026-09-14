@@ -1,11 +1,7 @@
 import {
   Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Typography,
-} from '@mui/material';
+} from '../../../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardFooter } from '../../../../../components/ui/card';
 import { startRegistration } from '@simplewebauthn/browser';
 import registerPasskey from '../../../../../api/user/register-passkey';
 import verifyPasskeyRegistration from '../../../../../api/user/verify-passkey-registration';
@@ -14,13 +10,8 @@ import checkPasskeyAlreadyExists from '../../../../../api/user/check-passkey-exi
 import { FC, useEffect, useState } from 'react';
 import useFeedback from '../../../../../hooks/useFeedback';
 import getPasskeys from '../../../../../api/user/get-passkeys';
-import { List } from '@mui/material';
-import { ListItem } from '@mui/material';
-import { IconButton } from '@mui/material';
-import { Delete } from '@mui/icons-material';
+import { Trash2 } from 'lucide-react';
 import deletePasskey from '../../../../../api/user/delete-passkey';
-import { Switch } from '@mui/material';
-import { FormControlLabel } from '@mui/material';
 
 function getDetailedDeviceInfo(): string {
   const userAgent = navigator.userAgent;
@@ -62,9 +53,11 @@ interface PasskeysProps {
 }
 
 const Passkeys: FC<PasskeysProps> = (props) => {
-  const { mfaPreference, onMfaPreferenceChange, fetchMFASettings } = props;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { mfaPreference: _mfaPreference, onMfaPreferenceChange: _onMfaPreferenceChange, fetchMFASettings } = props;
   const [devices, setDevices] = useState([]);
-  const [passkeyVerified, setPasskeyVerified] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_passkeyVerified, setPasskeyVerified] = useState(false);
 
   const auth = useAuth();
   const { feedbackAxiosError, feedbackAxiosResponse, feedback } = useFeedback();
@@ -142,68 +135,44 @@ const Passkeys: FC<PasskeysProps> = (props) => {
   }, []);
 
   return (
-    <Card elevation={0}>
-      <CardHeader
-        title="Passkeys"
-        action={
-          <FormControlLabel
-            labelPlacement="start"
-            control={
-              <Switch
-                disabled={!passkeyVerified}
-                color="error"
-                value="passkey"
-                checked={mfaPreference === 'passkey'}
-                onChange={onMfaPreferenceChange}
-              />
-            }
-            label="Use passkey for MFA"
-          />
-        }
-      />
+    <Card>
+      <CardHeader>
+        <h2 className="text-lg font-semibold">Passkeys</h2>
+      </CardHeader>
       <CardContent>
-        <Typography>
+        <p className="text-sm text-slate-700 mb-4">
           Passkeys are webauthn credentials that validate your identity using
           touch, facial recognition, a device password, or a PIN. They can be
           used as a password replacement or as a 2FA method.
-        </Typography>
-        <List sx={{ marginTop: '5px' }}>
+        </p>
+        <div className="space-y-2">
           {devices.map((device) => (
-            <ListItem
-              sx={{
-                border: '1px solid #cccccc',
-                borderRadius: '4px',
-                padding: '10px',
-                marginBottom: '10px',
-              }}
+            <div
               key={device}
-              secondaryAction={
-                <IconButton
-                  edge="end"
-                  aria-label="device name"
-                  color="error"
-                  onClick={() =>
-                    handleDeletePasskey(auth?.user?.userId ?? '', device)
-                  }
-                >
-                  <Delete />
-                </IconButton>
-              }
+              className="flex items-center justify-between p-2.5 border border-slate-200 rounded"
             >
-              <Typography>{device}</Typography>
-            </ListItem>
+              <p className="text-sm">{device}</p>
+              <button
+                onClick={() =>
+                  handleDeletePasskey(auth?.user?.userId ?? '', device)
+                }
+                className="p-1 text-red-600 hover:bg-red-100 rounded"
+                title="Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           ))}
-        </List>
+        </div>
       </CardContent>
-      <CardActions sx={{ display: 'flex', justifyContent: 'end' }}>
+      <CardFooter className="flex justify-end">
         <Button
-          variant="outlined"
-          color="success"
+          variant="outline"
           onClick={() => register(auth?.user?.userId ?? '')}
         >
           Add Passkey
         </Button>
-      </CardActions>
+      </CardFooter>
     </Card>
   );
 };

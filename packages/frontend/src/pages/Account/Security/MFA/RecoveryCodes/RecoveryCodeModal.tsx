@@ -1,17 +1,13 @@
 import { FC, useEffect, useState } from 'react';
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Grid,
-  Modal,
-  Skeleton,
-  Typography,
-} from '@mui/material';
+import { Button } from '../../../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardFooter } from '../../../../../components/ui/card';
 import generateRecoveryCodes from '../../../../../api/user/generate-recovery-codes';
 import useFeedback from '../../../../../hooks/useFeedback';
+import { Download } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+} from '../../../../../components/ui/dialog';
 
 interface RecoveryCodeModalProps {
   open: boolean;
@@ -61,87 +57,69 @@ const RecoveryCodeModal: FC<RecoveryCodeModalProps> = (props) => {
   };
 
   return (
-    <Modal open={open} onClose={handleClose}>
-      <Card
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 600,
-          bgcolor: 'background.paper',
-          p: 2,
-        }}
-      >
-        <CardHeader title="Recovery codes" />
-        <CardContent>
-          {loading ? (
-            <>
-              <Skeleton width="100%" height="20px" />
-              <Skeleton width="100%" height="20px" />
-              <Skeleton width="100%" height="20px" />
-              <Skeleton width="100%" height="300px" />
-            </>
-          ) : (
-            <>
-              <Grid container spacing={1}>
-                <Grid item>
-                  <Typography>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md p-0 overflow-hidden">
+        <Card className="border-0">
+          <CardHeader>
+            <h2 className="font-semibold">Recovery codes</h2>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-2">
+                <div className="h-4 bg-slate-200 rounded animate-pulse" />
+                <div className="h-4 bg-slate-200 rounded animate-pulse" />
+                <div className="h-4 bg-slate-200 rounded animate-pulse" />
+                <div className="h-32 bg-slate-200 rounded animate-pulse" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <p className="text-sm text-slate-700">
                     Don't forget to save your recovery codes, without these you
                     will not able to recover your account if you were to lose
                     your 2FA Device.
-                  </Typography>
-                </Grid>
-                <Grid item>
-                  <Typography>
+                  </p>
+                  <p className="text-sm text-slate-700">
                     Each code is one time use only therefore after its use, you
                     won't be able to use it again. If you lose your recovery
                     codes or run out of them you can always regenerate it here.
-                  </Typography>
-                </Grid>
-              </Grid>
-              {recoveryCodes?.length === 10 && (
-                <Grid
-                  container
-                  sx={{ background: '#efefef', padding: '15px', marginTop: 2 }}
-                >
-                  {[
-                    recoveryCodes.slice(0, 5),
-                    recoveryCodes.slice(5, recoveryCodes.length),
-                  ].map((chunk, index) => (
-                    <Grid
-                      key={`recoverycodechuck_${index}`}
-                      container
-                      item
-                      direction="column"
-                      xs={6}
-                      spacing={1}
-                    >
-                      {chunk.map((recoveryCode) => (
-                        <Grid item key={recoveryCode}>
-                          <Typography variant="caption">
+                  </p>
+                </div>
+
+                {recoveryCodes?.length === 10 && (
+                  <div className="grid grid-cols-2 gap-4 bg-slate-100 p-4 rounded">
+                    {[
+                      recoveryCodes.slice(0, 5),
+                      recoveryCodes.slice(5, recoveryCodes.length),
+                    ].map((chunk, index) => (
+                      <div
+                        key={`recoverycodechuck_${index}`}
+                        className="space-y-1"
+                      >
+                        {chunk.map((recoveryCode) => (
+                          <p key={recoveryCode} className="text-xs font-mono">
                             {recoveryCode}
-                          </Typography>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  ))}
-                </Grid>
-              )}
-            </>
-          )}
-        </CardContent>
-        <CardActions sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={exportRecoveryCodes}
-          >
-            Download Recovery Codes
-          </Button>
-        </CardActions>
-      </Card>
-    </Modal>
+                          </p>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button
+              onClick={exportRecoveryCodes}
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Download Recovery Codes
+            </Button>
+          </CardFooter>
+        </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
 

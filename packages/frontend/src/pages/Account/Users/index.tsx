@@ -1,17 +1,9 @@
 import { FC, startTransition, useEffect, useState } from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Grid,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
-import { DataGrid, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { Card, CardContent, CardHeader } from '../../../components/ui/card';
 import getUsers from '../../../api/admin/get-users';
 import useFeedback from '../../../hooks/useFeedback';
 import deleteUser from '../../../api/admin/delete-user';
-import { ClearAll, PersonRemove } from '@mui/icons-material';
+import { RotateCcw, UserX } from 'lucide-react';
 import clearUserSessions from '../../../api/admin/clear-user-sessions';
 import UserPopup from './UserPopup';
 import { ADMIN_EMAIL } from '../../../constants';
@@ -76,13 +68,12 @@ const Users: FC = () => {
     }
   };
 
-  const handleRowClick = (params: GridRowParams) => {
-    const { id, row } = params;
-    const isAdmin = row?.email === ADMIN_EMAIL;
+  const handleRowClick = (user: User) => {
+    const isAdmin = user?.email === ADMIN_EMAIL;
 
     if (!isAdmin) {
       startTransition(() => {
-        setSelectedUserId(id as string);
+        setSelectedUserId(user.id);
         setOpen(true);
       });
     }
@@ -94,97 +85,82 @@ const Users: FC = () => {
     fetchUsers();
   };
 
-  const columns: GridColDef<(typeof users)[number]>[] = [
-    {
-      field: 'firstName',
-      headerName: 'First Name',
-      width: 180,
-      editable: false,
-    },
-    {
-      field: 'lastName',
-      headerName: 'Last Name',
-      width: 180,
-      editable: false,
-    },
-    {
-      field: 'email',
-      headerName: 'Email',
-      width: 200,
-      editable: false,
-    },
-    {
-      field: 'mobile',
-      headerName: 'Mobile',
-      width: 150,
-      editable: false,
-    },
-    {
-      field: 'id',
-      headerName: '',
-      width: 100,
-      editable: false,
-      sortable: false,
-      renderCell: (params) => {
-        const isAdmin = params?.row?.email === ADMIN_EMAIL;
-        return (
-          <Grid container alignContent="center">
-            <Grid item>
-              <Tooltip title="Clear all sessions">
-                <IconButton
-                  disabled={isAdmin}
-                  color="error"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteSessions(params.value);
-                  }}
-                >
-                  <ClearAll />
-                </IconButton>
-              </Tooltip>
-            </Grid>
-            <Grid item>
-              <Tooltip title="Delete user">
-                <IconButton
-                  disabled={isAdmin}
-                  color="error"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(params.value);
-                  }}
-                >
-                  <PersonRemove />
-                </IconButton>
-              </Tooltip>
-            </Grid>
-          </Grid>
-        );
-      },
-    },
-  ];
-
   return (
-    <Card elevation={0}>
-      <CardHeader title="Users" />
+    <Card>
+      <CardHeader>
+        <h2 className="text-xl font-semibold">Users</h2>
+      </CardHeader>
       <CardContent>
-        <DataGrid
-          rows={users}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 5,
-              },
-            },
-          }}
-          pageSizeOptions={[5]}
-          disableRowSelectionOnClick
-          onRowClick={handleRowClick}
-        />
+        <div className="overflow-x-auto">
+         <table className="w-full text-sm">
+           <thead className="border-b border-slate-200 bg-slate-50">
+             <tr>
+               <th className="text-left py-3 px-4 font-medium">First Name</th>
+               <th className="text-left py-3 px-4 font-medium">Last Name</th>
+               <th className="text-left py-3 px-4 font-medium">Email</th>
+               <th className="text-left py-3 px-4 font-medium">Mobile</th>
+               <th className="text-center py-3 px-4 font-medium">Actions</th>
+             </tr>
+           </thead>
+           <tbody>
+             {users.map((user) => {
+               const isAdmin = user?.email === ADMIN_EMAIL;
+               return (
+                 <tr
+                   key={user.id}
+                   onClick={() => handleRowClick(user)}
+                   className={`border-b border-slate-200 ${
+                     !isAdmin ? 'hover:bg-slate-50 cursor-pointer' : ''
+                   }`}
+                 >
+                   <td className="py-3 px-4">{user.firstName}</td>
+                   <td className="py-3 px-4">{user.lastName}</td>
+                   <td className="py-3 px-4">{user.email}</td>
+                   <td className="py-3 px-4">{user.mobile}</td>
+                   <td className="py-3 px-4 text-center">
+                     <div className="flex justify-center gap-2">
+                       <button
+                         disabled={isAdmin}
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           handleDeleteSessions(user.id);
+                         }}
+                         title="Clear all sessions"
+                         className={`p-1 rounded ${
+                           isAdmin
+                             ? 'opacity-50 cursor-not-allowed'
+                             : 'hover:bg-red-100 text-red-600'
+                         }`}
+                       >
+                         <RotateCcw className="w-4 h-4" />
+                       </button>
+                       <button
+                         disabled={isAdmin}
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           handleDelete(user.id);
+                         }}
+                         title="Delete user"
+                         className={`p-1 rounded ${
+                           isAdmin
+                             ? 'opacity-50 cursor-not-allowed'
+                             : 'hover:bg-red-100 text-red-600'
+                         }`}
+                       >
+                         <UserX className="w-4 h-4" />
+                       </button>
+                     </div>
+                   </td>
+                 </tr>
+               );
+             })}
+           </tbody>
+         </table>
+        </div>
         <UserPopup
-          open={open}
-          userIdentifier={selectedUserId}
-          onClose={onClose}
+         open={open}
+         userIdentifier={selectedUserId}
+         onClose={onClose}
         />
       </CardContent>
     </Card>

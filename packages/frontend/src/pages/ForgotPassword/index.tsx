@@ -1,19 +1,8 @@
 import React from 'react';
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Container,
-  Grid,
-  styled,
-  TextField,
-} from '@mui/material';
-import PasswordField from '../../components/PasswordField';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import schema from './schema';
+import PasswordField from '../../components/PasswordField';
 import PasswordPopover from '../../components/PasswordPopover';
 import sendOtp from '../../api/user/send-otp';
 import { FORGOT_PASSWORD } from '../../constants';
@@ -21,10 +10,9 @@ import useFeedback from '../../hooks/useFeedback';
 import changePassword from '../../api/user/change-password';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { IForgotPasswordFormInput } from './types';
-
-const StyledCard = styled(Card)({
-  borderTop: '2px solid red',
-});
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
 
 const ForgotPassword = () => {
   const [searchParams] = useSearchParams();
@@ -105,62 +93,64 @@ const ForgotPassword = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <StyledCard sx={{ marginTop: 15 }}>
-          <CardHeader
-            title="Forgot Password"
-            titleTypographyProps={{ align: 'center' }}
-          />
-          <CardContent>
-            <Grid container direction="column" spacing={2} sx={{ p: 2 }}>
-              {!emailSent && (
-                <Grid item>
-                  <TextField
-                    {...register('email')}
-                    label="Email Address"
-                    variant="outlined"
-                    fullWidth
-                    error={!!errors.email}
-                    helperText={errors.email ? errors.email.message : ''}
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm">
+        <Card className="border-t-2 border-red-600 mt-8">
+          <CardHeader className="text-center p-6">
+            <h1 className="text-2xl font-semibold">Forgot Password</h1>
+          </CardHeader>
+          <CardContent className="space-y-4 p-6">
+            {!emailSent && (
+              <div>
+                <Input
+                  {...register('email')}
+                  type="email"
+                  placeholder="Email Address"
+                  className={errors.email ? 'border-red-500' : ''}
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+            )}
+            {emailSent && (
+              <>
+                <div>
+                  <Input
+                    {...register('otp')}
+                    placeholder="OTP"
+                    className={errors.otp ? 'border-red-500' : ''}
                   />
-                </Grid>
-              )}
-              {emailSent && (
-                <>
-                  <Grid item>
-                    <TextField
-                      {...register('otp')}
-                      label="OTP"
-                      variant="outlined"
-                      fullWidth
-                      error={!!errors.otp}
-                      helperText={errors.otp ? errors.otp.message : ''}
-                    />
-                  </Grid>
-                  <Grid item>
-                    <PasswordField
-                      name="password"
-                      label="Password"
-                      onFocus={handleFocus}
-                      onBlur={handleClose}
-                      register={register}
-                      error={!!errors.password}
-                    />
-                  </Grid>
-                  <Grid item>
-                    <PasswordField
-                      name="confirmPassword"
-                      label="Confirm Password"
-                      onFocus={handleFocus}
-                      onBlur={handleClose}
-                      register={register}
-                      error={!!errors.confirmPassword}
-                    />
-                  </Grid>
-                </>
-              )}
-            </Grid>
+                  {errors.otp && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.otp.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <PasswordField
+                    name="password"
+                    label="Password"
+                    onFocus={handleFocus}
+                    onBlur={handleClose}
+                    register={register}
+                    error={!!errors.password}
+                  />
+                </div>
+                <div>
+                  <PasswordField
+                    name="confirmPassword"
+                    label="Confirm Password"
+                    onFocus={handleFocus}
+                    onBlur={handleClose}
+                    register={register}
+                    error={!!errors.confirmPassword}
+                  />
+                </div>
+              </>
+            )}
             <PasswordPopover
               open={open}
               anchorEl={anchorEl}
@@ -168,19 +158,21 @@ const ForgotPassword = () => {
               dirtyFields={dirtyFields}
             />
           </CardContent>
-          <CardActions
-            sx={{ justifyContent: 'space-between', padding: '20px 20px' }}
-          >
-            <Button type="submit" color="error" onClick={navigateToLogin}>
+          <div className="flex justify-between gap-4 p-5">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={navigateToLogin}
+            >
               Return to login
             </Button>
-            <Button variant="contained" type="submit" color="error">
+            <Button type="submit">
               {`${emailSent ? 'Change' : 'Reset'} Password`}
             </Button>
-          </CardActions>
-        </StyledCard>
+          </div>
+        </Card>
       </form>
-    </Container>
+    </div>
   );
 };
 

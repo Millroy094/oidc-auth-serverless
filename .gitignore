@@ -1,5 +1,23 @@
 .vscode
 node_modules
 *.env
+.env.local
 .DS_Store
 .idea
+.turbo
+
+# Build artifacts
+build/
+dist/
+keys.json
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+*.tfvars
+
+# Local development
+ministack-data/
+.ministack/

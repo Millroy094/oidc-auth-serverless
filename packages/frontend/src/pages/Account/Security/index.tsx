@@ -2,13 +2,12 @@ import { FC } from 'react';
 
 import Sessions from './Session';
 import MFA from './MFA';
-import { Divider } from '@mui/material';
 
 const Security: FC = () => {
   return (
     <>
       <MFA />
-      <Divider sx={{ m: '30px 10px' }} />
+      <div className="border-t border-slate-200 my-8 mx-2" />
       <Sessions />
     </>
   );

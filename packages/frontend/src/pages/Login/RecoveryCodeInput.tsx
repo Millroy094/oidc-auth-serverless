@@ -1,12 +1,4 @@
 import React, { FC } from 'react';
-
-import {
-  Checkbox,
-  FormControlLabel,
-  Grid,
-  TextField,
-  Typography,
-} from '@mui/material';
 import {
   Control,
   Controller,
@@ -14,6 +6,8 @@ import {
   UseFormRegister,
 } from 'react-hook-form';
 import { ILoginFormInput } from './types';
+import { Input } from '../../components/ui/input';
+import { Checkbox } from '../../components/ui/checkbox';
 
 interface IRecoveryCodeInput {
   control: Control<ILoginFormInput>;
@@ -25,44 +19,40 @@ const RecoveryCodeInput: FC<IRecoveryCodeInput> = React.memo((props) => {
   const { register, control, errors } = props;
 
   return (
-    <Grid item container direction="column" spacing={4}>
-      <Grid container item justifyContent="center">
-        <Typography align="center">
-          Please enter one your recovery codes to proceed.
-        </Typography>
-      </Grid>
-      <Grid container item spacing={1}>
-        <Grid container item>
-          <TextField
+    <div className="space-y-6">
+      <div className="text-center text-sm text-foreground">
+        Please enter one your recovery codes to proceed.
+      </div>
+      <div className="space-y-4">
+        <div>
+          <Input
             {...register('recoveryCode')}
-            label="Recovery Code"
-            variant="outlined"
-            fullWidth
-            error={!!errors.recoveryCode}
-            helperText={errors.recoveryCode ? errors.recoveryCode.message : ''}
+            placeholder="Recovery Code"
+            className={errors.recoveryCode ? 'border-red-500' : ''}
           />
-        </Grid>
-        <Grid container item>
-          <FormControlLabel
-            control={
-              <Controller
-                name="resetMfa"
-                control={control}
-                render={({ field: props }) => (
-                  <Checkbox
-                    color="success"
-                    {...props}
-                    checked={props.value}
-                    onChange={(e) => props.onChange(e.target.checked)}
-                  />
-                )}
+          {errors.recoveryCode && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors.recoveryCode.message}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Controller
+            name="resetMfa"
+            control={control}
+            render={({ field: props }) => (
+              <Checkbox
+                checked={props.value}
+                onCheckedChange={props.onChange}
               />
-            }
-            label="Reset Multi-factor authentication"
+            )}
           />
-        </Grid>
-      </Grid>
-    </Grid>
+          <label className="text-sm text-foreground cursor-pointer">
+            Reset Multi-factor authentication
+          </label>
+        </div>
+      </div>
+    </div>
   );
 });
 

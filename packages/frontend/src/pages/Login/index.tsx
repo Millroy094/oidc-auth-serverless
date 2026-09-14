@@ -1,17 +1,4 @@
 import { FC, useState } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Container,
-  Grid,
-  Link,
-  Typography,
-  styled,
-} from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import schema from './schema';
@@ -34,11 +21,8 @@ import VerifyMFAOtpInput from './VerifyOtpInput';
 import RecoveryCodeInput from './RecoveryCodeInput';
 import Logo from '../../assets/logo.svg';
 import PasskeyAuthentication from './PasskeyAuthentication';
-
-const StyledCard = styled(Card)({
-  borderTop: '2px solid red',
-  marginTop: 15,
-});
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader } from '../../components/ui/card';
 
 type ILoginStage = 'USERNAME' | 'PASSWORD' | 'MFA' | 'RECOVERY_CODE';
 
@@ -139,109 +123,87 @@ const Login: FC = () => {
       ? 'Sign in'
       : 'Next';
   return (
-    <Container maxWidth="sm">
-      <StyledCard sx={{ marginTop: 15 }}>
-        <CardHeader
-          title={
-            <Grid container spacing={2} justifyContent="center">
-              <Grid container item xs={3}>
-                <Box sx={{ height: 100, padding: '1 2', display: 'flex' }}>
-                  <Logo />
-                </Box>
-              </Grid>
-              <Grid
-                xs={9}
-                container
-                item
-                direction="column"
-                justifyContent="flex-end"
-                alignContent="baseline"
-              >
-                <Grid item>
-                  <Typography variant="h5">Log in</Typography>
-                </Grid>
-                {!interactionId && (
-                  <Grid item>
-                    <Box sx={{ display: 'flex', gap: '2px' }}>
-                      <Typography variant="caption">Not registered?</Typography>
-                      <Link
-                        variant="caption"
-                        underline="none"
-                        sx={{ cursor: 'pointer' }}
-                        onClick={() => navigate('/registration')}
-                      >
-                        Click here
-                      </Link>
-                      <Typography variant="caption">to register</Typography>
-                    </Box>
-                  </Grid>
-                )}
-              </Grid>
-            </Grid>
-          }
-        />
-        <CardContent>
-          <Grid container direction="column" spacing={2} sx={{ p: '2' }}>
-            {loginStage === USERNAME_LOGIN_STAGE && (
-              <UsernameInput register={register} errors={errors} />
-            )}
-            {loginStage === PASSWORD_LOGIN_STAGE && (
-              <PasswordInput
-                register={register}
-                errors={errors}
-                email={email}
-                navigateToForgotPassword={navigateToForgotPassword}
-              />
-            )}
-            {loginStage === MFA_LOGIN_STAGE && mfaType !== 'passkey' && (
-              <VerifyMFAOtpInput
-                email={email}
-                control={control}
-                type={mfaType ?? ''}
-              />
-            )}
-            {loginStage === MFA_LOGIN_STAGE && mfaType === 'passkey' && (
-              <PasskeyAuthentication
-                email={email}
-                handleSubmit={handleSubmit(onSubmit)}
-              />
-            )}
-            {loginStage === RECOVERY_CODE_STAGE && (
-              <RecoveryCodeInput
-                register={register}
-                control={control}
-                errors={errors}
-              />
-            )}
-          </Grid>
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <Card className="w-full max-w-sm border-t-2 border-red-600 mt-8">
+        <CardHeader className="p-6">
+          <div className="flex items-end gap-4">
+            <div className="h-24 w-20 flex items-center">
+              <Logo />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-semibold mb-2">Log in</h1>
+              {!interactionId && (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <span>Not registered?</span>
+                  <button
+                    onClick={() => navigate('/registration')}
+                    className="text-sm text-primary hover:underline cursor-pointer"
+                  >
+                    Click here
+                  </button>
+                  <span>to register</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 p-6">
+          {loginStage === USERNAME_LOGIN_STAGE && (
+            <UsernameInput register={register} errors={errors} />
+          )}
+          {loginStage === PASSWORD_LOGIN_STAGE && (
+            <PasswordInput
+              register={register}
+              errors={errors}
+              email={email}
+              navigateToForgotPassword={navigateToForgotPassword}
+            />
+          )}
+          {loginStage === MFA_LOGIN_STAGE && mfaType !== 'passkey' && (
+            <VerifyMFAOtpInput
+              email={email}
+              control={control}
+              type={mfaType ?? ''}
+            />
+          )}
+          {loginStage === MFA_LOGIN_STAGE && mfaType === 'passkey' && (
+            <PasskeyAuthentication
+              email={email}
+              handleSubmit={handleSubmit(onSubmit)}
+            />
+          )}
+          {loginStage === RECOVERY_CODE_STAGE && (
+            <RecoveryCodeInput
+              register={register}
+              control={control}
+              errors={errors}
+            />
+          )}
         </CardContent>
-        <CardActions
-          sx={{
-            display: 'flex',
-            padding: '20px 20px',
-            justifyContent:
-              loginStage === 'USERNAME' ? 'flex-end' : 'space-between',
-          }}
+        <div
+          className={`flex gap-4 p-5 ${
+            loginStage === 'USERNAME' ? 'justify-end' : 'justify-between'
+          }`}
         >
           {loginStage !== USERNAME_LOGIN_STAGE &&
             loginStage !== MFA_LOGIN_STAGE && (
-              <Button color="error" onClick={onReset}>
+              <Button variant="outline" onClick={onReset}>
                 Sign in with a different user
               </Button>
             )}
           {loginStage === MFA_LOGIN_STAGE && (
-            <Button color="error" onClick={loginViaRecoveryCode}>
+            <Button variant="outline" onClick={loginViaRecoveryCode}>
               Having trouble with MFA?
             </Button>
           )}
           {showButton && (
-            <Button variant="contained" color="error" onClick={onNextStep}>
+            <Button onClick={onNextStep}>
               {buttonText}
             </Button>
           )}
-        </CardActions>
-      </StyledCard>
-    </Container>
+        </div>
+      </Card>
+    </div>
   );
 };
 

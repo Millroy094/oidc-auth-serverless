@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import { APP_MFA } from '../../../../../constants';
-import { Button, FormHelperText, Grid, Typography } from '@mui/material';
+import { Button } from '../../../../../components/ui/button';
 import OTPInput from 'react-otp-input';
 import useTimer from '../../../../../hooks/useTimer';
 import sendOtp from '../../../../../api/user/send-otp';
@@ -20,12 +20,17 @@ const OtpResendSection: FC<{ handleResend: () => void; timer: number }> = ({
   handleResend,
   timer,
 }) => (
-  <Grid item container alignItems="center" justifyContent="center">
-    <Typography>Haven't received OTP?</Typography>
-    <Button onClick={handleResend} disabled={timer !== 0}>
+  <div className="flex items-center justify-center gap-2">
+    <p className="text-sm">Haven't received OTP?</p>
+    <Button
+      variant="link"
+      size="sm"
+      onClick={handleResend}
+      disabled={timer !== 0}
+    >
       {timer ? `Click here in ${timer} seconds` : 'Click here'}
     </Button>
-  </Grid>
+  </div>
 );
 
 const VerifyOtpInput: FC<IVerifyOtpInput> = ({
@@ -49,8 +54,8 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = ({
   };
 
   return (
-    <Grid container direction="column" alignItems="center" spacing={4}>
-      <Grid item container direction="column" alignItems="center" spacing={2}>
+    <div className="flex flex-col items-center gap-8">
+      <div className="flex flex-col items-center gap-4">
         {type === APP_MFA ? (
           <OtpMessage type={type} uri={uri} />
         ) : (
@@ -59,28 +64,32 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = ({
             <OtpResendSection handleResend={handleResendOtp} timer={timer} />
           </>
         )}
-      </Grid>
-      <Grid item container direction="column" justifyContent="center">
-        <OTPInput
-          value={value}
-          onChange={onChange}
-          numInputs={6}
-          renderInput={(props) => <input {...props} />}
-          inputType="tel"
-          containerStyle={{
-            display: 'flex',
-            gap: '10px',
-            justifyContent: 'center',
-          }}
-          inputStyle={{ width: '50px', height: '50px', fontSize: '20px' }}
-        />
+      </div>
+      <div className="flex flex-col items-center justify-center gap-4">
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <OTPInput
+            value={value}
+            onChange={onChange}
+            numInputs={6}
+            renderInput={(props) => (
+              <input
+                {...props}
+                className="w-12 h-12 text-center text-xl border border-slate-300 rounded focus:outline-none focus:border-slate-500"
+              />
+            )}
+            inputType="tel"
+            containerStyle={{
+              display: 'flex',
+              gap: '10px',
+              justifyContent: 'center',
+            }}
+          />
+        </div>
         {error && (
-          <Grid container justifyContent="center">
-            <FormHelperText error>OTP must be 6 digits</FormHelperText>
-          </Grid>
+          <p className="text-sm text-red-500">OTP must be 6 digits</p>
         )}
-      </Grid>
-    </Grid>
+      </div>
+    </div>
   );
 };
 

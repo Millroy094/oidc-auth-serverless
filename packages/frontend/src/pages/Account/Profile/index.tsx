@@ -1,16 +1,9 @@
 import { FC, useEffect, useState } from 'react';
-import {
-  Button,
-  Grid,
-  TextField,
-  Box,
-  FormControlLabel,
-  Switch,
-  Typography,
-} from '@mui/material';
-import { Edit, Save } from '@mui/icons-material';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
+import { Edit, Save } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
 import schema from './schema';
 import getUserProfileDetails from '../../../api/user/get-user-profile-details';
 import updateUserProfileDetails from '../../../api/user/update-user-profile-details';
@@ -84,118 +77,125 @@ const Profile: FC = () => {
   };
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        width: '100%',
-        flexDirection: 'column',
-        gap: '10px',
-      }}
-    >
-      <Typography variant="h6">Account Profile</Typography>
+    <div className="flex w-full flex-col gap-2">
+      <h2 className="text-lg font-semibold">Account Profile</h2>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container direction="column" spacing={2}>
-          <Grid item container spacing={2}>
-            <Grid item xs={6}>
-              <TextField
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium mb-1">
+                First Name
+              </label>
+              <Input
                 {...register('firstName')}
-                InputLabelProps={{ shrink: true }}
-                label="First Name"
-                variant="outlined"
-                fullWidth
-                error={!!errors.firstName}
-                helperText={errors.firstName ? errors.firstName.message : ''}
+                id="firstName"
+                placeholder="First Name"
+                disabled={disabled}
               />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
+              {errors.firstName && (
+                <p className="text-sm text-red-500 mt-1">{errors.firstName.message}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium mb-1">
+                Last Name
+              </label>
+              <Input
                 {...register('lastName')}
-                InputLabelProps={{ shrink: true }}
-                label="Last Name"
-                variant="outlined"
-                fullWidth
-                error={!!errors.lastName}
-                helperText={errors.lastName ? errors.lastName.message : ''}
+                id="lastName"
+                placeholder="Last Name"
+                disabled={disabled}
               />
-            </Grid>
-          </Grid>
-          <Grid item>
-            <TextField
+              {errors.lastName && (
+                <p className="text-sm text-red-500 mt-1">{errors.lastName.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium mb-1">
+              Email Address
+            </label>
+            <Input
               {...register('email')}
-              InputLabelProps={{ shrink: true }}
-              label="Email Address"
-              variant="outlined"
-              fullWidth
-              error={!!errors.email}
-              helperText={errors.email ? errors.email.message : ''}
+              id="email"
+              placeholder="Email Address"
               disabled
             />
-          </Grid>
-          <Grid item>
+            {errors.email && (
+              <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
             <Controller
               name="emailVerified"
               control={control}
-              render={({ field: { onChange, value, disabled } }) => (
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={value}
-                      onChange={onChange}
-                      disabled={disabled}
-                    />
-                  }
-                  label="Email verified?"
-                />
+              render={({ field: { onChange, value } }) => (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={value}
+                    onChange={onChange}
+                    disabled={disabled}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">Email verified?</span>
+                </label>
               )}
             />
-          </Grid>
-          <Grid item>
+          </div>
+
+          <div>
+            <label htmlFor="mobile" className="block text-sm font-medium mb-1">
+              Mobile Number
+            </label>
             <Controller
               name="mobile"
               control={control}
-              render={({ field: { onChange, value, disabled } }) => (
-                <MobileNumberInput
-                  InputLabelProps={{ shrink: true }}
-                  label="Mobile Number"
-                  variant="outlined"
-                  fullWidth
-                  onChange={onChange}
-                  value={value ?? ''}
-                  error={!!errors.mobile}
-                  helperText={errors.mobile ? errors.mobile.message : ''}
-                  readOnly={disabled ?? false}
-                />
+              render={({ field: { onChange, value } }) => (
+                <>
+                  <MobileNumberInput
+                    label="Mobile Number"
+                    onChange={onChange}
+                    value={value ?? ''}
+                    error={!!errors.mobile}
+                    helperText={errors.mobile ? errors.mobile.message : ''}
+                    readOnly={disabled ?? false}
+                  />
+                </>
               )}
             />
-          </Grid>
+          </div>
 
-          <Grid item alignSelf="flex-end">
+          <div className="flex justify-end">
             {disabled ? (
               <Button
-                variant="contained"
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   setDisabled(false);
                 }}
-                startIcon={<Edit />}
+                className="gap-2"
               >
+                <Edit className="w-4 h-4" />
                 Edit Profile
               </Button>
             ) : (
               <Button
-                variant="contained"
-                color="success"
                 type="submit"
-                startIcon={<Save />}
+                variant="default"
+                className="gap-2"
               >
+                <Save className="w-4 h-4" />
                 Update Profile
               </Button>
             )}
-          </Grid>
-        </Grid>
+          </div>
+        </div>
       </form>
-    </Box>
+    </div>
   );
 };
 

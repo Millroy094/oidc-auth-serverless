@@ -1,30 +1,24 @@
 import { FC, useEffect, useState } from 'react';
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Divider,
-  Grid,
-  IconButton,
-  Modal,
-  TextField,
-} from '@mui/material';
-import { AddLinkRounded, Business, Delete } from '@mui/icons-material';
+import { Button } from '../../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardFooter } from '../../../../components/ui/card';
+import { Input } from '../../../../components/ui/input';
+import { Plus, Trash2, Building2 } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import schema from './schema';
 import has from 'lodash/has';
 import get from 'lodash/get';
 import { snakeCase, uniqueId } from 'lodash';
-
 import ControlledSelect from '../../../../components/ControlledSelect';
 import createClient from '../../../../api/admin/create-client';
 import getClient from '../../../../api/admin/get-client';
 import updateClient from '../../../../api/admin/update-client';
 import useFeedback from '../../../../hooks/useFeedback';
 import { IClientPopupInput } from './type';
+import {
+  Dialog,
+  DialogContent,
+} from '../../../../components/ui/dialog';
 
 interface ClientPopupProps {
   open: boolean;
@@ -149,172 +143,149 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
   };
 
   return (
-    <Modal open={open} onClose={handleClose}>
-      <Card
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 600,
-          bgcolor: 'background.paper',
-          p: 2,
-        }}
-      >
-        <CardHeader
-          title={
-            <Grid container spacing={1} alignItems="center">
-              <Grid item>
-                <Business color="primary" fontSize="large" />
-              </Grid>
-              <Grid item>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+        <Card className="border-0">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-blue-600" />
+              <h2 className="font-semibold">
                 {`${!clientIdentifier ? 'Create' : 'Update'} Client`}
-              </Grid>
-            </Grid>
-          }
-        />
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent>
-            <Grid container direction="column" spacing={2}>
-              <Grid item>
-                <TextField
-                  {...register('clientId')}
-                  label="Client Id"
-                  variant="outlined"
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  disabled
-                />
-              </Grid>
-              <Grid item>
-                <TextField
-                  {...register('clientName')}
-                  label="Client Name"
-                  variant="outlined"
-                  fullWidth
-                  disabled={!!clientIdentifier}
-                  error={!!errors.clientName}
-                  helperText={
-                    errors.clientName ? errors.clientName.message : ''
-                  }
-                />
-              </Grid>
-              <Grid item container spacing={2}>
-                <Grid item xs={6}>
-                  <ControlledSelect
-                    control={control}
-                    name="grants"
-                    label="Grants"
-                    multiple
-                    options={[
-                      {
-                        label: 'Authorization Code Flow',
-                        value: 'authorization_code',
-                      },
-                      {
-                        label: 'Refresh Token',
-                        value: 'refresh_token',
-                      },
-                      {
-                        label: 'Client Credentials',
-                        value: 'client_credentials',
-                      },
-                    ]}
-                    errors={errors}
+              </h2>
+            </div>
+          </CardHeader>
+
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="clientId" className="block text-sm font-medium mb-1">
+                    Client Id
+                  </label>
+                  <Input
+                    {...register('clientId')}
+                    id="clientId"
+                    disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
-                  <ControlledSelect
-                    control={control}
-                    name="scopes"
-                    label="Scopes"
-                    multiple
-                    options={[
-                      { label: 'Open ID', value: 'openid' },
-                      { label: 'Email', value: 'email' },
-                      { label: 'Phone', value: 'phone' },
-                      { label: 'Profile', value: 'profile' },
-                      { label: 'Offline Access', value: 'offline_access' },
-                    ]}
-                    errors={errors}
+                </div>
+
+                <div>
+                  <label htmlFor="clientName" className="block text-sm font-medium mb-1">
+                    Client Name
+                  </label>
+                  <Input
+                    {...register('clientName')}
+                    id="clientName"
+                    disabled={!!clientIdentifier}
                   />
-                </Grid>
-                <Grid item container direction="column" spacing={2}>
+                  {errors.clientName && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.clientName.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <ControlledSelect
+                      control={control}
+                      name="grants"
+                      label="Grants"
+                      multiple
+                      options={[
+                        {
+                          label: 'Authorization Code Flow',
+                          value: 'authorization_code',
+                        },
+                        {
+                          label: 'Refresh Token',
+                          value: 'refresh_token',
+                        },
+                        {
+                          label: 'Client Credentials',
+                          value: 'client_credentials',
+                        },
+                      ]}
+                      errors={errors}
+                    />
+                  </div>
+                  <div>
+                    <ControlledSelect
+                      control={control}
+                      name="scopes"
+                      label="Scopes"
+                      multiple
+                      options={[
+                        { label: 'Open ID', value: 'openid' },
+                        { label: 'Email', value: 'email' },
+                        { label: 'Phone', value: 'phone' },
+                        { label: 'Profile', value: 'profile' },
+                        { label: 'Offline Access', value: 'offline_access' },
+                      ]}
+                      errors={errors}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
                   {redirectUriFields.map((field, index) => (
-                    <Grid
-                      container
-                      item
-                      key={field.id}
-                      spacing={1}
-                      alignItems="flex-start"
-                    >
-                      <Grid item xs={10}>
-                        <TextField
-                          {...register(`redirectUris.${index}.value`)}
-                          label={`Redirect URI ${index + 1}`}
-                          variant="outlined"
-                          fullWidth
-                          error={has(errors, `redirectUris.${index}.value`)}
-                          helperText={get(
-                            errors,
-                            `redirectUris.${index}.value.message`,
-                            '',
-                          )}
-                        />
-                      </Grid>
-                      <Grid item xs={2}>
-                        <Card
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            p: '10px 0',
-                            gap: '6px',
-                          }}
+                    <div key={field.id} className="flex gap-2 items-start">
+                      <div className="flex-1">
+                        <label
+                          htmlFor={`redirectUri-${index}`}
+                          className="block text-sm font-medium mb-1"
                         >
-                          {isLastRedirectUri(index) && (
-                            <IconButton
-                              size="small"
-                              aria-label="add"
-                              color="success"
-                              onClick={() =>
-                                addRedirectUri({ id: uniqueId(), value: '' })
-                              }
-                            >
-                              <AddLinkRounded />
-                            </IconButton>
-                          )}
-                          {isLastRedirectUri(index) &&
-                            canDeleteRedirectUris && (
-                              <Divider orientation="vertical" flexItem />
-                            )}
-                          {canDeleteRedirectUris && (
-                            <IconButton
-                              size="small"
-                              aria-label="remove"
-                              color="error"
-                              onClick={() => removeRedirectUri(index)}
-                            >
-                              <Delete />
-                            </IconButton>
-                          )}
-                        </Card>
-                      </Grid>
-                    </Grid>
+                          Redirect URI {index + 1}
+                        </label>
+                        <Input
+                          {...register(`redirectUris.${index}.value`)}
+                          id={`redirectUri-${index}`}
+                        />
+                        {has(errors, `redirectUris.${index}.value`) && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {get(errors, `redirectUris.${index}.value.message`, '')}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-1 items-end pb-0">
+                        {isLastRedirectUri(index) && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              addRedirectUri({ id: uniqueId(), value: '' })
+                            }
+                            className="p-2 text-green-600 hover:bg-green-100 rounded"
+                            title="Add"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        )}
+                        {canDeleteRedirectUris && (
+                          <button
+                            type="button"
+                            onClick={() => removeRedirectUri(index)}
+                            className="p-2 text-red-600 hover:bg-red-100 rounded"
+                            title="Remove"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   ))}
-                </Grid>
-              </Grid>
-            </Grid>
-          </CardContent>
-          <CardActions>
-            <Grid item container justifyContent="flex-end">
-              <Button variant="contained" color="success" type="submit">
+                </div>
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex justify-end">
+              <Button type="submit">
                 {`${!clientIdentifier ? 'Create' : 'Update'} Client`}
               </Button>
-            </Grid>
-          </CardActions>
-        </form>
-      </Card>
-    </Modal>
+            </CardFooter>
+          </form>
+        </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
 

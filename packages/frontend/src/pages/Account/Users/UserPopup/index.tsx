@@ -1,18 +1,9 @@
 import { FC, useEffect, useMemo, useState } from 'react';
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  FormControlLabel,
-  Grid,
-  Modal,
-  Switch,
-  TextField,
-} from '@mui/material';
+import { Button } from '../../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardFooter } from '../../../../components/ui/card';
+import { Input } from '../../../../components/ui/input';
 import { format } from 'date-fns';
-import { AccountCircle } from '@mui/icons-material';
+import { UserCircle } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import schema from './schema';
@@ -23,6 +14,10 @@ import { MobileNumberInput } from '../../../../components/MobileNumberInput';
 import ControlledSelect from '../../../../components/ControlledSelect';
 import { IUserPopupInput } from './type';
 import resetMfa from '../../../../api/admin/reset-mfa';
+import {
+  Dialog,
+  DialogContent,
+} from '../../../../components/ui/dialog';
 
 interface UserPopupProps {
   open: boolean;
@@ -66,7 +61,6 @@ const UserPopup: FC<UserPopupProps> = (props) => {
       lastLoggedIn
         ? format(new Date(lastLoggedIn), 'dd/MM/yyyy HH:mm:ss')
         : 'Never',
-
     [lastLoggedIn],
   );
 
@@ -116,7 +110,6 @@ const UserPopup: FC<UserPopupProps> = (props) => {
   const onSubmit = async (data: IUserPopupInput): Promise<void> => {
     try {
       const response = await updateUser(userIdentifier, data);
-
       feedbackAxiosResponse(response, 'Successfully updated user', 'success');
       reset();
       handleClose();
@@ -129,96 +122,97 @@ const UserPopup: FC<UserPopupProps> = (props) => {
   };
 
   return (
-    <Modal open={open} onClose={handleClose}>
-      <Card
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 600,
-          bgcolor: 'background.paper',
-          p: 2,
-        }}
-      >
-        <CardHeader
-          title={
-            <Grid container spacing={1} alignItems="center">
-              <Grid item>
-                <AccountCircle color="primary" fontSize="large" />
-              </Grid>
-              <Grid item>Update user</Grid>
-            </Grid>
-          }
-        />
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+        <Card className="border-0">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <UserCircle className="w-5 h-5 text-blue-600" />
+              <h2 className="font-semibold">Update user</h2>
+            </div>
+          </CardHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent>
-            <Grid container direction="column" spacing={2}>
-              <Grid item>
-                <TextField
-                  {...register('email')}
-                  InputLabelProps={{ shrink: true }}
-                  label="Email Address"
-                  variant="outlined"
-                  fullWidth
-                  helperText={`Last login: ${lastLoggedInAsDate}`}
-                  disabled
-                />
-              </Grid>
-              <Grid item container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    {...register('firstName')}
-                    InputLabelProps={{ shrink: true }}
-                    label="First Name"
-                    variant="outlined"
-                    fullWidth
-                    error={!!errors.firstName}
-                    helperText={
-                      errors.firstName ? errors.firstName.message : ''
-                    }
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium mb-1">
+                    Email Address
+                  </label>
+                  <Input
+                    {...register('email')}
+                    id="email"
+                    disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    {...register('lastName')}
-                    InputLabelProps={{ shrink: true }}
-                    label="Last Name"
-                    variant="outlined"
-                    fullWidth
-                    error={!!errors.lastName}
-                    helperText={errors.lastName ? errors.lastName.message : ''}
-                  />
-                </Grid>
-              </Grid>
-              <Grid container item>
-                <Grid item>
-                  <Controller
-                    name="emailVerified"
-                    control={control}
-                    render={({ field: { onChange, value } }) => (
-                      <FormControlLabel
-                        control={<Switch checked={value} onChange={onChange} />}
-                        label="Email verified?"
-                      />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Last login: {lastLoggedInAsDate}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium mb-1">
+                      First Name
+                    </label>
+                    <Input
+                      {...register('firstName')}
+                      id="firstName"
+                    />
+                    {errors.firstName && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.firstName.message}
+                      </p>
                     )}
-                  />
-                </Grid>
-                <Grid item>
-                  <Controller
-                    name="suspended"
-                    control={control}
-                    render={({ field: { onChange, value } }) => (
-                      <FormControlLabel
-                        control={<Switch checked={value} onChange={onChange} />}
-                        label="Suspended?"
-                      />
+                  </div>
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm font-medium mb-1">
+                      Last Name
+                    </label>
+                    <Input
+                      {...register('lastName')}
+                      id="lastName"
+                    />
+                    {errors.lastName && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.lastName.message}
+                      </p>
                     )}
-                  />
-                </Grid>
-              </Grid>
-              <Grid item>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Controller
+                      name="emailVerified"
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <input
+                          type="checkbox"
+                          checked={value}
+                          onChange={onChange}
+                          className="w-4 h-4"
+                        />
+                      )}
+                    />
+                    <span className="text-sm">Email verified?</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Controller
+                      name="suspended"
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <input
+                          type="checkbox"
+                          checked={value}
+                          onChange={onChange}
+                          className="w-4 h-4"
+                        />
+                      )}
+                    />
+                    <span className="text-sm">Suspended?</span>
+                  </label>
+                </div>
+
                 <ControlledSelect
                   control={control}
                   name="roles"
@@ -232,45 +226,44 @@ const UserPopup: FC<UserPopupProps> = (props) => {
                   ]}
                   errors={errors}
                 />
-              </Grid>
 
-              <Grid item>
-                <Controller
-                  name="mobile"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <MobileNumberInput
-                      InputLabelProps={{ shrink: true }}
-                      label="Mobile Number"
-                      variant="outlined"
-                      fullWidth
-                      onChange={onChange}
-                      value={value ?? ''}
-                      error={!!errors.mobile}
-                      helperText={errors.mobile ? errors.mobile.message : ''}
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
-          </CardContent>
-          <CardActions>
-            <Grid item container justifyContent="flex-end" spacing={1}>
-              <Grid item>
-                <Button variant="contained" color="error" onClick={onResetMFA}>
-                  Reset MFA
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button variant="contained" color="success" type="submit">
-                  Update User
-                </Button>
-              </Grid>
-            </Grid>
-          </CardActions>
-        </form>
-      </Card>
-    </Modal>
+                <div>
+                  <label htmlFor="mobile" className="block text-sm font-medium mb-1">
+                    Mobile Number
+                  </label>
+                  <Controller
+                    name="mobile"
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <MobileNumberInput
+                        label="Mobile Number"
+                        onChange={onChange}
+                        value={value ?? ''}
+                        error={!!errors.mobile}
+                        helperText={errors.mobile ? errors.mobile.message : ''}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onResetMFA}
+              >
+                Reset MFA
+              </Button>
+              <Button type="submit">
+                Update User
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
 

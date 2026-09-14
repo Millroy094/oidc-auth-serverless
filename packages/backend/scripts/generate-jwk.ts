@@ -1,11 +1,19 @@
 import fs from 'fs';
+import path from 'path';
 import jose from 'node-jose';
 
 const keyStore = jose.JWK.createKeyStore();
 
-keyStore.generate('RSA', 2048, { alg: 'RS256', use: 'sig' }).then((result) => {
+const keysPath = path.join(process.cwd(), 'keys.json');
+
+keyStore.generate('RSA', 2048, { alg: 'RS256', use: 'sig' }).then(() => {
   fs.writeFileSync(
-    'keys.json',
-    JSON.stringify(keyStore.toJSON(true), null, '  '),
+    keysPath,
+    JSON.stringify(keyStore.toJSON(true), null, 2),
   );
+  console.log(`✅ JWKS generated at ${keysPath}`);
+  process.exit(0);
+}).catch((error) => {
+  console.error('❌ Failed to generate JWKS:', error);
+  process.exit(1);
 });

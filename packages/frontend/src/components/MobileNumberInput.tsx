@@ -1,13 +1,6 @@
 import 'react-international-phone/style.css';
 
-import {
-  BaseTextFieldProps,
-  InputAdornment,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Input } from './ui/input';
 import React from 'react';
 import {
   CountryIso2,
@@ -16,18 +9,31 @@ import {
   parseCountry,
   usePhoneInput,
 } from 'react-international-phone';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import { Label } from './ui/label';
 
-export interface MUIPhoneProps extends BaseTextFieldProps {
+export interface MobileNumberInputProps {
   value: string;
   readOnly?: boolean;
   onChange: (phone: string) => void;
+  label?: string;
+  error?: boolean;
+  helperText?: string;
 }
 
-export const MobileNumberInput: React.FC<MUIPhoneProps> = ({
+export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
   value,
   onChange,
   readOnly,
-  ...restProps
+  label = 'Phone number',
+  error,
+  helperText,
 }) => {
   const { inputValue, handlePhoneValueChange, inputRef, country, setCountry } =
     usePhoneInput({
@@ -40,78 +46,39 @@ export const MobileNumberInput: React.FC<MUIPhoneProps> = ({
     });
 
   return (
-    <TextField
-      variant="outlined"
-      label="Phone number"
-      color="primary"
-      placeholder="Phone number"
-      value={inputValue}
-      onChange={handlePhoneValueChange}
-      type="tel"
-      inputRef={inputRef}
-      InputProps={{
-        readOnly,
-        startAdornment: (
-          <InputAdornment
-            position="start"
-            style={{ marginRight: '2px', marginLeft: '-8px' }}
-          >
-            <Select
-              readOnly={readOnly}
-              MenuProps={{
-                style: {
-                  height: '300px',
-                  width: '360px',
-                  top: '10px',
-                  left: '-34px',
-                },
-                transformOrigin: {
-                  vertical: 'top',
-                  horizontal: 'left',
-                },
-              }}
-              sx={{
-                width: 'max-content',
-                fieldset: {
-                  display: 'none',
-                },
-                '&.Mui-focused:has(div[aria-expanded="false"])': {
-                  fieldset: {
-                    display: 'block',
-                  },
-                },
-                '.MuiSelect-select': {
-                  padding: '8px',
-                  paddingRight: '24px !important',
-                },
-                svg: {
-                  right: 0,
-                },
-              }}
-              value={country.iso2}
-              onChange={(e) => setCountry(e.target.value as CountryIso2)}
-              renderValue={(value) => (
-                <FlagImage iso2={value} style={{ display: 'flex' }} />
-              )}
-            >
-              {defaultCountries.map((c) => {
-                const country = parseCountry(c);
-                return (
-                  <MenuItem key={country.iso2} value={country.iso2}>
-                    <FlagImage
-                      iso2={country.iso2}
-                      style={{ marginRight: '8px' }}
-                    />
-                    <Typography marginRight="8px">{country.name}</Typography>
-                    <Typography color="gray">+{country.dialCode}</Typography>
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </InputAdornment>
-        ),
-      }}
-      {...restProps}
-    />
+    <div className="w-full space-y-2">
+      <Label htmlFor="phone">{label}</Label>
+      <div className="flex gap-2">
+        <Select value={country.iso2} onValueChange={(value) => setCountry(value as CountryIso2)} disabled={readOnly}>
+          <SelectTrigger className="w-24">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {defaultCountries.map((c) => {
+              const countryData = parseCountry(c);
+              return (
+                <SelectItem key={countryData.iso2} value={countryData.iso2}>
+                  <div className="flex items-center gap-2">
+                    <FlagImage iso2={countryData.iso2} />
+                    <span>+{countryData.dialCode}</span>
+                  </div>
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+        <Input
+          id="phone"
+          type="tel"
+          placeholder="Phone number"
+          value={inputValue}
+          onChange={handlePhoneValueChange}
+          ref={inputRef}
+          readOnly={readOnly}
+          className={error ? 'border-destructive' : ''}
+        />
+      </div>
+      {helperText && <p className={`text-sm ${error ? 'text-destructive' : 'text-muted-foreground'}`}>{helperText}</p>}
+    </div>
   );
 };

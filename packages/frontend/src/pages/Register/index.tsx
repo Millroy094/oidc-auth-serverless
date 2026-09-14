@@ -1,16 +1,4 @@
 import React, { FC } from 'react';
-import {
-  Link,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Container,
-  Grid,
-  TextField,
-  Typography,
-  styled,
-} from '@mui/material';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
 import { omit } from 'lodash';
@@ -22,10 +10,9 @@ import { useNavigate } from 'react-router-dom';
 import useFeedback from '../../hooks/useFeedback';
 import { MobileNumberInput } from '../../components/MobileNumberInput';
 import { IRegisterFormInput } from './types';
-
-const StyledCard = styled(Card)({
-  borderTop: '2px solid red',
-});
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 
 const Register: FC = () => {
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
@@ -80,113 +67,113 @@ const Register: FC = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <StyledCard sx={{ marginTop: 15 }}>
-        <CardHeader
-          title="Register a new user"
-          titleTypographyProps={{ align: 'center' }}
-          subheader={
-            <>
-              <Typography variant="caption">Already registered?</Typography>
-              <Link
-                variant="caption"
-                underline="none"
-                sx={{ cursor: 'pointer' }}
-                onClick={() => navigate('/login')}
-              >
-                Click here
-              </Link>
-              <Typography variant="caption">to login</Typography>
-            </>
-          }
-          subheaderTypographyProps={{
-            display: 'flex',
-            gap: '4px',
-            justifyContent: 'center',
-          }}
-        />
+    <div className="flex items-center justify-center min-h-screen px-4">
+      <Card className="w-full max-w-sm border-t-2 border-t-destructive">
+        <CardHeader className="text-center">
+          <CardTitle>Register a new user</CardTitle>
+          <CardDescription className="flex items-center justify-center gap-1 mt-2">
+            <span>Already registered?</span>
+            <button
+              onClick={() => navigate('/login')}
+              className="text-sm text-primary hover:underline cursor-pointer"
+            >
+              Click here
+            </button>
+            <span>to login</span>
+          </CardDescription>
+        </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Grid container direction="column" spacing={2} sx={{ p: 2 }}>
-              <Grid item container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    {...register('firstName')}
-                    label="First Name"
-                    variant="outlined"
-                    fullWidth
-                    error={!!errors.firstName}
-                    helperText={
-                      errors.firstName ? errors.firstName.message : ''
-                    }
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="firstName" className="text-sm font-medium">
+                  First Name <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  {...register('firstName')}
+                  id="firstName"
+                  className={errors.firstName ? 'border-destructive' : ''}
+                />
+                {errors.firstName && (
+                  <p className="text-sm text-destructive">{errors.firstName.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="lastName" className="text-sm font-medium">
+                  Last Name <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  {...register('lastName')}
+                  id="lastName"
+                  className={errors.lastName ? 'border-destructive' : ''}
+                />
+                {errors.lastName && (
+                  <p className="text-sm text-destructive">{errors.lastName.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">
+                Email Address <span className="text-destructive">*</span>
+              </label>
+              <Input
+                {...register('email')}
+                id="email"
+                type="email"
+                className={errors.email ? 'border-destructive' : ''}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Controller
+                name="mobile"
+                control={control}
+                render={({ field: { onChange, value, disabled } }) => (
+                  <MobileNumberInput
+                    label="Mobile Number"
+                    onChange={onChange}
+                    value={value ?? ''}
+                    error={!!errors.mobile}
+                    helperText={errors.mobile ? errors.mobile.message : ''}
+                    readOnly={disabled ?? false}
                   />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    {...register('lastName')}
-                    label="Last Name"
-                    variant="outlined"
-                    fullWidth
-                    error={!!errors.lastName}
-                    helperText={errors.lastName ? errors.lastName.message : ''}
-                  />
-                </Grid>
-              </Grid>
-              <Grid item>
-                <TextField
-                  {...register('email')}
-                  label="Email Address"
-                  variant="outlined"
-                  fullWidth
-                  error={!!errors.email}
-                  helperText={errors.email ? errors.email.message : ''}
-                />
-              </Grid>
-              <Grid item>
-                <Controller
-                  name="mobile"
-                  control={control}
-                  render={({ field: { onChange, value, disabled } }) => (
-                    <MobileNumberInput
-                      InputLabelProps={{ shrink: true }}
-                      label="Mobile Number"
-                      variant="outlined"
-                      fullWidth
-                      onChange={onChange}
-                      value={value ?? ''}
-                      error={!!errors.mobile}
-                      helperText={errors.mobile ? errors.mobile.message : ''}
-                      readOnly={disabled ?? false}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item>
-                <PasswordField
-                  name="password"
-                  label="Password"
-                  onFocus={handleFocus}
-                  onBlur={handleClose}
-                  register={register}
-                  error={!!errors.password}
-                />
-              </Grid>
-              <Grid item>
-                <PasswordField
-                  name="confirmPassword"
-                  label="Confirm Password"
-                  onFocus={handleFocus}
-                  onBlur={handleClose}
-                  register={register}
-                  error={!!errors.confirmPassword}
-                />
-              </Grid>
-              <Grid item alignSelf="flex-end">
-                <Button variant="contained" color="error" type="submit">
-                  Register
-                </Button>
-              </Grid>
-            </Grid>
+                )}
+              />
+            </div>
+
+            <div>
+              <PasswordField
+                name="password"
+                label="Password"
+                onFocus={handleFocus}
+                onBlur={handleClose}
+                register={register}
+                error={!!errors.password}
+                helperText={errors.password?.message}
+              />
+            </div>
+
+            <div>
+              <PasswordField
+                name="confirmPassword"
+                label="Confirm Password"
+                onFocus={handleFocus}
+                onBlur={handleClose}
+                register={register}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword?.message}
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <Button variant="destructive" type="submit">
+                Register
+              </Button>
+            </div>
           </form>
           <PasswordPopover
             open={open}
@@ -195,8 +182,8 @@ const Register: FC = () => {
             dirtyFields={dirtyFields}
           />
         </CardContent>
-      </StyledCard>
-    </Container>
+      </Card>
+    </div>
   );
 };
 

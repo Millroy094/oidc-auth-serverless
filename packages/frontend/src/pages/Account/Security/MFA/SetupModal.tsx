@@ -1,13 +1,6 @@
 import { FC, useState } from 'react';
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Grid,
-  Modal,
-} from '@mui/material';
+import { Button } from '../../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardFooter } from '../../../../components/ui/card';
 import setupMFA from '../../../../api/user/setup-mfa';
 import SubscriberInput from './SubscriberInput';
 import {
@@ -22,7 +15,11 @@ import isPhoneValid from '../../../../utils/is-phone-valid';
 import VerifyOtpInput from './VerifyOtpInput';
 import verifyMFA from '../../../../api/user/verify-mfa';
 import useFeedback from '../../../../hooks/useFeedback';
-import { KeyboardDoubleArrowDown } from '@mui/icons-material';
+import { ChevronDown } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+} from '../../../../components/ui/dialog';
 
 interface SetupModalProps {
   open: boolean;
@@ -100,22 +97,14 @@ const SetupModal: FC<SetupModalProps> = (props) => {
   };
 
   return (
-    <Modal open={open} onClose={onCloseModal}>
-      <Card
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 600,
-          bgcolor: 'background.paper',
-          p: 2,
-        }}
-      >
-        <CardHeader title={`${type.toUpperCase()} MFA Setup`} />
-        <CardContent>
-          <Grid container justifyItems="center" direction="column" spacing={2}>
-            <Grid item>
+    <Dialog open={open} onOpenChange={onCloseModal}>
+      <DialogContent className="max-w-md p-0 overflow-hidden">
+        <Card className="border-0">
+          <CardHeader>
+            <h2 className="font-semibold">{`${type.toUpperCase()} MFA Setup`}</h2>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-4 justify-center">
               <SubscriberInput
                 value={subscriber}
                 type={type}
@@ -123,13 +112,11 @@ const SetupModal: FC<SetupModalProps> = (props) => {
                 error={subscriberError}
                 disabled={stage !== MFA_SETUP}
               />
-            </Grid>
-            {stage === MFA_VERIFY && (
-              <>
-                <Grid container item justifyContent="center">
-                  <KeyboardDoubleArrowDown fontSize="large" color="primary" />
-                </Grid>
-                <Grid item>
+              {stage === MFA_VERIFY && (
+                <>
+                  <div className="flex justify-center">
+                    <ChevronDown className="w-6 h-6 text-slate-600" />
+                  </div>
                   <VerifyOtpInput
                     value={otp}
                     onChange={setOtp}
@@ -137,28 +124,28 @@ const SetupModal: FC<SetupModalProps> = (props) => {
                     type={type}
                     error={otpError}
                   />
-                </Grid>
-              </>
+                </>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Button variant="outline" onClick={onCloseModal}>
+              Cancel
+            </Button>
+            {stage === MFA_SETUP && (
+              <Button onClick={initiateMFA}>
+                Setup
+              </Button>
             )}
-          </Grid>
-        </CardContent>
-        <CardActions sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button variant="contained" onClick={onCloseModal} color="error">
-            Cancel
-          </Button>
-          {stage === MFA_SETUP && (
-            <Button variant="contained" onClick={initiateMFA}>
-              Setup
-            </Button>
-          )}
-          {stage === MFA_VERIFY && (
-            <Button variant="contained" onClick={verifyOtp} color="success">
-              Verify
-            </Button>
-          )}
-        </CardActions>
-      </Card>
-    </Modal>
+            {stage === MFA_VERIFY && (
+              <Button onClick={verifyOtp}>
+                Verify
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
 

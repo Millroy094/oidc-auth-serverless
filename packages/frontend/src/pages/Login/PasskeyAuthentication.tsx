@@ -1,4 +1,4 @@
-import { Button, Grid, Typography } from '@mui/material';
+import { Button } from '../../components/ui/button';
 import { FC, useEffect, useState } from 'react';
 import { ThreeDots } from 'react-loader-spinner';
 import loginWithPasskey from '../../api/user/login-with-passkey';
@@ -57,14 +57,12 @@ const PasskeyAuthentication: FC<PasskeyAuthenticationProps> = (props) => {
   }, []);
 
   return (
-    <Grid container direction="column" alignItems="center" spacing={2}>
-      <Grid item>
-        <Typography>
-          Please follow the instruction shown on screen to login
-        </Typography>
-      </Grid>
+    <div className="flex flex-col items-center gap-4">
+      <div className="text-center text-sm text-foreground">
+        Please follow the instruction shown on screen to login
+      </div>
       {loading && (
-        <Grid item>
+        <div>
           <ThreeDots
             visible={true}
             height="40"
@@ -73,16 +71,16 @@ const PasskeyAuthentication: FC<PasskeyAuthenticationProps> = (props) => {
             radius="9"
             ariaLabel="three-dots-loading"
           />
-        </Grid>
+        </div>
       )}
       {error && (
-        <Grid item>
-          <Button variant="contained" color="error" onClick={tryAgain}>
+        <div>
+          <Button onClick={tryAgain}>
             Try again
           </Button>
-        </Grid>
+        </div>
       )}
-    </Grid>
+    </div>
   );
 };
 
