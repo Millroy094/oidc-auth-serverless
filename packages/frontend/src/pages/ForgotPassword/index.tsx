@@ -13,6 +13,7 @@ import { IForgotPasswordFormInput } from './types';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
+import AuthCardLayout from '../../components/AuthCardLayout';
 
 const ForgotPassword = () => {
   const [searchParams] = useSearchParams();
@@ -93,13 +94,13 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <AuthCardLayout>
       <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm">
-        <Card className="border-t-2 border-red-600 mt-8">
-          <CardHeader className="text-center p-6">
-            <h1 className="text-2xl font-semibold">Forgot Password</h1>
+        <Card className="border-t-4 border-t-primary shadow-xl shadow-slate-200/60 dark:shadow-none">
+          <CardHeader className="text-center p-6 pb-4 sm:p-8 sm:pb-4">
+            <h1 className="text-2xl font-semibold tracking-tight">Forgot Password</h1>
           </CardHeader>
-          <CardContent className="space-y-4 p-6">
+          <CardContent className="space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
             {!emailSent && (
               <div>
                 <Input
@@ -158,21 +159,22 @@ const ForgotPassword = () => {
               dirtyFields={dirtyFields}
             />
           </CardContent>
-          <div className="flex justify-between gap-4 p-5">
-            <Button 
-              type="button" 
-              variant="outline" 
+          <div className="flex flex-col-reverse gap-3 px-6 pb-6 sm:flex-row sm:justify-between sm:gap-4 sm:px-8 sm:pb-8">
+            <Button
+              type="button"
+              variant="outline"
               onClick={navigateToLogin}
+              className="w-full sm:w-auto"
             >
               Return to login
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               {`${emailSent ? 'Change' : 'Reset'} Password`}
             </Button>
           </div>
         </Card>
       </form>
-    </div>
+    </AuthCardLayout>
   );
 };
 

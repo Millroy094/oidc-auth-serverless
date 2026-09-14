@@ -5,11 +5,10 @@ import MFA from './MFA';
 
 const Security: FC = () => {
   return (
-    <>
+    <div className="space-y-6">
       <MFA />
-      <div className="border-t border-slate-200 my-8 mx-2" />
       <Sessions />
-    </>
+    </div>
   );
 };
 

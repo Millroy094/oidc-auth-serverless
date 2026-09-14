@@ -2,6 +2,14 @@ resource "aws_cloudfront_origin_access_identity" "s3_oai" {
   comment = "OAI for ${var.distribution_name}"
 }
 
+resource "aws_cloudfront_function" "spa_routing" {
+  name    = "${var.distribution_name}-spa-routing"
+  runtime = "cloudfront-js-2.0"
+  comment = "Rewrites client-side routes to /index.html without masking API Gateway error responses"
+  publish = true
+  code    = file("${path.module}/spa-routing.js")
+}
+
 resource "aws_cloudfront_distribution" "main" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -41,6 +49,11 @@ resource "aws_cloudfront_distribution" "main" {
       cookies {
         forward = "none"
       }
+    }
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.spa_routing.arn
     }
 
     viewer_protocol_policy = "redirect-to-https"
@@ -90,21 +103,6 @@ resource "aws_cloudfront_distribution" "main" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
-  }
-
-  # Custom error responses
-  custom_error_response {
-    error_code    = 404
-    response_code = 200
-    response_page_path = "/index.html"
-    error_caching_min_ttl = 300
-  }
-
-  custom_error_response {
-    error_code    = 403
-    response_code = 200
-    response_page_path = "/index.html"
-    error_caching_min_ttl = 300
   }
 
   restrictions {

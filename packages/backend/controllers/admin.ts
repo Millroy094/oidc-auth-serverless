@@ -118,6 +118,22 @@ class AdminController {
   public static async deleteUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
+      if (id === req.user?.userId) {
+        res
+          .status(HTTP_STATUSES.forbidden)
+          .json({ error: 'You cannot delete your own account' });
+        return;
+      }
+
+      const targetUser = await UserService.getUserById(id);
+      if (targetUser?.roles?.includes('admin')) {
+        res
+          .status(HTTP_STATUSES.forbidden)
+          .json({ error: 'Admin accounts cannot be deleted' });
+        return;
+      }
+
       await UserService.deleteUser(id);
       res
         .status(HTTP_STATUSES.ok)
@@ -146,6 +162,21 @@ class AdminController {
   public static async updateUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
+      if (id === req.user?.userId) {
+        res
+          .status(HTTP_STATUSES.forbidden)
+          .json({ error: 'You cannot edit your own account from here' });
+        return;
+      }
+
+      const targetUser = await UserService.getUserById(id);
+      if (targetUser?.roles?.includes('admin')) {
+        res
+          .status(HTTP_STATUSES.forbidden)
+          .json({ error: 'Admin accounts cannot be edited' });
+        return;
+      }
 
       if (!req.body.suspended) {
         req.body.failedLogins = 0;

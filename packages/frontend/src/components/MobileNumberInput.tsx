@@ -48,12 +48,12 @@ export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
   return (
     <div className="w-full space-y-2">
       <Label htmlFor="phone">{label}</Label>
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Select value={country.iso2} onValueChange={(value) => setCountry(value as CountryIso2)} disabled={readOnly}>
-          <SelectTrigger className="w-24">
+          <SelectTrigger className="w-full gap-1 px-2 sm:w-[7.5rem] sm:shrink-0">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="min-w-[12rem]">
             {defaultCountries.map((c) => {
               const countryData = parseCountry(c);
               return (

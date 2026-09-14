@@ -18,6 +18,11 @@ terraform.tfstate
 terraform.tfstate.*
 *.tfvars
 
+# Terraform-generated placeholder Lambda deployment package
+infra/modules/lambda/lambda_placeholder.zip
+
 # Local development
 ministack-data/
 .ministack/
+
+patches/

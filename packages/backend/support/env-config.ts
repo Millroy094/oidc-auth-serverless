@@ -1,7 +1,12 @@
-import dotenv from 'dotenv';
 import convict from 'convict';
+import { loadSsmParameters } from './ssm-config.ts';
 
-dotenv.config();
+// Fetch secrets from SSM Parameter Store before building the config schema.
+// This must complete before any module (e.g. utils/encryption.ts) reads
+// config values at import time.
+if (process.env.SSM_PARAMETER_PREFIX) {
+  await loadSsmParameters(process.env.SSM_PARAMETER_PREFIX);
+}
 
 const config = convict({
   env: {
@@ -10,6 +15,12 @@ const config = convict({
     default: 'development',
     env: 'NODE_ENV',
   },
+  deploymentEnvironment: {
+    doc: 'The deployment target (e.g. local Ministack vs a real AWS environment). Distinct from `env`/NODE_ENV, which is always "production" in Lambda for Express performance best-practices regardless of deployment target.',
+    format: ['local', 'development', 'staging', 'production'],
+    default: 'production',
+    env: 'DEPLOYMENT_ENVIRONMENT',
+  },
   oidc: {
     cookieSecrets: {
       doc: 'Cookie secrets for OIDC configuration.',
@@ -17,12 +28,6 @@ const config = convict({
       default: [],
       env: 'COOKIE_SECRETS',
     },
-  },
-  db: {
-    doc: 'DynamoDB Database endpoint',
-    format: String,
-    default: 'http://localhost:8000',
-    env: 'DYNAMO_DB_ENDPOINT',
   },
   authentication: {
     accessTokenSecret: {
@@ -84,49 +89,12 @@ const config = convict({
     },
   },
   email: {
-    service: {
-      doc: 'Email Service name',
+    fromAddress: {
+      doc: 'SES verified "from" email address',
       default: '',
       nullable: false,
       format: String,
-      env: 'EMAIL_SERVICE',
-    },
-    address: {
-      doc: 'Email Address to send emails from',
-      default: '',
-      nullable: false,
-      format: String,
-      env: 'EMAIL_ADDRESS',
-    },
-    password: {
-      doc: 'Email Password to send emails',
-      default: '',
-      nullable: false,
-      format: String,
-      env: 'EMAIL_PASSWORD',
-    },
-  },
-  aws: {
-    accessKey: {
-      doc: 'AWS access key',
-      default: '',
-      nullable: false,
-      format: String,
-      env: 'AWS_ACCESS_KEY',
-    },
-    secretKey: {
-      doc: 'AWS secret key',
-      default: '',
-      nullable: false,
-      format: String,
-      env: 'AWS_SECRET_KEY',
-    },
-    region: {
-      doc: 'AWS region',
-      default: '',
-      nullable: false,
-      format: String,
-      env: 'AWS_REGION',
+      env: 'EMAIL_FROM_ADDRESS',
     },
   },
 });

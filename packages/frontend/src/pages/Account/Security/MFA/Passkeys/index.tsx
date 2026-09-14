@@ -1,7 +1,7 @@
 import {
   Button,
 } from '../../../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter } from '../../../../../components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter, CardTitle, CardDescription } from '../../../../../components/ui/card';
 import { startRegistration } from '@simplewebauthn/browser';
 import registerPasskey from '../../../../../api/user/register-passkey';
 import verifyPasskeyRegistration from '../../../../../api/user/verify-passkey-registration';
@@ -10,7 +10,7 @@ import checkPasskeyAlreadyExists from '../../../../../api/user/check-passkey-exi
 import { FC, useEffect, useState } from 'react';
 import useFeedback from '../../../../../hooks/useFeedback';
 import getPasskeys from '../../../../../api/user/get-passkeys';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Fingerprint } from 'lucide-react';
 import deletePasskey from '../../../../../api/user/delete-passkey';
 
 function getDetailedDeviceInfo(): string {
@@ -135,28 +135,36 @@ const Passkeys: FC<PasskeysProps> = (props) => {
   }, []);
 
   return (
-    <Card>
-      <CardHeader>
-        <h2 className="text-lg font-semibold">Passkeys</h2>
+    <Card className="border-t-4 border-t-primary shadow-sm">
+      <CardHeader className="flex flex-row items-start gap-3 space-y-0">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Fingerprint className="h-5 w-5" />
+        </div>
+        <div>
+          <CardTitle className="text-lg">Passkeys</CardTitle>
+          <CardDescription>
+            Passkeys are webauthn credentials that validate your identity using
+            touch, facial recognition, a device password, or a PIN. They can be
+            used as a password replacement or as a 2FA method.
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-slate-700 mb-4">
-          Passkeys are webauthn credentials that validate your identity using
-          touch, facial recognition, a device password, or a PIN. They can be
-          used as a password replacement or as a 2FA method.
-        </p>
         <div className="space-y-2">
+          {devices.length === 0 && (
+            <p className="text-sm text-muted-foreground">No passkeys registered yet.</p>
+          )}
           {devices.map((device) => (
             <div
               key={device}
-              className="flex items-center justify-between p-2.5 border border-slate-200 rounded"
+              className="flex items-center justify-between p-2.5 border rounded-lg bg-muted/30"
             >
               <p className="text-sm">{device}</p>
               <button
                 onClick={() =>
                   handleDeletePasskey(auth?.user?.userId ?? '', device)
                 }
-                className="p-1 text-red-600 hover:bg-red-100 rounded"
+                className="p-1 text-destructive hover:bg-destructive/10 rounded"
                 title="Delete"
               >
                 <Trash2 className="w-4 h-4" />

@@ -4,6 +4,7 @@ import authorizeInteraction from '../../api/oidc/authorize-interaction';
 import useFeedback from '../../hooks/useFeedback';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import AuthCardLayout from '../../components/AuthCardLayout';
 
 const Confirm: FC = () => {
   const { interactionId } = useParams();
@@ -23,32 +24,24 @@ const Confirm: FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-sm border-t-2 border-red-600 mt-8">
-        <CardHeader className="p-6">
-          <h1 className="text-2xl font-semibold">Authorize</h1>
+    <AuthCardLayout>
+      <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60 dark:shadow-none">
+        <CardHeader className="p-6 pb-4 sm:p-8 sm:pb-4">
+          <h1 className="text-2xl font-semibold tracking-tight">Authorize</h1>
         </CardHeader>
-        <CardContent className="space-y-4 p-6">
+        <CardContent className="space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
           <p className="text-foreground">
             Can you confirm you want to authorize this request?
           </p>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => onAuthorize(true)}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              Yes
-            </Button>
-            <Button
-              onClick={() => onAuthorize(false)}
-              className="bg-red-600 hover:bg-red-700"
-            >
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button onClick={() => onAuthorize(true)} className="w-full sm:w-auto">Yes</Button>
+            <Button variant="destructive" onClick={() => onAuthorize(false)} className="w-full sm:w-auto">
               No
             </Button>
           </div>
         </CardContent>
       </Card>
-    </div>
+    </AuthCardLayout>
   );
 };
 

@@ -4,12 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "pnpm --stream -r test:unit",
     "start:frontend": "pnpm --stream -r dev",
     "lint": "eslint '**/*.{js,jsx,ts,tsx}'",
     "format": "prettier --write '**/*.{js,jsx,ts,tsx}'",
-    "test:e2e": "cd ./tests && npx playwright test",
-    "test:e2e:ui": "cd ./tests && npx playwright test --ui",
     "prepare": "husky install"
   },
   "lint-staged": {

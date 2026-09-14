@@ -13,6 +13,7 @@ import { IRegisterFormInput } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
+import AuthCardLayout from '../../components/AuthCardLayout';
 
 const Register: FC = () => {
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
@@ -67,24 +68,23 @@ const Register: FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <Card className="w-full max-w-sm border-t-2 border-t-destructive">
-        <CardHeader className="text-center">
-          <CardTitle>Register a new user</CardTitle>
-          <CardDescription className="flex items-center justify-center gap-1 mt-2">
-            <span>Already registered?</span>
+    <AuthCardLayout>
+      <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60 dark:shadow-none">
+        <CardHeader className="text-center gap-1.5 p-6 pb-4 sm:p-8 sm:pb-4">
+          <CardTitle>Create an account</CardTitle>
+          <CardDescription>
+            Already registered?{' '}
             <button
               onClick={() => navigate('/login')}
-              className="text-sm text-primary hover:underline cursor-pointer"
+              className="font-medium text-primary underline-offset-4 hover:underline cursor-pointer"
             >
-              Click here
+              Sign in
             </button>
-            <span>to login</span>
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6 pb-6 sm:px-8 sm:pb-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="firstName" className="text-sm font-medium">
                   First Name <span className="text-destructive">*</span>
@@ -170,7 +170,7 @@ const Register: FC = () => {
             </div>
 
             <div className="flex justify-end">
-              <Button variant="destructive" type="submit">
+              <Button type="submit">
                 Register
               </Button>
             </div>
@@ -183,7 +183,7 @@ const Register: FC = () => {
           />
         </CardContent>
       </Card>
-    </div>
+    </AuthCardLayout>
   );
 };
 

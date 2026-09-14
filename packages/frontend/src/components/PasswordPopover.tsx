@@ -53,13 +53,29 @@ const PasswordPopover: FC<PasswordPopoverProps> = (props) => {
     return null;
   }
 
+  // On narrow screens there's no room to the right of the field, so stack
+  // the popover below it instead of floating it off the edge of the viewport.
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const rect = anchorEl?.getBoundingClientRect();
+  const style = isMobile
+    ? {
+        position: 'fixed' as const,
+        left: rect?.left ?? 0,
+        top: (rect?.bottom ?? 0) + 8,
+        width: rect?.width,
+        maxWidth: 'calc(100vw - 2rem)',
+      }
+    : {
+        position: 'fixed' as const,
+        left: Math.min(
+          (rect?.right ?? 0) + 10,
+          window.innerWidth - 272,
+        ),
+        top: (rect?.top ?? 0) + 20,
+      };
+
   return (
-    <div className="fixed z-50 rounded-lg border bg-white shadow-lg p-3" 
-      style={{
-        position: 'fixed',
-        left: anchorEl ? anchorEl.getBoundingClientRect().right + 10 : 0,
-        top: anchorEl ? anchorEl.getBoundingClientRect().top + 20 : 0,
-      }}>
+    <div className="fixed z-50 rounded-lg border bg-popover text-popover-foreground shadow-lg p-3" style={style}>
       <div className="flex flex-col gap-2">
         {fieldValidationMessages.map((fieldValidationMessage) => (
           <div key={fieldValidationMessage} className="flex items-center gap-2">

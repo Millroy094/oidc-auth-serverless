@@ -7,7 +7,7 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=s3,lambda,apigatewayv2,iam,sqs,sns,dynamodb,dynamodbstreams,logs,ssm,secretsmanager
+      - SERVICES=s3,lambda,apigatewayv2,iam,sqs,sns,ses,dynamodb,dynamodbstreams,logs,ssm,secretsmanager
       - LOG_LEVEL=INFO
       - AWS_DEFAULT_REGION=us-east-1
       - LAMBDA_EXECUTOR=docker

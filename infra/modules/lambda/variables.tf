@@ -26,9 +26,9 @@ variable "memory_size" {
   description = "Lambda memory in MB"
 }
 
-variable "dynamodb_table_name" {
-  type        = string
-  description = "DynamoDB table name"
+variable "dynamodb_table_arns" {
+  type        = list(string)
+  description = "DynamoDB table ARNs the Lambda needs access to"
 }
 
 variable "sns_topic_arn" {
@@ -36,14 +36,13 @@ variable "sns_topic_arn" {
   description = "SNS topic ARN for notifications"
 }
 
+variable "ssm_parameter_prefix" {
+  type        = string
+  description = "SSM Parameter Store path prefix the Lambda can read (e.g. /oidc-auth/local/)"
+}
+
 variable "environment_variables" {
   type        = map(string)
   default     = {}
   description = "Environment variables for Lambda"
-}
-
-variable "layers" {
-  type        = list(string)
-  default     = []
-  description = "Lambda layer ARNs"
 }

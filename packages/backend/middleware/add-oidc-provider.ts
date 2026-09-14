@@ -8,7 +8,13 @@ const addOIDCProvider = async (
   next: NextFunction,
 ) => {
   const configuration = await getConfiguration();
-  const provider = new Provider('https://localhost:3000', configuration);
+  // Derive the issuer from the incoming request rather than hardcoding a
+  // host, since the backend runs behind different origins per environment
+  // (Ministack API Gateway locally, CloudFront/API Gateway in production).
+  // `trust proxy` is enabled in app.ts so req.protocol/req.get('host')
+  // correctly reflect the original client-facing scheme/host.
+  const issuer = `${req.protocol}://${req.get('host')}`;
+  const provider = new Provider(issuer, configuration);
   req.oidcProvider = provider;
   next();
 };

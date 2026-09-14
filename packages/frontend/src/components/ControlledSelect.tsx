@@ -8,6 +8,7 @@ import {
 import { Label } from './ui/label';
 import { FC } from 'react';
 import { Control, Controller, FieldErrors } from 'react-hook-form';
+import MultiSelect from './MultiSelect';
 
 type ControlledSelectOption = {
   label: string;
@@ -24,15 +25,24 @@ interface ControlledSelectProps {
 }
 
 const ControlledSelect: FC<ControlledSelectProps> = (props) => {
-  const { name, control, label, options, errors } = props;
+  const { name, control, label, options, errors, multiple } = props;
   const id = label.toLocaleLowerCase();
 
   return (
     <div className="w-full space-y-2">
       <Label htmlFor={id}>{label}</Label>
       <Controller
-        render={({ field }) => (
-          <>
+        render={({ field }) =>
+          multiple ? (
+            <MultiSelect
+              id={id}
+              options={options}
+              value={field.value ?? []}
+              onChange={field.onChange}
+              placeholder={`Select ${label.toLowerCase()}`}
+              invalid={!!errors[name]}
+            />
+          ) : (
             <Select value={field.value} onValueChange={field.onChange}>
               <SelectTrigger id={id} className={errors[name] ? 'border-destructive' : ''}>
                 <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
@@ -45,8 +55,8 @@ const ControlledSelect: FC<ControlledSelectProps> = (props) => {
                 ))}
               </SelectContent>
             </Select>
-          </>
-        )}
+          )
+        }
         name={name}
         control={control}
       />

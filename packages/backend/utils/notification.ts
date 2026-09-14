@@ -1,23 +1,15 @@
-import nodemailer from 'nodemailer';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import logger from './logger.ts';
 import config from '../support/env-config.ts';
 
-const transporter = nodemailer.createTransport({
-  service: config.get('email.service'),
-  auth: {
-    user: config.get('email.address'),
-    pass: config.get('email.password'),
-  },
-});
+// Region and credentials are resolved automatically by the AWS SDK from the
+// standard AWS_REGION / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars
+// (set explicitly for Ministack, or provided by the Lambda's IAM role on
+// real AWS) - no need to wire them up manually.
+const client = new SNSClient({});
 
-const client = new SNSClient({
-  region: 'eu-west-2',
-  credentials: {
-    accessKeyId: config.get('aws.accessKey'),
-    secretAccessKey: config.get('aws.secretKey'),
-  },
-});
+const sesClient = new SESClient({});
 
 export const sendSMS = async (
   number: string,
@@ -45,18 +37,25 @@ export const sendEmail = async (
   email: string,
   subject: string,
   message: string,
-) => {
-  const mailOptions = {
-    from: config.get('email.address'),
-    to: email,
-    subject,
-    text: message,
-  };
-
-  transporter.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      logger.error(error.message);
-      throw new Error('Unable to send Email');
-    }
-  });
+): Promise<void> => {
+  try {
+    await sesClient.send(
+      new SendEmailCommand({
+        Source: config.get('email.fromAddress'),
+        Destination: {
+          ToAddresses: [email],
+        },
+        Message: {
+          Subject: { Data: subject },
+          Body: {
+            Text: { Data: message },
+          },
+        },
+      }),
+    );
+  } catch (err) {
+    logger.error((err as Error).message);
+    throw new Error('Unable to send Email');
+  }
 };
+

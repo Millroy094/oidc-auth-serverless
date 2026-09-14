@@ -1,7 +1,5 @@
 import express from 'express';
-import dynamoose from 'dynamoose';
 import Provider from 'oidc-provider';
-import cors from 'cors';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import adminRoutes from './routes/admin.ts';
@@ -10,7 +8,6 @@ import userRoutes from './routes/user.ts';
 import healthCheckRoutes from './routes/health-check.ts';
 import addOIDCProvider from './middleware/add-oidc-provider.ts';
 import errorHandler from './middleware/error-handler.ts';
-import config from './support/env-config.ts';
 
 declare global {
   namespace Express {
@@ -23,48 +20,34 @@ declare global {
 
 class Application {
   public readonly expressApp;
-  private readonly environment;
   private initialized = false;
 
   constructor() {
     this.expressApp = express();
-    this.environment = config.get('env');
-  }
-
-  private setupDynamoDB(): void {
-    const isDev = this.environment === 'development';
-    
-    if (isDev) {
-      dynamoose.aws.ddb.local();
-    } else {
-      const ddb = new dynamoose.aws.ddb.DynamoDB({
-        region: config.get('aws.region'),
-        credentials: {
-          accessKeyId: config.get('aws.accessKey'),
-          secretAccessKey: config.get('aws.secretKey'),
-        },
-      });
-      dynamoose.aws.ddb.set(ddb);
-    }
   }
 
   private setupMiddleware(): void {
-    const isDev = this.environment === 'development';
-    
-    // CORS configuration
-    const corsOrigins = isDev 
-      ? ['http://localhost:5173', 'http://localhost:3000']
-      : (process.env.CORS_ORIGINS?.split(',') || ['*']);
-    
-    this.expressApp.use(cors({ origin: corsOrigins, credentials: true }));
+    // CORS is handled entirely by API Gateway's native cors_configuration
+    // (see infra/modules/api_gateway). Also setting CORS headers here would
+    // cause duplicate Access-Control-Allow-* headers, which browsers reject.
     this.expressApp.use(cookieParser());
     this.expressApp.use(bodyParser.json());
     this.expressApp.use(addOIDCProvider);
-    
+
+    // This is a dynamic API, not static content - disable Express's default
+    // ETag/conditional-GET behaviour. Otherwise a repeat GET to the same
+    // resource (e.g. re-opening the same client/user record) sends back
+    // `If-None-Match`, and if it matches Express replies `304 Not Modified`
+    // with an EMPTY body instead of the JSON payload, which broke the
+    // frontend when the same record was fetched more than once.
+    this.expressApp.set('etag', false);
+    this.expressApp.use((req, res, next) => {
+      res.set('Cache-Control', 'no-store');
+      next();
+    });
+
     // Trust proxy for Lambda/CloudFront
-    if (!isDev) {
-      this.expressApp.set('trust proxy', 1);
-    }
+    this.expressApp.set('trust proxy', 1);
   }
 
   private setupRoutes(): void {
@@ -78,17 +61,10 @@ class Application {
   public async initialize(): Promise<void> {
     if (this.initialized) return;
     
-    this.setupDynamoDB();
     this.setupMiddleware();
     this.setupRoutes();
     
     this.initialized = true;
-  }
-
-  public startLocalServer(port = 3000): void {
-    this.expressApp.listen(port, () => {
-      console.log(`Server running on http://localhost:${port}`);
-    });
   }
 }
 

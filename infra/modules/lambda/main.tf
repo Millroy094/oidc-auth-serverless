@@ -38,8 +38,11 @@ resource "aws_iam_role_policy" "lambda_dynamodb" {
           "dynamodb:Query",
           "dynamodb:Scan"
         ]
-        Effect   = "Allow"
-        Resource = "arn:aws:dynamodb:*:*:table/${var.dynamodb_table_name}"
+        Effect = "Allow"
+        Resource = concat(
+          var.dynamodb_table_arns,
+          [for arn in var.dynamodb_table_arns : "${arn}/index/*"]
+        )
       }
     ]
   })
@@ -64,16 +67,71 @@ resource "aws_iam_role_policy" "lambda_sns" {
   })
 }
 
+# SES access
+resource "aws_iam_role_policy" "lambda_ses" {
+  name = "${var.function_name}-ses-policy"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ses:SendEmail",
+          "ses:SendRawEmail"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# SSM Parameter Store access (secrets: JWT, encryption keys, cookie secrets, etc.)
+resource "aws_iam_role_policy" "lambda_ssm" {
+  name = "${var.function_name}-ssm-policy"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath"
+        ]
+        Effect   = "Allow"
+        Resource = "arn:aws:ssm:*:*:parameter${var.ssm_parameter_prefix}*"
+      }
+    ]
+  })
+}
+
+# Placeholder deployment package so `terraform apply` can create the Lambda
+# function before real code exists. The real bundle is deployed afterwards
+# via `aws lambda update-function-code` (see scripts/watch-backend.sh), so
+# changes to this placeholder are intentionally ignored post-creation.
+data "archive_file" "placeholder" {
+  type        = "zip"
+  output_path = "${path.module}/lambda_placeholder.zip"
+
+  source {
+    content  = "exports.handler = async () => ({ statusCode: 200, body: 'placeholder' });"
+    filename = "handler.js"
+  }
+}
+
 # Lambda function
 resource "aws_lambda_function" "backend" {
-  filename         = "lambda_placeholder.zip"
+  filename         = data.archive_file.placeholder.output_path
+  source_code_hash = data.archive_file.placeholder.output_base64sha256
   function_name    = var.function_name
   role             = aws_iam_role.lambda_role.arn
-  handler          = "index.handler"
+  handler          = "handler.handler"
   runtime          = var.runtime
   timeout          = var.timeout
   memory_size      = var.memory_size
-  layers           = var.layers
 
   environment {
     variables = var.environment_variables
@@ -82,21 +140,15 @@ resource "aws_lambda_function" "backend" {
   depends_on = [
     aws_iam_role_policy_attachment.lambda_basic_execution,
     aws_iam_role_policy.lambda_dynamodb,
-    aws_iam_role_policy.lambda_sns
+    aws_iam_role_policy.lambda_sns,
+    aws_iam_role_policy.lambda_ses,
+    aws_iam_role_policy.lambda_ssm,
+    data.archive_file.placeholder
   ]
 
   lifecycle {
     ignore_changes = [filename, source_code_hash]
   }
-}
-
-# Allow API Gateway to invoke Lambda
-resource "aws_lambda_permission" "api_gateway" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.backend.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:*:*:*"
 }
 
 output "function_name" {

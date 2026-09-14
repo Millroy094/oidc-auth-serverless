@@ -1,9 +1,17 @@
 import { FC, useEffect, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
-import { Edit, Save } from 'lucide-react';
+import { BadgeCheck, BadgeX, Edit, Save, X } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
+import { Checkbox } from '../../../components/ui/checkbox';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../../../components/ui/card';
 import schema from './schema';
 import getUserProfileDetails from '../../../api/user/get-user-profile-details';
 import updateUserProfileDetails from '../../../api/user/update-user-profile-details';
@@ -77,85 +85,135 @@ const Profile: FC = () => {
   };
 
   return (
-    <div className="flex w-full flex-col gap-2">
-      <h2 className="text-lg font-semibold">Account Profile</h2>
+    <Card className="border-t-4 border-t-primary shadow-sm">
+      <CardHeader className="flex flex-col items-start gap-4 space-y-0 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <CardTitle className="text-xl">Account Profile</CardTitle>
+          <CardDescription>
+            Manage your personal details and how we can reach you.
+          </CardDescription>
+        </div>
+        {disabled ? (
+          <Button
+            type="button"
+            onClick={() => setDisabled(false)}
+            className="gap-2 w-full sm:w-auto"
+          >
+            <Edit className="w-4 h-4" />
+            Edit Profile
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setDisabled(true);
+              setForm({ ...form });
+            }}
+            className="gap-2 w-full sm:w-auto"
+          >
+            <X className="w-4 h-4" />
+            Cancel
+          </Button>
+        )}
+      </CardHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium mb-1">
-                First Name
-              </label>
-              <Input
-                {...register('firstName')}
-                id="firstName"
-                placeholder="First Name"
-                disabled={disabled}
-              />
-              {errors.firstName && (
-                <p className="text-sm text-red-500 mt-1">{errors.firstName.message}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium mb-1">
-                Last Name
-              </label>
-              <Input
-                {...register('lastName')}
-                id="lastName"
-                placeholder="Last Name"
-                disabled={disabled}
-              />
-              {errors.lastName && (
-                <p className="text-sm text-red-500 mt-1">{errors.lastName.message}</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email Address
-            </label>
-            <Input
-              {...register('email')}
-              id="email"
-              placeholder="Email Address"
-              disabled
-            />
-            {errors.email && (
-              <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Controller
-              name="emailVerified"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={value}
-                    onChange={onChange}
-                    disabled={disabled}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm">Email verified?</span>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Personal Information
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium mb-1">
+                  First Name
                 </label>
-              )}
-            />
-          </div>
+                <Input
+                  {...register('firstName')}
+                  id="firstName"
+                  placeholder="First Name"
+                  disabled={disabled}
+                />
+                {errors.firstName && (
+                  <p className="text-sm text-red-500 mt-1">{errors.firstName.message}</p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium mb-1">
+                  Last Name
+                </label>
+                <Input
+                  {...register('lastName')}
+                  id="lastName"
+                  placeholder="Last Name"
+                  disabled={disabled}
+                />
+                {errors.lastName && (
+                  <p className="text-sm text-red-500 mt-1">{errors.lastName.message}</p>
+                )}
+              </div>
+            </div>
+          </section>
 
-          <div>
-            <label htmlFor="mobile" className="block text-sm font-medium mb-1">
-              Mobile Number
-            </label>
-            <Controller
-              name="mobile"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <>
+          <div className="border-t" />
+
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Contact Information
+            </h3>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="email" className="block text-sm font-medium">
+                  Email Address
+                </label>
+                <span
+                  className={`inline-flex items-center gap-1 text-xs font-medium ${
+                    form.emailVerified ? 'text-emerald-600' : 'text-amber-600'
+                  }`}
+                >
+                  {form.emailVerified ? (
+                    <BadgeCheck className="w-3.5 h-3.5" />
+                  ) : (
+                    <BadgeX className="w-3.5 h-3.5" />
+                  )}
+                  {form.emailVerified ? 'Verified' : 'Not verified'}
+                </span>
+              </div>
+              <Input
+                {...register('email')}
+                id="email"
+                placeholder="Email Address"
+                disabled
+              />
+              {errors.email && (
+                <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
+              )}
+            </div>
+
+            {!disabled && (
+              <Controller
+                name="emailVerified"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <label className="flex items-center gap-2 cursor-pointer w-fit">
+                    <Checkbox
+                      checked={value}
+                      onCheckedChange={onChange}
+                      disabled={disabled}
+                    />
+                    <span className="text-sm">Mark email as verified</span>
+                  </label>
+                )}
+              />
+            )}
+
+            <div>
+              <Controller
+                name="mobile"
+                control={control}
+                render={({ field: { onChange, value } }) => (
                   <MobileNumberInput
                     label="Mobile Number"
                     onChange={onChange}
@@ -164,38 +222,22 @@ const Profile: FC = () => {
                     helperText={errors.mobile ? errors.mobile.message : ''}
                     readOnly={disabled ?? false}
                   />
-                </>
-              )}
-            />
-          </div>
+                )}
+              />
+            </div>
+          </section>
 
-          <div className="flex justify-end">
-            {disabled ? (
-              <Button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setDisabled(false);
-                }}
-                className="gap-2"
-              >
-                <Edit className="w-4 h-4" />
-                Edit Profile
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                variant="default"
-                className="gap-2"
-              >
+          {!disabled && (
+            <div className="flex justify-end">
+              <Button type="submit" variant="default" className="gap-2">
                 <Save className="w-4 h-4" />
                 Update Profile
               </Button>
-            )}
-          </div>
-        </div>
-      </form>
-    </div>
+            </div>
+          )}
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from 'react';
 import { Button } from '../../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter } from '../../../../components/ui/card';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { Card, CardHeader, CardFooter, CardTitle, CardDescription } from '../../../../components/ui/card';
+import { AlertCircle, CheckCircle, ShieldCheck } from 'lucide-react';
 import getMFASettings from '../../../../api/user/get-mfa-settings';
 import useFeedback from '../../../../hooks/useFeedback';
 import SetupModal from './SetupModal';
@@ -83,23 +83,26 @@ const MFA: FC = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <h2 className="text-lg font-semibold">Mulit-Factor Authentication</h2>
+      <Card className="border-t-4 border-t-primary shadow-sm">
+        <CardHeader className="flex flex-row items-start gap-3 space-y-0">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <CardTitle className="text-lg">Multi-Factor Authentication</CardTitle>
+            <CardDescription>
+              Make your login more secure by enabling 2FA for your account. Once
+              enabled you&apos;ll be required to complete an additional
+              verification step whilst logging in.
+            </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-slate-700">
-            You can make your login more secure by enabling 2FA for your
-            account. Once enabled you will be required to through an additional
-            step of verification whilst logging in.
-          </p>
-        </CardContent>
         <CardFooter>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
             {mfaTypes.map((mfaType) => (
               <div
                 key={mfaType.type}
-                className="border border-slate-200 rounded-lg p-3 flex flex-col justify-between h-32 bg-white shadow-sm"
+                className="border rounded-lg p-3 flex flex-col justify-between h-32 bg-card shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="flex justify-between items-start">
                   <h3 className="font-medium text-sm">
@@ -119,17 +122,17 @@ const MFA: FC = () => {
 
                 <div className="py-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="text-xs font-medium text-slate-600">
+                    <p className="text-xs font-medium text-muted-foreground">
                       Subscriber
                     </p>
                     {mfaType.subscriber && mfaType.verified && (
-                      <CheckCircle className="w-3 h-3 text-green-600" aria-label="Verified" />
+                      <CheckCircle className="w-3 h-3 text-emerald-600" aria-label="Verified" />
                     )}
                     {mfaType.subscriber && !mfaType.verified && (
-                      <AlertCircle className="w-3 h-3 text-red-600" aria-label="Not Verified" />
+                      <AlertCircle className="w-3 h-3 text-amber-600" aria-label="Not Verified" />
                     )}
                   </div>
-                  <p className="text-xs text-slate-600 truncate" title={mfaType.subscriber || 'None'}>
+                  <p className="text-xs text-muted-foreground truncate" title={mfaType.subscriber || 'None'}>
                     {mfaType.subscriber || 'None'}
                   </p>
                 </div>
@@ -165,16 +168,17 @@ const MFA: FC = () => {
         </CardFooter>
       </Card>
 
-      <Passkeys
-        mfaPreference={mfaPreference}
-        onMfaPreferenceChange={onChange}
-        fetchMFASettings={fetchMFASettings}
-      />
-      <div className="border-t border-slate-200 my-8 mx-2" />
-      <RecoveryCodes
-        recoveryCodeCount={recoveryCodeCount}
-        fetchMFASettings={fetchMFASettings}
-      />
+      <div className="mt-6 space-y-6">
+        <Passkeys
+          mfaPreference={mfaPreference}
+          onMfaPreferenceChange={onChange}
+          fetchMFASettings={fetchMFASettings}
+        />
+        <RecoveryCodes
+          recoveryCodeCount={recoveryCodeCount}
+          fetchMFASettings={fetchMFASettings}
+        />
+      </div>
       {setupModal.open && (
         <SetupModal
           open={setupModal.open}

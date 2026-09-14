@@ -23,6 +23,7 @@ import Logo from '../../assets/logo.svg';
 import PasskeyAuthentication from './PasskeyAuthentication';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import AuthCardLayout from '../../components/AuthCardLayout';
 
 type ILoginStage = 'USERNAME' | 'PASSWORD' | 'MFA' | 'RECOVERY_CODE';
 
@@ -123,31 +124,30 @@ const Login: FC = () => {
       ? 'Sign in'
       : 'Next';
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-sm border-t-2 border-red-600 mt-8">
-        <CardHeader className="p-6">
-          <div className="flex items-end gap-4">
-            <div className="h-24 w-20 flex items-center">
-              <Logo />
-            </div>
-            <div className="flex-1">
-              <h1 className="text-2xl font-semibold mb-2">Log in</h1>
-              {!interactionId && (
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <span>Not registered?</span>
-                  <button
-                    onClick={() => navigate('/registration')}
-                    className="text-sm text-primary hover:underline cursor-pointer"
-                  >
-                    Click here
-                  </button>
-                  <span>to register</span>
-                </div>
-              )}
-            </div>
+    <AuthCardLayout>
+      <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60 dark:shadow-none">
+        <CardHeader className="items-center text-center gap-3 p-6 pb-4 sm:p-8 sm:pb-4">
+          <div className="h-16 w-16">
+            <Logo />
+          </div>
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Welcome back
+            </h1>
+            {!interactionId && (
+              <p className="text-sm text-muted-foreground">
+                Not registered?{' '}
+                <button
+                  onClick={() => navigate('/registration')}
+                  className="font-medium text-primary underline-offset-4 hover:underline cursor-pointer"
+                >
+                  Create an account
+                </button>
+              </p>
+            )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 p-6">
+        <CardContent className="space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
           {loginStage === USERNAME_LOGIN_STAGE && (
             <UsernameInput register={register} errors={errors} />
           )}
@@ -181,29 +181,29 @@ const Login: FC = () => {
           )}
         </CardContent>
         <div
-          className={`flex gap-4 p-5 ${
-            loginStage === 'USERNAME' ? 'justify-end' : 'justify-between'
+          className={`flex flex-col-reverse gap-3 px-6 pb-6 sm:flex-row sm:gap-4 sm:px-8 sm:pb-8 ${
+            loginStage === 'USERNAME' ? 'sm:justify-end' : 'sm:justify-between'
           }`}
         >
           {loginStage !== USERNAME_LOGIN_STAGE &&
             loginStage !== MFA_LOGIN_STAGE && (
-              <Button variant="outline" onClick={onReset}>
+              <Button variant="outline" onClick={onReset} className="w-full sm:w-auto">
                 Sign in with a different user
               </Button>
             )}
           {loginStage === MFA_LOGIN_STAGE && (
-            <Button variant="outline" onClick={loginViaRecoveryCode}>
+            <Button variant="outline" onClick={loginViaRecoveryCode} className="w-full sm:w-auto">
               Having trouble with MFA?
             </Button>
           )}
           {showButton && (
-            <Button onClick={onNextStep}>
+            <Button onClick={onNextStep} className="w-full sm:w-auto">
               {buttonText}
             </Button>
           )}
         </div>
       </Card>
-    </div>
+    </AuthCardLayout>
   );
 };
 

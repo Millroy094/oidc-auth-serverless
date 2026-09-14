@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { pick } from 'lodash';
 import logger from '../utils/logger.ts';
 import UserService from '../services/user.ts';
 import OIDCService from '../services/oidc.ts';
@@ -76,11 +77,11 @@ class UserController {
       res
         .cookie(ACCESS_TOKEN, accessToken, {
           httpOnly: true,
-          secure: config.get('env') === 'production',
+          secure: config.get('deploymentEnvironment') !== 'local',
         })
         .cookie(REFRESH_TOKEN, refreshToken, {
           httpOnly: true,
-          secure: config.get('env') === 'production',
+          secure: config.get('deploymentEnvironment') !== 'local',
         })
         .status(200)
         .json({
@@ -139,7 +140,8 @@ class UserController {
     try {
       const { user } = req;
       const { userId } = user!;
-      await UserService.updateUser(userId, req.body);
+      const allowedFields = pick(req.body, ['firstName', 'lastName', 'mobile']);
+      await UserService.updateUser(userId, allowedFields);
       res
         .status(HTTP_STATUSES.ok)
         .json({ message: 'Successfully updated user record!' });

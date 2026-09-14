@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Create initial admin user in DynamoDB
+# Create initial admin user in the "User" DynamoDB table
 # Usage: PASSWORD=testpass123 ./scripts/create-admin-user.sh
 
 if [ -z "$PASSWORD" ]; then
@@ -10,20 +10,16 @@ if [ -z "$PASSWORD" ]; then
   exit 1
 fi
 
-if [ -z "$AWS_REGION" ]; then
-  AWS_REGION="us-east-1"
-fi
-
-# Determine environment from ENVIRONMENT variable or default to local
+AWS_REGION="${AWS_REGION:-us-east-1}"
 ENVIRONMENT="${ENVIRONMENT:-local}"
-TABLE_NAME="oidc-auth-${ENVIRONMENT}"
+TABLE_NAME="User"
 EMAIL="admin@example.com"
 FIRST_NAME="Admin"
 LAST_NAME="User"
 
 # For local/Ministack, use endpoint URL
 if [ "$ENVIRONMENT" = "local" ]; then
-  AWS_ENDPOINT="--endpoint-url http://ministack:4566"
+  AWS_ENDPOINT="--endpoint-url http://localhost:4566"
 fi
 
 echo "🔧 Creating admin user in DynamoDB table: $TABLE_NAME"
@@ -31,25 +27,26 @@ echo "   Email: $EMAIL"
 echo "   Environment: $ENVIRONMENT"
 echo "   Region: $AWS_REGION"
 
-# Check if user already exists
+# Check if user already exists (scan by email, matching how the backend looks up users)
 echo "📋 Checking if user already exists..."
-EXISTING=$(aws dynamodb query \
+EXISTING=$(aws dynamodb scan \
   $AWS_ENDPOINT \
   --table-name "$TABLE_NAME" \
-  --index-name gsi1 \
-  --key-condition-expression "gsi1pk = :email" \
-  --expression-attribute-values "{\":email\": {\"S\": \"email#$EMAIL\"}}" \
+  --filter-expression "email = :email" \
+  --expression-attribute-values "{\":email\": {\"S\": \"$EMAIL\"}}" \
   --region "$AWS_REGION" \
   --output json 2>/dev/null || echo '{"Items":[]}')
 
-if [ "$(echo "$EXISTING" | grep -c "\"email#$EMAIL\"")" -gt 0 ]; then
+if [ "$(echo "$EXISTING" | grep -c "\"$EMAIL\"")" -gt 0 ]; then
   echo "✅ Admin user already exists with email: $EMAIL"
   exit 0
 fi
 
-# Hash password using Node.js
+# Hash password using Node.js (bcryptjs, matching the backend's User model).
+# Run from packages/backend since pnpm workspaces don't hoist deps to the
+# root node_modules - bcryptjs is only resolvable from there.
 echo "🔐 Hashing password..."
-HASHED_PASSWORD=$(pnpm exec node -e "
+HASHED_PASSWORD=$(cd packages/backend && pnpm exec node -e "
 const bcrypt = require('bcryptjs');
 const password = process.env.PASSWORD;
 const salt = bcrypt.genSaltSync(10);
@@ -62,37 +59,39 @@ if [ -z "$HASHED_PASSWORD" ]; then
   exit 1
 fi
 
-# Generate UUID
+# Generate UUID for userId (hash key on the User table)
 USER_ID=$(pnpm exec node -e "console.log(require('crypto').randomUUID())")
 
 echo "📝 Creating user with ID: $USER_ID"
 
-# Create user in DynamoDB
+# Create user in DynamoDB, matching packages/backend/models/User.ts schema
 aws dynamodb put-item \
   $AWS_ENDPOINT \
   --table-name "$TABLE_NAME" \
   --item "{
-    \"pk\": {\"S\": \"user#$USER_ID\"},
-    \"sk\": {\"S\": \"metadata\"},
-    \"gsi1pk\": {\"S\": \"email#$EMAIL\"},
-    \"gsi1sk\": {\"S\": \"metadata\"},
+    \"userId\": {\"S\": \"$USER_ID\"},
     \"email\": {\"S\": \"$EMAIL\"},
+    \"emailVerified\": {\"BOOL\": true},
+    \"roles\": {\"L\": [{\"S\": \"admin\"}]},
     \"firstName\": {\"S\": \"$FIRST_NAME\"},
     \"lastName\": {\"S\": \"$LAST_NAME\"},
     \"password\": {\"S\": \"$HASHED_PASSWORD\"},
-    \"emailVerified\": {\"BOOL\": true},
-    \"roles\": {\"L\": [{\"S\": \"admin\"}]},
     \"mfa\": {
       \"M\": {
         \"preference\": {\"S\": \"\"},
-        \"app\": {\"M\": {\"verified\": {\"BOOL\": false}}},
-        \"sms\": {\"M\": {\"verified\": {\"BOOL\": false}}},
-        \"email\": {\"M\": {\"verified\": {\"BOOL\": false}}},
-        \"passkey\": {\"M\": {\"verified\": {\"BOOL\": false}}}
+        \"recoveryCodes\": {\"L\": []},
+        \"app\": {\"M\": {\"secret\": {\"S\": \"\"}, \"subscriber\": {\"S\": \"\"}, \"verified\": {\"BOOL\": false}}},
+        \"sms\": {\"M\": {\"subscriber\": {\"S\": \"\"}, \"verified\": {\"BOOL\": false}}},
+        \"email\": {\"M\": {\"subscriber\": {\"S\": \"\"}, \"verified\": {\"BOOL\": false}}},
+        \"passkey\": {\"M\": {\"credentials\": {\"L\": []}, \"verified\": {\"BOOL\": false}}}
       }
     },
-    \"createdAt\": {\"N\": \"$(date +%s)\"},
-    \"updatedAt\": {\"N\": \"$(date +%s)\"}
+    \"lastLoggedIn\": {\"N\": \"0\"},
+    \"failedLogins\": {\"N\": \"0\"},
+    \"suspended\": {\"BOOL\": false},
+    \"credentials\": {\"L\": []},
+    \"createdAt\": {\"N\": \"$(date +%s)000\"},
+    \"updatedAt\": {\"N\": \"$(date +%s)000\"}
   }" \
   --region "$AWS_REGION"
 

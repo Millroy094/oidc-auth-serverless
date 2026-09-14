@@ -1,6 +1,7 @@
 import { FC, useState } from 'react';
 import { Button } from '../../../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter } from '../../../../../components/ui/card';
+import { Card, CardHeader, CardFooter, CardTitle, CardDescription } from '../../../../../components/ui/card';
+import { KeyRound } from 'lucide-react';
 import RecoveryCodeModal from './RecoveryCodeModal';
 
 interface IRecoveryCodeProps {
@@ -24,18 +25,21 @@ const RecoveryCodes: FC<IRecoveryCodeProps> = (props) => {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <h2 className="text-lg font-semibold">Recovery codes</h2>
+      <Card className="border-t-4 border-t-primary shadow-sm">
+        <CardHeader className="flex flex-row items-start gap-3 space-y-0">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <KeyRound className="h-5 w-5" />
+          </div>
+          <div>
+            <CardTitle className="text-lg">Recovery Codes</CardTitle>
+            <CardDescription>
+              Recovery codes can be used when your MFA method isn&apos;t available to
+              you or if you have completely lost access to your MFA method.
+            </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-slate-700">
-            Recovery codes can be used when your MFA method isn't available to
-            you or if you have completely lost access to your MFA method.
-          </p>
-        </CardContent>
         <CardFooter className="flex justify-between items-center">
-          <p className={`text-sm font-medium ${recoveryCodeCount === 0 ? 'text-red-600' : 'text-green-600'}`}>
+          <p className={`text-sm font-medium ${recoveryCodeCount === 0 ? 'text-destructive' : 'text-emerald-600'}`}>
             {recoveryCodeCount}/10 Recovery codes left
           </p>
           <Button

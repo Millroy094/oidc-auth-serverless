@@ -35,11 +35,11 @@ const generateNewTokensFromRefreshToken = (
     res
       .cookie(ACCESS_TOKEN, newAccessToken, {
         httpOnly: true,
-        secure: config.get('env') === 'production',
+        secure: config.get('deploymentEnvironment') !== 'local',
       })
       .cookie(REFRESH_TOKEN, newRefreshToken, {
         httpOnly: true,
-        secure: config.get('env') === 'production',
+        secure: config.get('deploymentEnvironment') !== 'local',
       });
 
     req.user = { userId, email };

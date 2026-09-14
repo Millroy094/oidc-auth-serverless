@@ -185,7 +185,7 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <ControlledSelect
                       control={control}
@@ -229,48 +229,49 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
 
                 <div className="space-y-3">
                   {redirectUriFields.map((field, index) => (
-                    <div key={field.id} className="flex gap-2 items-start">
-                      <div className="flex-1">
-                        <label
-                          htmlFor={`redirectUri-${index}`}
-                          className="block text-sm font-medium mb-1"
-                        >
-                          Redirect URI {index + 1}
-                        </label>
+                    <div key={field.id} className="space-y-1">
+                      <label
+                        htmlFor={`redirectUri-${index}`}
+                        className="block text-sm font-medium"
+                      >
+                        Redirect URI {index + 1}
+                      </label>
+                      <div className="flex items-center gap-2">
                         <Input
                           {...register(`redirectUris.${index}.value`)}
                           id={`redirectUri-${index}`}
+                          className="flex-1"
                         />
-                        {has(errors, `redirectUris.${index}.value`) && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {get(errors, `redirectUris.${index}.value.message`, '')}
-                          </p>
-                        )}
+                        <div className="flex shrink-0 items-center gap-1">
+                          {isLastRedirectUri(index) && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                addRedirectUri({ id: uniqueId(), value: '' })
+                              }
+                              className="p-2 text-green-600 hover:bg-green-100 rounded"
+                              title="Add"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          )}
+                          {canDeleteRedirectUris && (
+                            <button
+                              type="button"
+                              onClick={() => removeRedirectUri(index)}
+                              className="p-2 text-red-600 hover:bg-red-100 rounded"
+                              title="Remove"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-1 items-end pb-0">
-                        {isLastRedirectUri(index) && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              addRedirectUri({ id: uniqueId(), value: '' })
-                            }
-                            className="p-2 text-green-600 hover:bg-green-100 rounded"
-                            title="Add"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        )}
-                        {canDeleteRedirectUris && (
-                          <button
-                            type="button"
-                            onClick={() => removeRedirectUri(index)}
-                            className="p-2 text-red-600 hover:bg-red-100 rounded"
-                            title="Remove"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
+                      {has(errors, `redirectUris.${index}.value`) && (
+                        <p className="text-sm text-red-500">
+                          {get(errors, `redirectUris.${index}.value.message`, '')}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>

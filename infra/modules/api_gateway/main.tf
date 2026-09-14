@@ -10,35 +10,46 @@ resource "aws_apigatewayv2_api" "main" {
   }
 }
 
+locals {
+  # Ministack's HTTP API emulation rejects access_log_settings with
+  # "Invalid ARN specified" regardless of ARN format, so access logging is
+  # only enabled for real AWS environments.
+  enable_access_logs = var.environment != "local"
+}
+
 resource "aws_apigatewayv2_stage" "main" {
   api_id      = aws_apigatewayv2_api.main.id
   name        = var.stage_name
   auto_deploy = true
 
-  access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.api_logs.arn
-    format = jsonencode({
-      requestId      = "$context.requestId"
-      ip             = "$context.identity.sourceIp"
-      requestTime    = "$context.requestTime"
-      httpMethod     = "$context.httpMethod"
-      resourcePath   = "$context.resourcePath"
-      status         = "$context.status"
-      protocol       = "$context.protocol"
-      responseLength = "$context.responseLength"
-      integrationLatency = "$context.integration.latency"
-    })
+  dynamic "access_log_settings" {
+    for_each = local.enable_access_logs ? [1] : []
+    content {
+      destination_arn = "${aws_cloudwatch_log_group.api_logs[0].arn}:*"
+      format = jsonencode({
+        requestId          = "$context.requestId"
+        ip                 = "$context.identity.sourceIp"
+        requestTime        = "$context.requestTime"
+        httpMethod         = "$context.httpMethod"
+        resourcePath       = "$context.resourcePath"
+        status             = "$context.status"
+        protocol           = "$context.protocol"
+        responseLength     = "$context.responseLength"
+        integrationLatency = "$context.integration.latency"
+      })
+    }
   }
 }
 
 resource "aws_cloudwatch_log_group" "api_logs" {
+  count             = local.enable_access_logs ? 1 : 0
   name              = "/aws/apigateway/${var.api_name}"
   retention_in_days = 30
 }
 
 resource "aws_apigatewayv2_integration" "lambda" {
-  api_id           = aws_apigatewayv2_api.main.id
-  integration_type = "AWS_PROXY"
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
   payload_format_version = "2.0"
 
   integration_method = "POST"
