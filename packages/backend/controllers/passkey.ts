@@ -1,25 +1,64 @@
 import {
   generateAuthenticationOptions,
   generateRegistrationOptions,
+  RegistrationResponseJSON,
+  AuthenticationResponseJSON,
   verifyAuthenticationResponse,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
 import { Request, Response } from 'express';
-import User from '../models/User.ts';
-import logger from '../utils/logger.ts';
-import config from '../support/env-config.ts';
 import HTTP_STATUSES from '../constants/http-status.ts';
-import UserService from '../services/user.ts';
+import User, { MFACredential } from '../models/User.ts';
 import PasskeyService from '../services/passkey.ts';
+import UserService from '../services/user.ts';
+import config from '../support/env-config.ts';
+import logger from '../utils/logger.ts';
+
+export interface GetPasskeysQuery {
+  [key: string]: string;
+  userId: string;
+}
+
+export interface DeletePasskeyBody {
+  userId: string;
+  deviceName: string;
+}
+
+export interface RegisterPasskeyBody {
+  userId: string;
+}
+
+export interface VerifyPasskeyRegistrationBody {
+  userId: string;
+  credential: RegistrationResponseJSON;
+  deviceName: string;
+}
+
+export interface LoginWithPasskeyBody {
+  email: string;
+}
+
+export interface VerifyLoginPasskeyBody {
+  email: string;
+  credential: AuthenticationResponseJSON;
+}
+
+export interface CheckPasskeyExistsBody {
+  userId: string;
+  deviceName: string;
+}
 
 class PasskeyController {
-  public static async getPasskeys(req: Request, res: Response) {
+  public static async getPasskeys(
+    req: Request<Record<string, string>, unknown, unknown, GetPasskeysQuery>,
+    res: Response,
+  ) {
     try {
-      const userId = req.query.userId;
-      const user = await User.get(userId as string);
+      const { userId } = req.query;
+      const user = await User.get(userId);
 
       const deviceNames = user.mfa.passkey.credentials.map(
-        (credentials: { deviceName: string }) => credentials.deviceName,
+        (credentials: MFACredential) => credentials.deviceName,
       );
 
       res.status(HTTP_STATUSES.ok).send({
@@ -37,15 +76,17 @@ class PasskeyController {
     }
   }
 
-  public static async deletePasskey(req: Request, res: Response) {
+  public static async deletePasskey(
+    req: Request<Record<string, string>, unknown, DeletePasskeyBody>,
+    res: Response,
+  ) {
     try {
       const userId = req.body.userId;
       const deviceName = req.body.deviceName;
-      const user = await User.get(userId as string);
+      const user = await User.get(userId);
 
       user.mfa.passkey.credentials = user.mfa.passkey.credentials.filter(
-        (credential: { deviceName: string }) =>
-          credential.deviceName !== deviceName,
+        (credential: MFACredential) => credential.deviceName !== deviceName,
       );
 
       if (
@@ -69,7 +110,10 @@ class PasskeyController {
     }
   }
 
-  public static async registerPasskey(req: Request, res: Response) {
+  public static async registerPasskey(
+    req: Request<Record<string, string>, unknown, RegisterPasskeyBody>,
+    res: Response,
+  ) {
     try {
       const userId = req.body.userId;
 
@@ -99,7 +143,14 @@ class PasskeyController {
     }
   }
 
-  public static async verifyPasskeyRegistration(req: Request, res: Response) {
+  public static async verifyPasskeyRegistration(
+    req: Request<
+      Record<string, string>,
+      unknown,
+      VerifyPasskeyRegistrationBody
+    >,
+    res: Response,
+  ) {
     try {
       const userId = req.body.userId;
       const user = await User.get(userId);
@@ -157,7 +208,10 @@ class PasskeyController {
     }
   }
 
-  public static async loginWithPasskey(req: Request, res: Response) {
+  public static async loginWithPasskey(
+    req: Request<Record<string, string>, unknown, LoginWithPasskeyBody>,
+    res: Response,
+  ) {
     try {
       const userEmail = req.body.email;
       const user = await UserService.getUserByEmail(userEmail);
@@ -165,7 +219,7 @@ class PasskeyController {
       const options = await generateAuthenticationOptions({
         rpID: req.hostname,
         allowCredentials:
-          user?.credentials?.map((cred: { id: string }) => ({
+          user?.credentials?.map((cred: MFACredential) => ({
             id: cred.id,
             type: 'public-key',
           })) ?? [],
@@ -185,13 +239,16 @@ class PasskeyController {
     }
   }
 
-  public static async verifyLoginPasskey(req: Request, res: Response) {
+  public static async verifyLoginPasskey(
+    req: Request<Record<string, string>, unknown, VerifyLoginPasskeyBody>,
+    res: Response,
+  ) {
     try {
       const userEmail = req.body.email;
       const user = await UserService.getUserByEmail(userEmail);
 
       const credential = user.mfa.passkey.credentials.find(
-        (cred: { id: string }) => cred.id === req.body.credential.id,
+        (cred: MFACredential) => cred.id === req.body.credential.id,
       );
 
       if (!credential) {
@@ -218,14 +275,14 @@ class PasskeyController {
         expectedRPID: req.hostname,
         credential: {
           id: credential.id,
-          publicKey: credential.publicKey,
+          publicKey: new Uint8Array(credential.publicKey),
           counter: credential.counter,
         },
       });
 
       if (verification.verified) {
         user.mfa.passkey.credentials = user.mfa.passkey.credentials.map(
-          (cred: { id: string }) =>
+          (cred: MFACredential) =>
             req.body.credential.id === cred.id
               ? { ...cred, counter: verification.authenticationInfo.newCounter }
               : cred,
@@ -248,15 +305,17 @@ class PasskeyController {
     }
   }
 
-  public static async checkPasskeyExists(req: Request, res: Response) {
+  public static async checkPasskeyExists(
+    req: Request<Record<string, string>, unknown, CheckPasskeyExistsBody>,
+    res: Response,
+  ) {
     const { userId, deviceName } = req.body;
 
     try {
       const user = await User.get(userId);
       if (user?.mfa?.passkey?.credentials) {
         const existingCredential = user.mfa.passkey.credentials.find(
-          (credential: { deviceName: string }) =>
-            credential.deviceName === deviceName,
+          (credential: MFACredential) => credential.deviceName === deviceName,
         );
         res.status(200).send({ exists: !!existingCredential });
         return;

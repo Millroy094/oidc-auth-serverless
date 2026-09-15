@@ -1,10 +1,15 @@
+import { ClientRequest } from 'http';
+import path from 'path';
+import react from '@vitejs/plugin-react';
 import dotenv from 'dotenv';
 import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
-import path from 'path';
 
 dotenv.config();
+
+interface ProxyServerLike {
+  on(event: 'proxyReq', listener: (proxyReq: ClientRequest) => void): void;
+}
 
 export default ({ mode }: { mode: string }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
@@ -24,11 +29,8 @@ export default ({ mode }: { mode: string }) => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
+        '@': path.resolve(import.meta.dirname, './src'),
       },
-    },
-    define: {
-      'process.env': process.env,
     },
     server: {
       proxy: {
@@ -43,9 +45,10 @@ export default ({ mode }: { mode: string }) => {
           // real backend they're unset and the proxy passes requests
           // through unchanged.
           ...(process.env.VITE_API_GATEWAY_STAGE && {
-            rewrite: (requestPath: string) => `/${process.env.VITE_API_GATEWAY_STAGE}${requestPath}`,
+            rewrite: (requestPath: string) =>
+              `/${process.env.VITE_API_GATEWAY_STAGE}${requestPath}`,
           }),
-          configure: (proxy) => {
+          configure: (proxy: ProxyServerLike) => {
             proxy.on('proxyReq', (proxyReq) => {
               if (process.env.VITE_API_GATEWAY_HOST) {
                 proxyReq.setHeader('Host', process.env.VITE_API_GATEWAY_HOST);

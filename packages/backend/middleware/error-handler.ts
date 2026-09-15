@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import logger from '../utils/logger.ts';
 import HTTP_STATUSES from '../constants/http-status.ts';
+import logger from '../utils/logger.ts';
 
 const errorHandler = (
   err: Error,

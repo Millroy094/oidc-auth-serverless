@@ -1,77 +1,76 @@
 import { Router } from 'express';
-import AdminController from '../controllers/admin.ts';
+import AdminController, {
+  CreateClientBody,
+  IdParams,
+  UpdateClientBody,
+  UpdateUserBody,
+} from '../controllers/admin.ts';
 import authenticate from '../middleware/authenticate.ts';
 import authorize from '../middleware/authorize.ts';
 
-const router = Router();
+const adminRouter = Router();
 
-router.get(
-  '/clients',
-  authenticate,
-  authorize(['admin']),
-  AdminController.getClients,
+adminRouter.get('/clients', authenticate, authorize(['admin']), (req, res) =>
+  AdminController.getClients(req, res),
 );
-router.post(
+adminRouter.post<Record<string, string>, unknown, CreateClientBody>(
   '/clients/new',
   authenticate,
   authorize(['admin']),
-  AdminController.createClient,
+  (req, res) => AdminController.createClient(req, res),
 );
-router.get(
+adminRouter.get<IdParams>(
   '/clients/:id',
   authenticate,
   authorize(['admin']),
-  AdminController.getClient,
+  (req, res) => AdminController.getClient(req, res),
 );
-router.put(
+adminRouter.put<IdParams, unknown, UpdateClientBody>(
   '/clients/:id',
   authenticate,
   authorize(['admin']),
-  AdminController.updateClient,
+  (req, res) => AdminController.updateClient(req, res),
 );
-router.delete(
+adminRouter.delete<IdParams>(
   '/clients/:id',
   authenticate,
   authorize(['admin']),
-  AdminController.deleteClient,
+  (req, res) => AdminController.deleteClient(req, res),
 );
 
-router.get(
-  '/users',
-  authenticate,
-  authorize(['admin']),
-  AdminController.getUsers,
+adminRouter.get('/users', authenticate, authorize(['admin']), (req, res) =>
+  AdminController.getUsers(req, res),
 );
-router.get(
+adminRouter.get<IdParams>(
   '/users/:id',
   authenticate,
   authorize(['admin']),
-  AdminController.getUser,
+  (req, res) => AdminController.getUser(req, res),
 );
-router.put(
+adminRouter.put<IdParams, unknown, UpdateUserBody>(
   '/users/:id',
   authenticate,
   authorize(['admin']),
-  AdminController.updateUser,
+  (req, res) => AdminController.updateUser(req, res),
 );
-router.delete(
+adminRouter.delete<IdParams>(
   '/users/:id',
   authenticate,
   authorize(['admin']),
-  AdminController.deleteUser,
+  (req, res) => AdminController.deleteUser(req, res),
 );
-router.delete(
+adminRouter.delete<IdParams>(
   '/users/:id/sessions',
   authenticate,
   authorize(['admin']),
-  AdminController.deleteUserSessions,
+  (req, res) => AdminController.deleteUserSessions(req, res),
 );
 
-router.post(
+adminRouter.post<IdParams>(
   '/users/:id/mfa-reset',
   authenticate,
   authorize(['admin']),
-  AdminController.resetMFA,
+  (req, res) => AdminController.resetMFA(req, res),
 );
 
-export default router;
+export default adminRouter;

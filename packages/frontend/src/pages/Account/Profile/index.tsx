@@ -1,23 +1,23 @@
-import { FC, useEffect, useState } from 'react';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { BadgeCheck, BadgeX, Edit, Save, X } from 'lucide-react';
-import { Button } from '../../../components/ui/button';
-import { Input } from '../../../components/ui/input';
-import { Checkbox } from '../../../components/ui/checkbox';
+import { FC, useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import schema from './schema';
+import { IProfileFormInput } from './types';
+import getUserProfileDetails from '@/api/user/get-user-profile-details';
+import updateUserProfileDetails from '@/api/user/update-user-profile-details';
+import { MobileNumberInput } from '@/components/MobileNumberInput';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../../../components/ui/card';
-import schema from './schema';
-import getUserProfileDetails from '../../../api/user/get-user-profile-details';
-import updateUserProfileDetails from '../../../api/user/update-user-profile-details';
-import useFeedback from '../../../hooks/useFeedback';
-import { MobileNumberInput } from '../../../components/MobileNumberInput';
-import { IProfileFormInput } from './types';
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import useFeedback from '@/hooks/useFeedback';
 
 const defaultValues = {
   firstName: '',
@@ -51,7 +51,7 @@ const Profile: FC = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -61,7 +61,7 @@ const Profile: FC = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<IProfileFormInput>({
-    resolver: yupResolver(schema, {}),
+    resolver: zodResolver(schema, {}),
     disabled,
     defaultValues,
     values: form,
@@ -126,7 +126,10 @@ const Profile: FC = () => {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium mb-1">
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium mb-1"
+                >
                   First Name
                 </label>
                 <Input
@@ -136,11 +139,16 @@ const Profile: FC = () => {
                   disabled={disabled}
                 />
                 {errors.firstName && (
-                  <p className="text-sm text-red-500 mt-1">{errors.firstName.message}</p>
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.firstName.message}
+                  </p>
                 )}
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium mb-1">
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium mb-1"
+                >
                   Last Name
                 </label>
                 <Input
@@ -150,7 +158,9 @@ const Profile: FC = () => {
                   disabled={disabled}
                 />
                 {errors.lastName && (
-                  <p className="text-sm text-red-500 mt-1">{errors.lastName.message}</p>
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.lastName.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -188,7 +198,9 @@ const Profile: FC = () => {
                 disabled
               />
               {errors.email && (
-                <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -197,8 +209,12 @@ const Profile: FC = () => {
                 name="emailVerified"
                 control={control}
                 render={({ field: { onChange, value } }) => (
-                  <label className="flex items-center gap-2 cursor-pointer w-fit">
+                  <label
+                    htmlFor="emailVerified"
+                    className="flex items-center gap-2 cursor-pointer w-fit"
+                  >
                     <Checkbox
+                      id="emailVerified"
                       checked={value}
                       onCheckedChange={onChange}
                       disabled={disabled}

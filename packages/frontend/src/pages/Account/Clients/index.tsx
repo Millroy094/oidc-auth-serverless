@@ -1,19 +1,19 @@
-import { FC, useEffect, useState, startTransition } from 'react';
-import { Button } from '../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
 import { Plus, Copy, Trash2, Briefcase } from 'lucide-react';
+import { FC, useEffect, useState, startTransition } from 'react';
 import ClientPopup from './ClientPopup';
-import getClients from '../../../api/admin/get-clients';
-import deleteClient from '../../../api/admin/delete-client';
-import useFeedback from '../../../hooks/useFeedback';
+import deleteClient from '@/api/admin/delete-client';
+import getClients, { IAdminClientListItem } from '@/api/admin/get-clients';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import useFeedback from '@/hooks/useFeedback';
 
-interface Client {
-  id: string;
-  name: string;
-  secret: string;
-  clientId: string;
-  clientName: string;
-}
+type Client = IAdminClientListItem;
 
 const Clients: FC = () => {
   const [open, setOpen] = useState(false);
@@ -54,14 +54,14 @@ const Clients: FC = () => {
   };
 
   useEffect(() => {
-    fetchClients();
+    void fetchClients();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onClose = () => {
     setOpen(false);
     setSelectedClientId('');
-    fetchClients();
+    void fetchClients();
   };
 
   return (
@@ -78,7 +78,10 @@ const Clients: FC = () => {
             </CardDescription>
           </div>
         </div>
-        <Button onClick={() => setOpen(true)} className="gap-2 w-full sm:w-auto">
+        <Button
+          onClick={() => setOpen(true)}
+          className="gap-2 w-full sm:w-auto"
+        >
           <Plus className="w-4 h-4" />
           Create new Client
         </Button>
@@ -91,13 +94,17 @@ const Clients: FC = () => {
         ) : (
           <>
             <div className="hidden overflow-x-auto rounded-lg border md:block">
-              <table className="w-full min-w-[640px] text-sm">
+              <table className="w-full min-w-160 text-sm">
                 <thead className="border-b bg-muted/50">
                   <tr>
-                    <th className="text-left py-3 px-4 font-medium">Client ID</th>
+                    <th className="text-left py-3 px-4 font-medium">
+                      Client ID
+                    </th>
                     <th className="text-left py-3 px-4 font-medium">Name</th>
                     <th className="text-left py-3 px-4 font-medium">Secret</th>
-                    <th className="text-center py-3 px-4 font-medium">Actions</th>
+                    <th className="text-center py-3 px-4 font-medium">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -105,17 +112,19 @@ const Clients: FC = () => {
                     <tr
                       key={client.id}
                       onClick={() => handleRowClick(client.id)}
-                      className="border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-colors"
+                      className="last:border-b-0 hover:bg-muted/50 cursor-pointer transition-colors"
                     >
-                      <td className="py-3 px-4">{client.clientId || client.id}</td>
-                      <td className="py-3 px-4">{client.clientName || client.name}</td>
+                      <td className="py-3 px-4">
+                        {client.clientId || client.id}
+                      </td>
+                      <td className="py-3 px-4">{client.clientName}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-muted-foreground">****</span>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigator.clipboard.writeText(client.secret);
+                              void navigator.clipboard.writeText(client.secret);
                             }}
                             title="Copy Secret"
                             className="p-1 hover:bg-muted rounded"
@@ -128,7 +137,7 @@ const Clients: FC = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(client.id);
+                            void handleDelete(client.id);
                           }}
                           title="Delete Client"
                           className="p-1 hover:bg-destructive/10 rounded text-destructive"
@@ -146,13 +155,21 @@ const Clients: FC = () => {
               {clients.map((client) => (
                 <div
                   key={client.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleRowClick(client.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleRowClick(client.id);
+                    }
+                  }}
                   className="cursor-pointer rounded-lg border p-4 transition-colors hover:bg-muted/50"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate font-medium">
-                        {client.clientName || client.name}
+                        {client.clientName}
                       </p>
                       <p className="truncate text-sm text-muted-foreground">
                         {client.clientId || client.id}
@@ -161,7 +178,7 @@ const Clients: FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(client.id);
+                        void handleDelete(client.id);
                       }}
                       title="Delete Client"
                       className="shrink-0 rounded p-1 text-destructive hover:bg-destructive/10"
@@ -176,7 +193,7 @@ const Clients: FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigator.clipboard.writeText(client.secret);
+                        void navigator.clipboard.writeText(client.secret);
                       }}
                       title="Copy Secret"
                       className="flex items-center gap-1 rounded p-1 text-xs text-primary hover:bg-muted"

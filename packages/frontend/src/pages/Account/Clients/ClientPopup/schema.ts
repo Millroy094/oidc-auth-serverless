@@ -1,22 +1,18 @@
-import * as yup from 'yup';
+import { z } from 'zod';
 
-const schema = yup
-  .object({
-    clientId: yup.string().required(),
-    clientName: yup.string().required(),
-    grants: yup.array().of(yup.string().required()).min(1).required(),
-    scopes: yup.array().of(yup.string().required()).min(1).required(),
-    redirectUris: yup
-      .array()
-      .of(
-        yup.object({
-          id: yup.string().required('redirect uri id is required'),
-          value: yup.string().url('url is invalid').required('url is required'),
-        }),
-      )
-      .min(1, 'atleast one url should be present')
-      .required('url is required'),
-  })
-  .required();
+const schema = z.object({
+  clientId: z.string().min(1, 'This field is required'),
+  clientName: z.string().min(1, 'This field is required'),
+  grants: z.array(z.string()).min(1, 'This field is required'),
+  scopes: z.array(z.string()).min(1, 'This field is required'),
+  redirectUris: z
+    .array(
+      z.object({
+        id: z.string().min(1, 'redirect uri id is required'),
+        value: z.string().min(1, 'url is required').url('url is invalid'),
+      }),
+    )
+    .min(1, 'atleast one url should be present'),
+});
 
 export default schema;

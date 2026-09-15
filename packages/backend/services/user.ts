@@ -1,18 +1,17 @@
-import { AnyItem } from 'dynamoose/dist/Item';
-import isEmpty from 'lodash/isEmpty.js';
 import bcrypt from 'bcryptjs';
-import logger from '../utils/logger.ts';
-import User from '../models/User.ts';
-import OIDCService from './oidc.ts';
+import isEmpty from 'lodash/isEmpty.js';
+import User, { UserItem } from '../models/User.ts';
 import generateOtp from '../utils/generate-otp.ts';
-import OTPService from './otp.ts';
+import logger from '../utils/logger.ts';
 import { sendEmail } from '../utils/notification.ts';
+import OIDCService from './oidc.ts';
+import OTPService from './otp.ts';
 
 class UserService {
   public static async validateUserCredentials(
     username: string,
     password: string,
-  ): Promise<AnyItem> {
+  ): Promise<UserItem> {
     const [userAccount] = await User.scan('email').eq(username).exec();
 
     if (isEmpty(userAccount)) {
@@ -65,12 +64,12 @@ class UserService {
     await User.create(fields);
   }
 
-  public static async getUsers(): Promise<AnyItem[]> {
+  public static async getUsers(): Promise<UserItem[]> {
     const userAccounts = await User.scan().exec();
     return userAccounts;
   }
 
-  public static async getUserById(id: string): Promise<AnyItem> {
+  public static async getUserById(id: string): Promise<UserItem> {
     const userAccount = await User.get(id, {
       attributes: [
         'userId',
@@ -103,7 +102,7 @@ class UserService {
 
   public static async updateUser(
     userId: string,
-    updatedFields: any,
+    updatedFields: Record<string, unknown>,
   ): Promise<boolean> {
     await User.update(userId, updatedFields);
 
@@ -125,7 +124,7 @@ class UserService {
 
     try {
       user = await UserService.getUserByEmail(email);
-    } catch (err) {
+    } catch {
       logger.error('User not found');
     }
 

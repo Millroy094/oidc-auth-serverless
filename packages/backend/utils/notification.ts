@@ -1,7 +1,7 @@
-import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
-import logger from './logger.ts';
+import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import config from '../support/env-config.ts';
+import logger from './logger.ts';
 
 // Region and credentials are resolved automatically by the AWS SDK from the
 // standard AWS_REGION / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars
@@ -58,4 +58,3 @@ export const sendEmail = async (
     throw new Error('Unable to send Email');
   }
 };
-

@@ -1,30 +1,37 @@
 import {
+  Control,
+  Controller,
+  FieldErrors,
+  FieldValues,
+  Path,
+} from 'react-hook-form';
+import MultiSelect from './MultiSelect';
+import { Label } from './ui/label';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { Label } from './ui/label';
-import { FC } from 'react';
-import { Control, Controller, FieldErrors } from 'react-hook-form';
-import MultiSelect from './MultiSelect';
 
 type ControlledSelectOption = {
   label: string;
   value: string;
 };
 
-interface ControlledSelectProps {
-  name: string;
+interface ControlledSelectProps<TFieldValues extends FieldValues> {
+  name: Path<TFieldValues>;
   label: string;
   multiple?: boolean;
   options: ControlledSelectOption[];
-  control: Control<any>;
-  errors: FieldErrors<any>;
+  control: Control<TFieldValues>;
+  errors: FieldErrors<TFieldValues>;
 }
 
-const ControlledSelect: FC<ControlledSelectProps> = (props) => {
+const ControlledSelect = <TFieldValues extends FieldValues>(
+  props: ControlledSelectProps<TFieldValues>,
+) => {
   const { name, control, label, options, errors, multiple } = props;
   const id = label.toLocaleLowerCase();
 
@@ -44,7 +51,10 @@ const ControlledSelect: FC<ControlledSelectProps> = (props) => {
             />
           ) : (
             <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger id={id} className={errors[name] ? 'border-destructive' : ''}>
+              <SelectTrigger
+                id={id}
+                className={errors[name] ? 'border-destructive' : ''}
+              >
                 <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
               </SelectTrigger>
               <SelectContent>

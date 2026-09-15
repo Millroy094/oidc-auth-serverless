@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
 interface IChangePasswordArgs {
   email: string;
@@ -7,11 +7,15 @@ interface IChangePasswordArgs {
   password: string;
 }
 
+interface ChangePasswordResponseData {
+  message?: string;
+}
+
 const changePassword = async (
   args: IChangePasswordArgs,
-): Promise<AxiosResponse> => {
+): Promise<AxiosResponse<ChangePasswordResponseData>> => {
   const { email, otp, password } = args;
-  const response = await axios.post(
+  const response = await axios.post<ChangePasswordResponseData>(
     '/api/user/change-password',
     {
       email,

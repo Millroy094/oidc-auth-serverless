@@ -5,7 +5,7 @@ const phoneUtil = PhoneNumberUtil.getInstance();
 const isPhoneValid = (phone: string) => {
   try {
     return phoneUtil.isValidNumber(phoneUtil.parseAndKeepRawInput(phone));
-  } catch (error) {
+  } catch {
     return false;
   }
 };

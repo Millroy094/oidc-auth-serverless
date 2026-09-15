@@ -1,12 +1,18 @@
-import { FC, startTransition, useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
-import getUsers from '../../../api/admin/get-users';
-import useFeedback from '../../../hooks/useFeedback';
-import deleteUser from '../../../api/admin/delete-user';
 import { RotateCcw, UserX, UsersIcon } from 'lucide-react';
-import clearUserSessions from '../../../api/admin/clear-user-sessions';
+import { FC, startTransition, useEffect, useState } from 'react';
 import UserPopup from './UserPopup';
-import { ADMIN_EMAIL } from '../../../constants';
+import clearUserSessions from '@/api/admin/clear-user-sessions';
+import deleteUser from '@/api/admin/delete-user';
+import getUsers from '@/api/admin/get-users';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { ADMIN_EMAIL } from '@/constants';
+import useFeedback from '@/hooks/useFeedback';
 
 interface User {
   id: string;
@@ -35,7 +41,7 @@ const Users: FC = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+    void fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -82,7 +88,7 @@ const Users: FC = () => {
   const onClose = () => {
     setOpen(false);
     setSelectedUserId('');
-    fetchUsers();
+    void fetchUsers();
   };
 
   return (
@@ -106,14 +112,20 @@ const Users: FC = () => {
         ) : (
           <>
             <div className="hidden overflow-x-auto rounded-lg border md:block">
-              <table className="w-full min-w-[760px] text-sm">
+              <table className="w-full min-w-190 text-sm">
                 <thead className="border-b bg-muted/50">
                   <tr>
-                    <th className="text-left py-3 px-4 font-medium">First Name</th>
-                    <th className="text-left py-3 px-4 font-medium">Last Name</th>
+                    <th className="text-left py-3 px-4 font-medium">
+                      First Name
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium">
+                      Last Name
+                    </th>
                     <th className="text-left py-3 px-4 font-medium">Email</th>
                     <th className="text-left py-3 px-4 font-medium">Mobile</th>
-                    <th className="text-center py-3 px-4 font-medium">Actions</th>
+                    <th className="text-center py-3 px-4 font-medium">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -123,7 +135,7 @@ const Users: FC = () => {
                       <tr
                         key={user.id}
                         onClick={() => handleRowClick(user)}
-                        className={`border-b last:border-b-0 transition-colors ${
+                        className={`last:border-b-0 transition-colors ${
                           !isAdmin ? 'hover:bg-muted/50 cursor-pointer' : ''
                         }`}
                       >
@@ -146,7 +158,7 @@ const Users: FC = () => {
                               disabled={isAdmin}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDeleteSessions(user.id);
+                                void handleDeleteSessions(user.id);
                               }}
                               title="Clear all sessions"
                               className={`p-1 rounded ${
@@ -161,7 +173,7 @@ const Users: FC = () => {
                               disabled={isAdmin}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDelete(user.id);
+                                void handleDelete(user.id);
                               }}
                               title="Delete user"
                               className={`p-1 rounded ${
@@ -187,7 +199,15 @@ const Users: FC = () => {
                 return (
                   <div
                     key={user.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => handleRowClick(user)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleRowClick(user);
+                      }
+                    }}
                     className={`rounded-lg border p-4 transition-colors ${
                       !isAdmin ? 'cursor-pointer hover:bg-muted/50' : ''
                     }`}
@@ -218,7 +238,7 @@ const Users: FC = () => {
                           disabled={isAdmin}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteSessions(user.id);
+                            void handleDeleteSessions(user.id);
                           }}
                           title="Clear all sessions"
                           className={`rounded p-1 ${
@@ -233,7 +253,7 @@ const Users: FC = () => {
                           disabled={isAdmin}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(user.id);
+                            void handleDelete(user.id);
                           }}
                           title="Delete user"
                           className={`rounded p-1 ${

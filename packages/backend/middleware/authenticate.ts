@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import logger from '../utils/logger.ts';
+import jwt, { SignOptions } from 'jsonwebtoken';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants/authentication.ts';
 import UserService from '../services/user.ts';
 import config from '../support/env-config.ts';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants/authentication.ts';
+import logger from '../utils/logger.ts';
 
 interface JwtPayload {
   userId: string;
@@ -26,10 +26,10 @@ const generateNewTokensFromRefreshToken = (
       refreshTokenSecret,
     ) as JwtPayload;
     const newAccessToken = jwt.sign({ userId, email }, accessTokenSecret, {
-      expiresIn: accessTokenExpiry,
+      expiresIn: accessTokenExpiry as SignOptions['expiresIn'],
     });
     const newRefreshToken = jwt.sign({ userId, email }, accessTokenSecret, {
-      expiresIn: refreshTokenExpiry,
+      expiresIn: refreshTokenExpiry as SignOptions['expiresIn'],
     });
 
     res
@@ -43,7 +43,7 @@ const generateNewTokensFromRefreshToken = (
       });
 
     req.user = { userId, email };
-  } catch (error) {
+  } catch {
     throw new Error(
       'Authentication failed, authentication tokens have expired',
     );
@@ -51,8 +51,8 @@ const generateNewTokensFromRefreshToken = (
 };
 
 const validateTokensFromCookies = (req: Request, res: Response) => {
-  const accessToken = req?.cookies[ACCESS_TOKEN];
-  const refreshToken = req?.cookies[REFRESH_TOKEN];
+  const accessToken = req?.cookies[ACCESS_TOKEN] as string | undefined;
+  const refreshToken = req?.cookies[REFRESH_TOKEN] as string | undefined;
 
   if (!accessToken || !refreshToken) {
     throw new Error(

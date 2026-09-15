@@ -1,14 +1,14 @@
 import 'react-international-phone/style.css';
 
-import { Input } from './ui/input';
 import React from 'react';
 import {
-  CountryIso2,
   defaultCountries,
   FlagImage,
   parseCountry,
   usePhoneInput,
 } from 'react-international-phone';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 import {
   Select,
   SelectContent,
@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { Label } from './ui/label';
 
 export interface MobileNumberInputProps {
   value: string;
@@ -49,7 +48,11 @@ export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
     <div className="w-full space-y-2">
       <Label htmlFor="phone">{label}</Label>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Select value={country.iso2} onValueChange={(value) => setCountry(value as CountryIso2)} disabled={readOnly}>
+        <Select
+          value={country.iso2}
+          onValueChange={(value) => setCountry(value)}
+          disabled={readOnly}
+        >
           <SelectTrigger className="w-full gap-1 px-2 sm:w-[7.5rem] sm:shrink-0">
             <SelectValue />
           </SelectTrigger>
@@ -78,7 +81,13 @@ export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
           className={error ? 'border-destructive' : ''}
         />
       </div>
-      {helperText && <p className={`text-sm ${error ? 'text-destructive' : 'text-muted-foreground'}`}>{helperText}</p>}
+      {helperText && (
+        <p
+          className={`text-sm ${error ? 'text-destructive' : 'text-muted-foreground'}`}
+        >
+          {helperText}
+        </p>
+      )}
     </div>
   );
 };

@@ -1,70 +1,135 @@
 import { Router } from 'express';
-import UserController from '../controllers/user.ts';
+import PasskeyController, {
+  CheckPasskeyExistsBody,
+  DeletePasskeyBody,
+  GetPasskeysQuery,
+  LoginWithPasskeyBody,
+  RegisterPasskeyBody,
+  VerifyLoginPasskeyBody,
+  VerifyPasskeyRegistrationBody,
+} from '../controllers/passkey.ts';
+import UserController, {
+  ChangeMFAPreferenceBody,
+  ChangePasswordBody,
+  LoginBody,
+  LoginConfigurationQuery,
+  RegisterBody,
+  ResetMFABody,
+  SendOtpBody,
+  SessionIdParams,
+  SetupMFABody,
+  VerifyMFABody,
+} from '../controllers/user.ts';
 import authenticate from '../middleware/authenticate.ts';
-import PasskeyController from '../controllers/passkey.ts';
 
 const router = Router();
 
-router.post('/register', UserController.register);
-router.post('/login', UserController.login);
-router.get('/logout', UserController.logout);
-router.get('/is-authenticated', authenticate, UserController.isAuthenticated);
-router.get('/profile-details', authenticate, UserController.getProfileDetails);
-
-router.put(
-  '/profile-details',
-  authenticate,
-  UserController.updateProfileDetails,
+router.post<Record<string, string>, unknown, RegisterBody>(
+  '/register',
+  (req, res) => UserController.register(req, res),
+);
+router.post<Record<string, string>, unknown, LoginBody>('/login', (req, res) =>
+  UserController.login(req, res),
+);
+router.get('/logout', (req, res) => UserController.logout(req, res));
+router.get('/is-authenticated', authenticate, (req, res) =>
+  UserController.isAuthenticated(req, res),
+);
+router.get('/profile-details', authenticate, (req, res) =>
+  UserController.getProfileDetails(req, res),
 );
 
-router.get('/sessions', authenticate, UserController.getSessions);
+router.put('/profile-details', authenticate, (req, res) =>
+  UserController.updateProfileDetails(req, res),
+);
 
-router.delete('/sessions', authenticate, UserController.deleteAllSessions);
+router.get('/sessions', authenticate, (req, res) =>
+  UserController.getSessions(req, res),
+);
 
-router.delete(
+router.delete('/sessions', authenticate, (req, res) =>
+  UserController.deleteAllSessions(req, res),
+);
+
+router.delete<SessionIdParams>(
   '/sessions/:sessionId',
   authenticate,
-  UserController.deleteSession,
+  (req, res) => UserController.deleteSession(req, res),
 );
 
-router.get('/mfa-settings', authenticate, UserController.getMFASettings);
-router.post('/mfa-setup', authenticate, UserController.setupMFA);
-router.post('/mfa-verify', authenticate, UserController.verifyMFA);
-router.post('/mfa-reset', authenticate, UserController.resetMFA);
-router.post(
+router.get('/mfa-settings', authenticate, (req, res) =>
+  UserController.getMFASettings(req, res),
+);
+router.post<Record<string, string>, unknown, SetupMFABody>(
+  '/mfa-setup',
+  authenticate,
+  (req, res) => UserController.setupMFA(req, res),
+);
+router.post<Record<string, string>, unknown, VerifyMFABody>(
+  '/mfa-verify',
+  authenticate,
+  (req, res) => UserController.verifyMFA(req, res),
+);
+router.post<Record<string, string>, unknown, ResetMFABody>(
+  '/mfa-reset',
+  authenticate,
+  (req, res) => UserController.resetMFA(req, res),
+);
+router.post<Record<string, string>, unknown, ChangeMFAPreferenceBody>(
   '/mfa-change-preference',
   authenticate,
-  UserController.changeMFAPreference,
+  (req, res) => UserController.changeMFAPreference(req, res),
 );
-router.get(
-  '/generate-recovery-codes',
-  authenticate,
-  UserController.generateRecoveryCodes,
+router.get('/generate-recovery-codes', authenticate, (req, res) =>
+  UserController.generateRecoveryCodes(req, res),
 );
 
-router.get('/get-passkeys', authenticate, PasskeyController.getPasskeys);
-router.delete('/delete-passkey', authenticate, PasskeyController.deletePasskey);
-router.post(
+router.get<Record<string, string>, unknown, unknown, GetPasskeysQuery>(
+  '/get-passkeys',
+  authenticate,
+  (req, res) => PasskeyController.getPasskeys(req, res),
+);
+router.delete<Record<string, string>, unknown, DeletePasskeyBody>(
+  '/delete-passkey',
+  authenticate,
+  (req, res) => PasskeyController.deletePasskey(req, res),
+);
+router.post<Record<string, string>, unknown, RegisterPasskeyBody>(
   '/register-passkey',
   authenticate,
-  PasskeyController.registerPasskey,
+  (req, res) => PasskeyController.registerPasskey(req, res),
 );
-router.post(
+router.post<Record<string, string>, unknown, VerifyPasskeyRegistrationBody>(
   '/verify-passkey-registration',
   authenticate,
-  PasskeyController.verifyPasskeyRegistration,
+  (req, res) => PasskeyController.verifyPasskeyRegistration(req, res),
 );
-router.post('/login-with-passkey', PasskeyController.loginWithPasskey);
-router.post('/verify-passkey-login', PasskeyController.verifyLoginPasskey);
-router.post(
+router.post<Record<string, string>, unknown, LoginWithPasskeyBody>(
+  '/login-with-passkey',
+  (req, res) => PasskeyController.loginWithPasskey(req, res),
+);
+router.post<Record<string, string>, unknown, VerifyLoginPasskeyBody>(
+  '/verify-passkey-login',
+  (req, res) => PasskeyController.verifyLoginPasskey(req, res),
+);
+router.post<Record<string, string>, unknown, CheckPasskeyExistsBody>(
   '/check-passkey-already-exists',
   authenticate,
-  PasskeyController.checkPasskeyExists,
+  (req, res) => PasskeyController.checkPasskeyExists(req, res),
 );
 
-router.post('/send-otp', UserController.sendOtp);
-router.post('/change-password', UserController.changePassword);
+router.post<Record<string, string>, unknown, SendOtpBody>(
+  '/send-otp',
+  (req, res) => UserController.sendOtp(req, res),
+);
+router.post<Record<string, string>, unknown, ChangePasswordBody>(
+  '/change-password',
+  (req, res) => UserController.changePassword(req, res),
+);
 
-router.get('/get-login-configuration', UserController.getLoginConfiguration);
+router.get<Record<string, string>, unknown, unknown, LoginConfigurationQuery>(
+  '/get-login-configuration',
+  (req, res) => UserController.getLoginConfiguration(req, res),
+);
 
 export default router;

@@ -1,10 +1,29 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
-const getMFASettings = async (): Promise<AxiosResponse> => {
-  const response = await axios.get('/api/user/mfa-settings', {
-    withCredentials: true,
-  });
+export interface IMFATypeSetting {
+  type: string;
+  subscriber: string;
+  verified: boolean;
+}
+
+interface GetMFASettingsResponseData {
+  settings: {
+    types: IMFATypeSetting[];
+    preference: string;
+    recoveryCodeCount: number;
+  };
+}
+
+const getMFASettings = async (): Promise<
+  AxiosResponse<GetMFASettingsResponseData>
+> => {
+  const response = await axios.get<GetMFASettingsResponseData>(
+    '/api/user/mfa-settings',
+    {
+      withCredentials: true,
+    },
+  );
   return response;
 };
 

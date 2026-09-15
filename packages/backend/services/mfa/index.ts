@@ -1,13 +1,12 @@
-import omit from 'lodash/omit.js';
-import map from 'lodash/map.js';
-import filter from 'lodash/filter.js';
-import isEmpty from 'lodash/isEmpty.js';
 import bcrypt from 'bcryptjs';
+import isEmpty from 'lodash/isEmpty.js';
+import map from 'lodash/map.js';
+import omit from 'lodash/omit.js';
 import { v4 as uuid } from 'uuid';
 import User from '../../models/User.ts';
+import { sendEmailOtp, sendSMSOtp } from './send.ts';
 import { setupAppMFA, setupEmailMFA, setupSMSMFA } from './setup.ts';
 import { verifyAppMFA, verifyEmailMFA, verifySMSMFA } from './verify.ts';
-import { sendEmailOtp, sendSMSOtp } from './send.ts';
 
 class MFAService {
   public static async getMFASetting(userId: string): Promise<{
@@ -24,12 +23,13 @@ class MFAService {
     }
 
     return {
-      types: filter(
-        map(
-          omit(userAccountMfaSetting.mfa, ['preference', 'recoveryCodes']),
-          ({ subscriber, verified }, type) => ({ type, subscriber, verified }),
-        ),
-        ({ type }) => type !== 'passkey',
+      types: map(
+        omit(userAccountMfaSetting.mfa, [
+          'preference',
+          'recoveryCodes',
+          'passkey',
+        ]),
+        ({ subscriber, verified }, type) => ({ type, subscriber, verified }),
       ),
       preference: userAccountMfaSetting.mfa.preference,
       recoveryCodeCount: userAccountMfaSetting.mfa.recoveryCodes?.length ?? 0,

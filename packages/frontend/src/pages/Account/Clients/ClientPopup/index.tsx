@@ -1,24 +1,26 @@
-import { FC, useEffect, useState } from 'react';
-import { Button } from '../../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter } from '../../../../components/ui/card';
-import { Input } from '../../../../components/ui/input';
-import { Plus, Trash2, Building2 } from 'lucide-react';
-import { useFieldArray, useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import schema from './schema';
-import has from 'lodash/has';
-import get from 'lodash/get';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { snakeCase, uniqueId } from 'lodash';
-import ControlledSelect from '../../../../components/ControlledSelect';
-import createClient from '../../../../api/admin/create-client';
-import getClient from '../../../../api/admin/get-client';
-import updateClient from '../../../../api/admin/update-client';
-import useFeedback from '../../../../hooks/useFeedback';
+import get from 'lodash/get';
+import has from 'lodash/has';
+import { Plus, Trash2, Building2 } from 'lucide-react';
+import { FC, useEffect, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import schema from './schema';
 import { IClientPopupInput } from './type';
+import createClient from '@/api/admin/create-client';
+import getClient from '@/api/admin/get-client';
+import updateClient from '@/api/admin/update-client';
+import ControlledSelect from '@/components/ControlledSelect';
+import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-} from '../../../../components/ui/dialog';
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+} from '@/components/ui/card';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import useFeedback from '@/hooks/useFeedback';
 
 interface ClientPopupProps {
   open: boolean;
@@ -47,7 +49,7 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
     setValue,
     watch,
   } = useForm<IClientPopupInput>({
-    resolver: yupResolver(schema),
+    resolver: zodResolver(schema),
     criteriaMode: 'all',
     mode: 'onChange',
     values: client,
@@ -82,7 +84,7 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
 
   useEffect(() => {
     if (open && clientIdentifier) {
-      fetchClient(clientIdentifier);
+      void fetchClient(clientIdentifier);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, clientIdentifier]);
@@ -159,18 +161,20 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="clientId" className="block text-sm font-medium mb-1">
+                  <label
+                    htmlFor="clientId"
+                    className="block text-sm font-medium mb-1"
+                  >
                     Client Id
                   </label>
-                  <Input
-                    {...register('clientId')}
-                    id="clientId"
-                    disabled
-                  />
+                  <Input {...register('clientId')} id="clientId" disabled />
                 </div>
 
                 <div>
-                  <label htmlFor="clientName" className="block text-sm font-medium mb-1">
+                  <label
+                    htmlFor="clientName"
+                    className="block text-sm font-medium mb-1"
+                  >
                     Client Name
                   </label>
                   <Input
@@ -269,7 +273,11 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
                       </div>
                       {has(errors, `redirectUris.${index}.value`) && (
                         <p className="text-sm text-red-500">
-                          {get(errors, `redirectUris.${index}.value.message`, '')}
+                          {get(
+                            errors,
+                            `redirectUris.${index}.value.message`,
+                            '',
+                          )}
                         </p>
                       )}
                     </div>

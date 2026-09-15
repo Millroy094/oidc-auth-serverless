@@ -1,11 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AxiosError, AxiosResponse } from 'axios';
 import { useSnackbar, VariantType } from 'notistack';
 
+interface IErrorResponseData {
+  error?: string;
+}
+
 const useFeedback = (): {
-  feedbackAxiosError: (error: any, defaultMessage: string) => void;
-  feedbackAxiosResponse: (
-    response: AxiosResponse,
+  feedbackAxiosError: (error: unknown, defaultMessage: string) => void;
+  feedbackAxiosResponse: <T extends { message?: string }>(
+    response: AxiosResponse<T>,
     defaultMessage: string,
     type: VariantType,
   ) => void;
@@ -13,17 +16,19 @@ const useFeedback = (): {
 } => {
   const { enqueueSnackbar } = useSnackbar();
 
-  const feedbackAxiosError = (error: any, defaultMessage: string): void => {
-    const feedbackMessage =
-      error instanceof AxiosError && error?.response?.data?.error
-        ? error.response.data.error
-        : defaultMessage;
+  const feedbackAxiosError = (error: unknown, defaultMessage: string): void => {
+    const responseData =
+      error instanceof AxiosError
+        ? (error.response?.data as IErrorResponseData | undefined)
+        : undefined;
 
-    enqueueSnackbar(feedbackMessage, { variant: 'error' });
+    enqueueSnackbar(responseData?.error ?? defaultMessage, {
+      variant: 'error',
+    });
   };
 
-  const feedbackAxiosResponse = (
-    response: AxiosResponse,
+  const feedbackAxiosResponse = <T extends { message?: string }>(
+    response: AxiosResponse<T>,
     defaultMessage: string,
     type: VariantType,
   ): void => {

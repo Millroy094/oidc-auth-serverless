@@ -1,12 +1,11 @@
 import { FC } from 'react';
-import { UseFormRegister } from 'react-hook-form';
+import { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { ILoginFormInput } from './types';
-import { Input } from '../../components/ui/input';
+import { Input } from '@/components/ui/input';
 
 interface UsernameInputProps {
   register: UseFormRegister<ILoginFormInput>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errors: Record<string, any>;
+  errors: FieldErrors<ILoginFormInput>;
 }
 
 const UsernameInput: FC<UsernameInputProps> = ({ register, errors }) => {

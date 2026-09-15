@@ -1,11 +1,18 @@
 import Challenge from '../models/Challenge.ts';
 
+export interface ClientData {
+  type: string;
+  challenge: string;
+  origin: string;
+  [key: string]: unknown;
+}
+
 class PasskeyService {
-  public static decodeClientData(encodedClientData: string) {
+  public static decodeClientData(encodedClientData: string): ClientData {
     const base64 = encodedClientData.replace(/_/g, '/').replace(/-/g, '+');
     const binaryData = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
     const decodedString = new TextDecoder().decode(binaryData);
-    return JSON.parse(decodedString);
+    return JSON.parse(decodedString) as ClientData;
   }
 
   public static async createChallenge(

@@ -1,13 +1,12 @@
 import { FC } from 'react';
-import { Button } from '../../components/ui/button';
-import PasswordField from '../../components/PasswordField';
-import { UseFormRegister } from 'react-hook-form';
+import { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { ILoginFormInput } from './types';
+import PasswordField from '@/components/PasswordField';
+import { Button } from '@/components/ui/button';
 
 interface PasswordInputProps {
   register: UseFormRegister<ILoginFormInput>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errors: Record<string, any>;
+  errors: FieldErrors<ILoginFormInput>;
   email: string;
   navigateToForgotPassword: () => void;
 }
@@ -31,8 +30,8 @@ const PasswordInput: FC<PasswordInputProps> = ({
         />
       </div>
       <div className="flex justify-end">
-        <Button 
-          variant="link" 
+        <Button
+          variant="link"
           onClick={navigateToForgotPassword}
           className="text-sm p-0 h-auto"
         >

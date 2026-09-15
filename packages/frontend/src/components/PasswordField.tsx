@@ -1,10 +1,10 @@
-import React, { FC, useState } from 'react';
 import { EyeOff, Eye } from 'lucide-react';
+import React, { FC, useState } from 'react';
 import { UseFormRegister } from 'react-hook-form';
-import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { IRegisterFormInput } from '../pages/Register/types';
-import { ILoginFormInput } from '../pages/Login/types';
+import { Input } from './ui/input';
+import { ILoginFormInput } from '@/pages/Login/types';
+import { IRegisterFormInput } from '@/pages/Register/types';
 
 interface PasswordFieldProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,8 +40,12 @@ const PasswordField: FC<PasswordFieldProps> = (props) => {
 
   return (
     <div className="w-full space-y-2">
-      <label htmlFor={String(name)} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-        {label ?? name} {required && <span className="text-destructive">*</span>}
+      <label
+        htmlFor={String(name)}
+        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+      >
+        {label ?? name}{' '}
+        {required && <span className="text-destructive">*</span>}
       </label>
       <div className="relative flex items-center">
         <Input
@@ -61,10 +65,20 @@ const PasswordField: FC<PasswordFieldProps> = (props) => {
           onClick={handleClickShowPassword}
           onMouseDown={handleMouseDownPassword}
         >
-          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          {showPassword ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
         </Button>
       </div>
-      {helperText && <p className={`text-sm ${error ? 'text-destructive' : 'text-muted-foreground'}`}>{helperText}</p>}
+      {helperText && (
+        <p
+          className={`text-sm ${error ? 'text-destructive' : 'text-muted-foreground'}`}
+        >
+          {helperText}
+        </p>
+      )}
     </div>
   );
 };

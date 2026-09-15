@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
 type AuthenticateUserArgs = {
   email: string;
@@ -10,9 +10,20 @@ type AuthenticateUserArgs = {
   resetMfa?: boolean;
 };
 
+export interface IAuthenticatedUser {
+  userId: string;
+  email: string;
+  roles: string[];
+}
+
+interface AuthenticateUserResponseData {
+  user: IAuthenticatedUser;
+  message: string;
+}
+
 const authenticateUser = async (
   args: AuthenticateUserArgs,
-): Promise<AxiosResponse> => {
+): Promise<AxiosResponse<AuthenticateUserResponseData>> => {
   const {
     email,
     password,
@@ -21,7 +32,7 @@ const authenticateUser = async (
     recoveryCode,
     resetMfa,
   } = args;
-  const response = await axios.post(
+  const response = await axios.post<AuthenticateUserResponseData>(
     '/api/user/login',
     {
       email,

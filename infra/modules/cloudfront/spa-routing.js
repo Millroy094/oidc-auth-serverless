@@ -1,3 +1,7 @@
+// CloudFront Functions are invoked by the "handler" function name at the
+// edge runtime - there is no export/import, so ESLint can't see the call
+// site.
+// eslint-disable-next-line no-unused-vars
 function handler(event) {
   var request = event.request;
   var uri = request.uri;

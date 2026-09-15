@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
 type updateUserProfileDetailsArgs = {
   email: string;
@@ -9,11 +9,15 @@ type updateUserProfileDetailsArgs = {
   mobile?: string;
 };
 
+interface UpdateUserProfileDetailsResponseData {
+  message: string;
+}
+
 const updateUserProfileDetails = async (
   args: updateUserProfileDetailsArgs,
-): Promise<AxiosResponse> => {
+): Promise<AxiosResponse<UpdateUserProfileDetailsResponseData>> => {
   const { email, emailVerified, firstName, lastName, mobile } = args;
-  const response = await axios.put(
+  const response = await axios.put<UpdateUserProfileDetailsResponseData>(
     '/api/user/profile-details',
     {
       email,

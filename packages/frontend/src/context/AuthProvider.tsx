@@ -1,11 +1,11 @@
-import { useContext, createContext, useState, FC, ReactElement } from 'react';
-import authenticateUser from '../api/user/authenticate-user';
-import { useLocation, useNavigate } from 'react-router-dom';
-import useFeedback from '../hooks/useFeedback';
-import logoutUser from '../api/user/logout-user';
 import { useSnackbar } from 'notistack';
-import isAuthenticated from '../api/user/is-authenticated-user';
-import { ILoginFormInput } from '../pages/Login/types';
+import { useContext, createContext, useState, FC, ReactElement } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import authenticateUser from '@/api/user/authenticate-user';
+import isAuthenticated from '@/api/user/is-authenticated-user';
+import logoutUser from '@/api/user/logout-user';
+import useFeedback from '@/hooks/useFeedback';
+import { ILoginFormInput } from '@/pages/Login/types';
 
 interface IUser {
   userId: string;
@@ -35,7 +35,7 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
         ...data,
       });
       setUser(response.data.user);
-      navigate('/account');
+      await navigate('/account');
     } catch (err) {
       feedbackAxiosError(
         err,
@@ -48,8 +48,8 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
     try {
       const response = await isAuthenticated();
       setUser(response.data.user);
-      navigate('/account');
-    } catch (err) {
+      await navigate('/account');
+    } catch {
       await logout();
       if (pathname !== '/') {
         enqueueSnackbar('Session expired, please login again', {
@@ -63,7 +63,7 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
     try {
       await logoutUser();
       setUser(null);
-      navigate('/login');
+      await navigate('/login');
     } catch (err) {
       feedbackAxiosError(err, 'Failed to logout user, please try again.');
     }

@@ -1,16 +1,75 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { pick } from 'lodash';
-import logger from '../utils/logger.ts';
-import UserService from '../services/user.ts';
-import OIDCService from '../services/oidc.ts';
-import MFAService from '../services/mfa/index.ts';
-import config from '../support/env-config.ts';
-import HTTP_STATUSES from '../constants/http-status.ts';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants/authentication.ts';
+import HTTP_STATUSES from '../constants/http-status.ts';
+import MFAService from '../services/mfa/index.ts';
+import OIDCService from '../services/oidc.ts';
+import UserService from '../services/user.ts';
+import config from '../support/env-config.ts';
+import logger from '../utils/logger.ts';
+
+export interface RegisterBody {
+  email: string;
+  firstName: string;
+  lastName: string;
+  mobile?: string;
+  password: string;
+}
+
+export interface LoginBody {
+  email: string;
+  password: string;
+  otp?: string;
+  loginWithRecoveryCode?: boolean;
+  recoveryCode?: string;
+  resetMfa?: boolean;
+}
+
+export interface SessionIdParams {
+  [key: string]: string;
+  sessionId: string;
+}
+
+export interface SetupMFABody {
+  type: 'app' | 'sms' | 'email';
+  subscriber: string;
+}
+
+export interface VerifyMFABody {
+  type: 'app' | 'sms' | 'email';
+  otp: string;
+}
+
+export interface ResetMFABody {
+  type: 'app' | 'sms' | 'email';
+}
+
+export interface ChangeMFAPreferenceBody {
+  preference: 'app' | 'sms' | 'email';
+}
+
+export interface SendOtpBody {
+  type: string;
+  email: string;
+}
+
+export interface LoginConfigurationQuery {
+  [key: string]: string;
+  email: string;
+}
+
+export interface ChangePasswordBody {
+  email: string;
+  otp: string;
+  password: string;
+}
 
 class UserController {
-  public static async register(req: Request, res: Response) {
+  public static async register(
+    req: Request<Record<string, string>, unknown, RegisterBody>,
+    res: Response,
+  ) {
     try {
       await UserService.createUser(req.body);
       res
@@ -25,7 +84,10 @@ class UserController {
     }
   }
 
-  public static async login(req: Request, res: Response) {
+  public static async login(
+    req: Request<Record<string, string>, unknown, LoginBody>,
+    res: Response,
+  ) {
     try {
       const user = await UserService.validateUserCredentials(
         req.body.email,
@@ -38,7 +100,7 @@ class UserController {
         await MFAService.validateRecoveryCode(
           user.userId,
           req.body.recoveryCode,
-          req.body.resetMfa,
+          req.body.resetMfa ?? false,
         );
       } else if (
         user.mfa.preference &&
@@ -47,7 +109,7 @@ class UserController {
       ) {
         await MFAService.verifyMFA(
           user.userId,
-          user.mfa.preference,
+          user.mfa.preference as 'app' | 'sms' | 'email',
           req.body.otp,
         );
       }
@@ -62,7 +124,9 @@ class UserController {
         payload,
         config.get('authentication.accessTokenSecret'),
         {
-          expiresIn: config.get('authentication.accessTokenExpiry'),
+          expiresIn: config.get(
+            'authentication.accessTokenExpiry',
+          ) as SignOptions['expiresIn'],
         },
       );
 
@@ -70,7 +134,9 @@ class UserController {
         payload,
         config.get('authentication.refreshTokenSecret'),
         {
-          expiresIn: config.get('authentication.refreshTokenExpiry'),
+          expiresIn: config.get(
+            'authentication.refreshTokenExpiry',
+          ) as SignOptions['expiresIn'],
         },
       );
 
@@ -96,7 +162,7 @@ class UserController {
     }
   }
 
-  public static async logout(req: Request, res: Response) {
+  public static logout(_req: Request, res: Response) {
     res
       .clearCookie(ACCESS_TOKEN)
       .clearCookie(REFRESH_TOKEN)
@@ -183,7 +249,10 @@ class UserController {
     }
   }
 
-  public static async deleteSession(req: Request, res: Response) {
+  public static async deleteSession(
+    req: Request<SessionIdParams>,
+    res: Response,
+  ) {
     try {
       const { sessionId } = req.params;
       await OIDCService.deleteSession(sessionId);
@@ -211,7 +280,10 @@ class UserController {
         .json({ error: 'Unable to retrieve user MFA settings' });
     }
   }
-  public static async setupMFA(req: Request, res: Response) {
+  public static async setupMFA(
+    req: Request<Record<string, string>, unknown, SetupMFABody>,
+    res: Response,
+  ) {
     try {
       const { user } = req;
       const { userId } = user!;
@@ -228,7 +300,10 @@ class UserController {
     }
   }
 
-  public static async verifyMFA(req: Request, res: Response) {
+  public static async verifyMFA(
+    req: Request<Record<string, string>, unknown, VerifyMFABody>,
+    res: Response,
+  ) {
     try {
       const { user } = req;
       const { userId } = user!;
@@ -243,7 +318,10 @@ class UserController {
     }
   }
 
-  public static async resetMFA(req: Request, res: Response) {
+  public static async resetMFA(
+    req: Request<Record<string, string>, unknown, ResetMFABody>,
+    res: Response,
+  ) {
     try {
       const { user } = req;
       const { userId } = user!;
@@ -258,7 +336,10 @@ class UserController {
     }
   }
 
-  public static async changeMFAPreference(req: Request, res: Response) {
+  public static async changeMFAPreference(
+    req: Request<Record<string, string>, unknown, ChangeMFAPreferenceBody>,
+    res: Response,
+  ) {
     try {
       const { user } = req;
       const { userId } = user!;
@@ -293,7 +374,10 @@ class UserController {
     }
   }
 
-  public static async sendOtp(req: Request, res: Response) {
+  public static async sendOtp(
+    req: Request<Record<string, string>, unknown, SendOtpBody>,
+    res: Response,
+  ) {
     try {
       const { type, email } = req.body;
 
@@ -302,7 +386,7 @@ class UserController {
       } else if (type === 'forgot_password') {
         await UserService.sendPasswordResetOtp(email);
       } else {
-        await MFAService.sendOtp(email, type);
+        await MFAService.sendOtp(email, type as 'sms' | 'email');
       }
       res.status(HTTP_STATUSES.ok).json({ message: 'Successfully sent OTP' });
     } catch (err) {
@@ -313,15 +397,20 @@ class UserController {
     }
   }
 
-  public static async getLoginConfiguration(req: Request, res: Response) {
+  public static async getLoginConfiguration(
+    req: Request<
+      Record<string, string>,
+      unknown,
+      unknown,
+      LoginConfigurationQuery
+    >,
+    res: Response,
+  ) {
     try {
       const { email } = req.query;
-      const loginConfiguration = await UserService.getLoginConfiguration(
-        email as string,
-      );
+      const loginConfiguration = await UserService.getLoginConfiguration(email);
       res.status(HTTP_STATUSES.ok).json(loginConfiguration);
     } catch (err) {
-      console.log(err);
       logger.error((err as Error).message);
       res
         .status(HTTP_STATUSES.notFound)
@@ -329,7 +418,10 @@ class UserController {
     }
   }
 
-  public static async changePassword(req: Request, res: Response) {
+  public static async changePassword(
+    req: Request<Record<string, string>, unknown, ChangePasswordBody>,
+    res: Response,
+  ) {
     try {
       const { email, otp, password } = req.body;
       const loginConfiguration = await UserService.changePassword(

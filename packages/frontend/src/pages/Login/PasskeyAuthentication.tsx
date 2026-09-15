@@ -1,10 +1,10 @@
-import { Button } from '../../components/ui/button';
+import { startAuthentication } from '@simplewebauthn/browser';
 import { FC, useEffect, useState } from 'react';
 import { ThreeDots } from 'react-loader-spinner';
-import loginWithPasskey from '../../api/user/login-with-passkey';
-import { startAuthentication } from '@simplewebauthn/browser';
-import verifyPasskeyLogin from '../../api/user/verify-passkey-login';
-import useFeedback from '../../hooks/useFeedback';
+import loginWithPasskey from '@/api/user/login-with-passkey';
+import verifyPasskeyLogin from '@/api/user/verify-passkey-login';
+import { Button } from '@/components/ui/button';
+import useFeedback from '@/hooks/useFeedback';
 
 interface PasskeyAuthenticationProps {
   email: string;
@@ -16,7 +16,6 @@ const PasskeyAuthentication: FC<PasskeyAuthenticationProps> = (props) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const { feedbackAxiosError } = useFeedback();
-  console.log(error);
 
   const handleLogin = async (email: string) => {
     try {
@@ -51,7 +50,7 @@ const PasskeyAuthentication: FC<PasskeyAuthenticationProps> = (props) => {
 
   useEffect(() => {
     if (email) {
-      handleLogin(email);
+      void handleLogin(email);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -75,9 +74,7 @@ const PasskeyAuthentication: FC<PasskeyAuthenticationProps> = (props) => {
       )}
       {error && (
         <div>
-          <Button onClick={tryAgain}>
-            Try again
-          </Button>
+          <Button onClick={tryAgain}>Try again</Button>
         </div>
       )}
     </div>

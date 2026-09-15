@@ -1,6 +1,6 @@
-import { FC } from 'react';
-import { APP_MFA, EMAIL_MFA, SMS_MFA } from '../../../../../constants';
 import { QRCodeSVG } from 'qrcode.react';
+import { FC } from 'react';
+import { APP_MFA, EMAIL_MFA, SMS_MFA } from '@/constants';
 
 interface IOtpMessageProps {
   type: string;

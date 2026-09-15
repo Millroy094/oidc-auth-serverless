@@ -1,8 +1,8 @@
-import { FC } from 'react';
 import get from 'lodash/get';
 import { Check, X } from 'lucide-react';
+import { FC } from 'react';
 import { FieldErrors } from 'react-hook-form';
-import { IRegisterFormInput } from '../pages/Register/types';
+import { IRegisterFormInput } from '@/pages/Register/types';
 
 interface PasswordPopoverProps {
   open: boolean;
@@ -40,11 +40,16 @@ const PasswordPopover: FC<PasswordPopoverProps> = (props) => {
   if (fieldValidationMessages.length === 0) {
     return null;
   }
-  const fieldErrorsByType = get(errors, `${fieldName}.types`, {});
+  const fieldErrorsByType = get(errors, `${fieldName}.types`, {}) as Record<
+    string,
+    string | string[] | undefined
+  >;
   const fieldErrors = Object.keys(fieldErrorsByType).reduce(
-    (errors: string[], errorTypeKey: string): string[] => {
-      const foundErrors = get(fieldErrorsByType, errorTypeKey);
-      return foundErrors ? errors.concat(foundErrors) : errors;
+    (accumulatedErrors: string[], errorTypeKey: string): string[] => {
+      const foundErrors = fieldErrorsByType[errorTypeKey];
+      return foundErrors
+        ? accumulatedErrors.concat(foundErrors)
+        : accumulatedErrors;
     },
     [],
   );
@@ -67,15 +72,15 @@ const PasswordPopover: FC<PasswordPopoverProps> = (props) => {
       }
     : {
         position: 'fixed' as const,
-        left: Math.min(
-          (rect?.right ?? 0) + 10,
-          window.innerWidth - 272,
-        ),
+        left: Math.min((rect?.right ?? 0) + 10, window.innerWidth - 272),
         top: (rect?.top ?? 0) + 20,
       };
 
   return (
-    <div className="fixed z-50 rounded-lg border bg-popover text-popover-foreground shadow-lg p-3" style={style}>
+    <div
+      className="fixed z-50 rounded-lg border bg-popover text-popover-foreground shadow-lg p-3"
+      style={style}
+    >
       <div className="flex flex-col gap-2">
         {fieldValidationMessages.map((fieldValidationMessage) => (
           <div key={fieldValidationMessage} className="flex items-center gap-2">

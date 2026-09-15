@@ -1,8 +1,21 @@
 import { Request, Response } from 'express';
-import logger from '../utils/logger.ts';
-import UserService from '../services/user.ts';
-import MFAService from '../services/mfa/index.ts';
 import HTTP_STATUSES from '../constants/http-status.ts';
+import MFAService from '../services/mfa/index.ts';
+import UserService from '../services/user.ts';
+import logger from '../utils/logger.ts';
+
+export interface AuthenticateInteractionBody {
+  email: string;
+  password: string;
+  otp?: string;
+  loginWithRecoveryCode?: boolean;
+  recoveryCode?: string;
+  resetMfa?: boolean;
+}
+
+export interface AuthorizeInteractionBody {
+  authorize: boolean;
+}
 
 class OIDCController {
   public static async getInteractionStatus(req: Request, res: Response) {
@@ -13,13 +26,16 @@ class OIDCController {
       res.status(HTTP_STATUSES.ok).json({ status: name });
     } catch (err) {
       logger.error((err as Error).message);
-      res
-        .status(HTTP_STATUSES.badRequest)
-        .json({ error: `Unable to process authentication: ${err}` });
+      res.status(HTTP_STATUSES.badRequest).json({
+        error: `Unable to process authentication: ${(err as Error).message}`,
+      });
     }
   }
 
-  public static async authenticateInteraction(req: Request, res: Response) {
+  public static async authenticateInteraction(
+    req: Request<Record<string, string>, unknown, AuthenticateInteractionBody>,
+    res: Response,
+  ) {
     let result = {};
     try {
       const interactionDetails = await req.oidcProvider.interactionDetails(
@@ -45,12 +61,12 @@ class OIDCController {
         await MFAService.validateRecoveryCode(
           userAccount.userId,
           req.body.recoveryCode,
-          req.body.resetMfa,
+          req.body.resetMfa ?? false,
         );
       } else if (userAccount.mfa.preference && req.body.otp) {
         await MFAService.verifyMFA(
           userAccount.userId,
-          userAccount.mfa.preference,
+          userAccount.mfa.preference as 'app' | 'sms' | 'email',
           req.body.otp,
         );
       }
@@ -72,7 +88,7 @@ class OIDCController {
         .status(HTTP_STATUSES.ok)
         .json({ redirect, message: 'Login successful!' });
     } catch (err) {
-      console.log(err);
+      logger.error((err as Error).message);
       if ((err as Error).message === 'Interaction is not at login stage') {
         result = {
           error: 'access_denied',
@@ -95,7 +111,10 @@ class OIDCController {
     }
   }
 
-  public static async authorizeInteraction(req: Request, res: Response) {
+  public static async authorizeInteraction(
+    req: Request<Record<string, string>, unknown, AuthorizeInteractionBody>,
+    res: Response,
+  ) {
     let result = {};
     try {
       const { authorize } = req.body;
@@ -106,7 +125,7 @@ class OIDCController {
       const {
         prompt: { name, details },
         params,
-        session: { accountId },
+        session,
       } = interactionDetails;
 
       if (name !== 'consent') {
@@ -117,6 +136,8 @@ class OIDCController {
         throw new Error('User does not authorize this request');
       }
 
+      const accountId = session?.accountId;
+
       const grant = interactionDetails.grantId
         ? await req.oidcProvider.Grant.find(interactionDetails.grantId)
         : new req.oidcProvider.Grant({
@@ -126,16 +147,16 @@ class OIDCController {
 
       if (grant) {
         if (details.missingOIDCScope) {
-          grant.addOIDCScope(details.missingOIDCScope.join(' '));
+          grant.addOIDCScope((details.missingOIDCScope as string[]).join(' '));
         }
         if (details.missingOIDCClaims) {
-          grant.addOIDCClaims(details.missingOIDCClaims);
+          grant.addOIDCClaims(details.missingOIDCClaims as string[]);
         }
         if (details.missingResourceScopes) {
           for (const [indicator, scopes] of Object.entries(
-            details.missingResourceScopes,
+            details.missingResourceScopes as Record<string, string[]>,
           )) {
-            grant.addResourceScope(indicator, (scopes as string[]).join(' '));
+            grant.addResourceScope(indicator, scopes.join(' '));
           }
         }
 
@@ -155,7 +176,7 @@ class OIDCController {
           .status(HTTP_STATUSES.ok);
       }
     } catch (err) {
-      console.log(err);
+      logger.error((err as Error).message);
       if (
         [
           'Interaction is not at consent stage',

@@ -1,13 +1,13 @@
-import express from 'express';
-import Provider from 'oidc-provider';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-import adminRoutes from './routes/admin.ts';
-import oidcRoutes from './routes/oidc.ts';
-import userRoutes from './routes/user.ts';
-import healthCheckRoutes from './routes/health-check.ts';
+import express from 'express';
+import Provider from 'oidc-provider';
 import addOIDCProvider from './middleware/add-oidc-provider.ts';
 import errorHandler from './middleware/error-handler.ts';
+import adminRoutes from './routes/admin.ts';
+import healthCheckRoutes from './routes/health-check.ts';
+import oidcRoutes from './routes/oidc.ts';
+import userRoutes from './routes/user.ts';
 
 declare global {
   namespace Express {
@@ -41,7 +41,7 @@ class Application {
     // with an EMPTY body instead of the JSON payload, which broke the
     // frontend when the same record was fetched more than once.
     this.expressApp.set('etag', false);
-    this.expressApp.use((req, res, next) => {
+    this.expressApp.use((_req, res, next) => {
       res.set('Cache-Control', 'no-store');
       next();
     });
@@ -58,12 +58,14 @@ class Application {
     this.expressApp.use(errorHandler);
   }
 
-  public async initialize(): Promise<void> {
-    if (this.initialized) return;
-    
+  public initialize(): void {
+    if (this.initialized) {
+      return;
+    }
+
     this.setupMiddleware();
     this.setupRoutes();
-    
+
     this.initialized = true;
   }
 }

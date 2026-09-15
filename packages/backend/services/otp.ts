@@ -31,8 +31,9 @@ class OTPService {
       .eq(otp)
       .exec();
     if (!isEmpty(otpResult)) {
-      isValid =
-        otpResult.expiresAt && Date.now() <= otpResult.expiresAt.getTime();
+      isValid = Boolean(
+        otpResult.expiresAt && Date.now() <= otpResult.expiresAt * 1000,
+      );
       await otpResult.delete();
     }
     return isValid;

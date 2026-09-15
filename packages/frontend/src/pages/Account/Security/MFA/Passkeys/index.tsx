@@ -1,17 +1,22 @@
-import {
-  Button,
-} from '../../../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter, CardTitle, CardDescription } from '../../../../../components/ui/card';
 import { startRegistration } from '@simplewebauthn/browser';
-import registerPasskey from '../../../../../api/user/register-passkey';
-import verifyPasskeyRegistration from '../../../../../api/user/verify-passkey-registration';
-import { useAuth } from '../../../../../context/AuthProvider';
-import checkPasskeyAlreadyExists from '../../../../../api/user/check-passkey-exists';
-import { FC, useEffect, useState } from 'react';
-import useFeedback from '../../../../../hooks/useFeedback';
-import getPasskeys from '../../../../../api/user/get-passkeys';
 import { Trash2, Fingerprint } from 'lucide-react';
-import deletePasskey from '../../../../../api/user/delete-passkey';
+import { FC, useEffect, useState } from 'react';
+import checkPasskeyAlreadyExists from '@/api/user/check-passkey-exists';
+import deletePasskey from '@/api/user/delete-passkey';
+import getPasskeys from '@/api/user/get-passkeys';
+import registerPasskey from '@/api/user/register-passkey';
+import verifyPasskeyRegistration from '@/api/user/verify-passkey-registration';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { useAuth } from '@/context/AuthProvider';
+import useFeedback from '@/hooks/useFeedback';
 
 function getDetailedDeviceInfo(): string {
   const userAgent = navigator.userAgent;
@@ -36,28 +41,31 @@ function getDetailedDeviceInfo(): string {
 }
 
 function getBrowserName(userAgent: string): string {
-  if (userAgent.includes('Firefox')) return 'Firefox';
-  if (userAgent.includes('Edg')) return 'Edge';
-  if (userAgent.includes('Chrome')) return 'Chrome';
-  if (userAgent.includes('Safari')) return 'Safari';
-  if (userAgent.includes('Opera') || userAgent.includes('OPR')) return 'Opera';
+  if (userAgent.includes('Firefox')) {
+    return 'Firefox';
+  }
+  if (userAgent.includes('Edg')) {
+    return 'Edge';
+  }
+  if (userAgent.includes('Chrome')) {
+    return 'Chrome';
+  }
+  if (userAgent.includes('Safari')) {
+    return 'Safari';
+  }
+  if (userAgent.includes('Opera') || userAgent.includes('OPR')) {
+    return 'Opera';
+  }
   return 'Unknown Browser';
 }
 
 interface PasskeysProps {
-  mfaPreference: string;
-  onMfaPreferenceChange: (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => Promise<void>;
   fetchMFASettings: () => Promise<void>;
 }
 
 const Passkeys: FC<PasskeysProps> = (props) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { mfaPreference: _mfaPreference, onMfaPreferenceChange: _onMfaPreferenceChange, fetchMFASettings } = props;
-  const [devices, setDevices] = useState([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_passkeyVerified, setPasskeyVerified] = useState(false);
+  const { fetchMFASettings } = props;
+  const [devices, setDevices] = useState<string[]>([]);
 
   const auth = useAuth();
   const { feedbackAxiosError, feedbackAxiosResponse, feedback } = useFeedback();
@@ -66,7 +74,6 @@ const Passkeys: FC<PasskeysProps> = (props) => {
     try {
       const response = await getPasskeys(userId);
       setDevices(response.data.deviceNames);
-      setPasskeyVerified(response.data.verified);
     } catch (err) {
       feedbackAxiosError(
         err,
@@ -130,7 +137,7 @@ const Passkeys: FC<PasskeysProps> = (props) => {
   };
 
   useEffect(() => {
-    fetchPasskeys(auth?.user?.userId ?? '');
+    void fetchPasskeys(auth?.user?.userId ?? '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -152,7 +159,9 @@ const Passkeys: FC<PasskeysProps> = (props) => {
       <CardContent>
         <div className="space-y-2">
           {devices.length === 0 && (
-            <p className="text-sm text-muted-foreground">No passkeys registered yet.</p>
+            <p className="text-sm text-muted-foreground">
+              No passkeys registered yet.
+            </p>
           )}
           {devices.map((device) => (
             <div

@@ -1,14 +1,20 @@
-import React, { FC, useEffect, useState } from 'react';
-import { Button } from '../../../../components/ui/button';
-import { Card, CardHeader, CardFooter, CardTitle, CardDescription } from '../../../../components/ui/card';
 import { AlertCircle, CheckCircle, ShieldCheck } from 'lucide-react';
-import getMFASettings from '../../../../api/user/get-mfa-settings';
-import useFeedback from '../../../../hooks/useFeedback';
-import SetupModal from './SetupModal';
-import changeMFAPreference from '../../../../api/user/change-mfa-preference';
-import resetMfa from '../../../../api/user/reset-mfa';
-import RecoveryCodes from './RecoveryCodes';
+import React, { FC, useEffect, useState } from 'react';
 import Passkeys from './Passkeys';
+import RecoveryCodes from './RecoveryCodes';
+import SetupModal from './SetupModal';
+import changeMFAPreference from '@/api/user/change-mfa-preference';
+import getMFASettings from '@/api/user/get-mfa-settings';
+import resetMfa from '@/api/user/reset-mfa';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import useFeedback from '@/hooks/useFeedback';
 
 interface IMFAType {
   type: string;
@@ -77,7 +83,7 @@ const MFA: FC = () => {
   };
 
   useEffect(() => {
-    fetchMFASettings();
+    void fetchMFASettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -89,7 +95,9 @@ const MFA: FC = () => {
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
-            <CardTitle className="text-lg">Multi-Factor Authentication</CardTitle>
+            <CardTitle className="text-lg">
+              Multi-Factor Authentication
+            </CardTitle>
             <CardDescription>
               Make your login more secure by enabling 2FA for your account. Once
               enabled you&apos;ll be required to complete an additional
@@ -117,6 +125,9 @@ const MFA: FC = () => {
                       onChange={onChange}
                       className="w-4 h-4"
                     />
+                    <span className="sr-only">
+                      Use {mfaType.type.toUpperCase()} as MFA preference
+                    </span>
                   </label>
                 </div>
 
@@ -126,13 +137,22 @@ const MFA: FC = () => {
                       Subscriber
                     </p>
                     {mfaType.subscriber && mfaType.verified && (
-                      <CheckCircle className="w-3 h-3 text-emerald-600" aria-label="Verified" />
+                      <CheckCircle
+                        className="w-3 h-3 text-emerald-600"
+                        aria-label="Verified"
+                      />
                     )}
                     {mfaType.subscriber && !mfaType.verified && (
-                      <AlertCircle className="w-3 h-3 text-amber-600" aria-label="Not Verified" />
+                      <AlertCircle
+                        className="w-3 h-3 text-amber-600"
+                        aria-label="Not Verified"
+                      />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground truncate" title={mfaType.subscriber || 'None'}>
+                  <p
+                    className="text-xs text-muted-foreground truncate"
+                    title={mfaType.subscriber || 'None'}
+                  >
                     {mfaType.subscriber || 'None'}
                   </p>
                 </div>
@@ -169,11 +189,7 @@ const MFA: FC = () => {
       </Card>
 
       <div className="mt-6 space-y-6">
-        <Passkeys
-          mfaPreference={mfaPreference}
-          onMfaPreferenceChange={onChange}
-          fetchMFASettings={fetchMFASettings}
-        />
+        <Passkeys fetchMFASettings={fetchMFASettings} />
         <RecoveryCodes
           recoveryCodeCount={recoveryCodeCount}
           fetchMFASettings={fetchMFASettings}
@@ -191,5 +207,4 @@ const MFA: FC = () => {
   );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export default MFA;

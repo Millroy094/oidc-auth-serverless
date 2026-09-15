@@ -1,25 +1,27 @@
+import { isEmpty } from 'lodash';
+import { ChevronDown } from 'lucide-react';
 import { FC, useState } from 'react';
-import { Button } from '../../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter } from '../../../../components/ui/card';
-import setupMFA from '../../../../api/user/setup-mfa';
 import SubscriberInput from './SubscriberInput';
+import VerifyOtpInput from './VerifyOtpInput';
+import setupMFA from '@/api/user/setup-mfa';
+import verifyMFA from '@/api/user/verify-mfa';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+} from '@/components/ui/card';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   APP_MFA,
   EMAIL_MFA,
   MFA_SETUP,
   MFA_VERIFY,
   SMS_MFA,
-} from '../../../../constants';
-import { isEmpty } from 'lodash';
-import isPhoneValid from '../../../../utils/is-phone-valid';
-import VerifyOtpInput from './VerifyOtpInput';
-import verifyMFA from '../../../../api/user/verify-mfa';
-import useFeedback from '../../../../hooks/useFeedback';
-import { ChevronDown } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-} from '../../../../components/ui/dialog';
+} from '@/constants';
+import useFeedback from '@/hooks/useFeedback';
+import isPhoneValid from '@/utils/is-phone-valid';
 
 interface SetupModalProps {
   open: boolean;
@@ -133,14 +135,10 @@ const SetupModal: FC<SetupModalProps> = (props) => {
               Cancel
             </Button>
             {stage === MFA_SETUP && (
-              <Button onClick={initiateMFA}>
-                Setup
-              </Button>
+              <Button onClick={initiateMFA}>Setup</Button>
             )}
             {stage === MFA_VERIFY && (
-              <Button onClick={verifyOtp}>
-                Verify
-              </Button>
+              <Button onClick={verifyOtp}>Verify</Button>
             )}
           </CardFooter>
         </Card>

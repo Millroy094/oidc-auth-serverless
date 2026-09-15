@@ -1,45 +1,89 @@
-import * as yup from 'yup';
+import { z } from 'zod';
 
-const schema = yup
+const schema = z
   .object({
-    email: yup.string().email().required(),
-    emailSent: yup.boolean().required(),
-    otp: yup.string().when('emailSent', (emailSent, schema) => {
-      const [sent] = emailSent;
-      return sent
-        ? schema
-            .required('OTP is Required')
-            .matches(/^\d*$/, 'OTP must be number')
-            .min(6, 'OTP must be 6 digits')
-            .max(6, 'OTP must be 6 digits')
-        : schema;
-    }),
-
-    password: yup.string().when('emailSent', (emailSent, schema) => {
-      const [sent] = emailSent;
-      return sent
-        ? schema
-            .required('Password is required')
-            .min(8, 'Must Contain 8 Characters')
-            .matches(/^(?=.*[a-z])/, 'Must Contain One Lowercase Character')
-            .matches(/^(?=.*[A-Z])/, 'Must Contain One Uppercase Character')
-            .matches(/^(?=.*\d)/, 'Must Contain One Number Character')
-            .matches(
-              /^(?=.*[!@#$%^&*])/,
-              'Must Contain  One Special Case Character',
-            )
-        : schema;
-    }),
-
-    confirmPassword: yup.string().when('emailSent', (emailSent, schema) => {
-      const [sent] = emailSent;
-      return sent
-        ? schema
-            .required('Password confirmation is required')
-            .oneOf([yup.ref('password')], 'Passwords must match')
-        : schema;
-    }),
+    email: z.string().min(1, 'This field is required').email(),
+    emailSent: z.boolean(),
+    otp: z.string().optional(),
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
   })
-  .required();
+  .superRefine((data, ctx) => {
+    if (!data.emailSent) {
+      return;
+    }
+
+    if (!data.otp) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['otp'],
+        message: 'OTP is Required',
+      });
+    } else if (!/^\d*$/.test(data.otp)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['otp'],
+        message: 'OTP must be number',
+      });
+    } else if (data.otp.length !== 6) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['otp'],
+        message: 'OTP must be 6 digits',
+      });
+    }
+
+    if (!data.password) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message: 'Password is required',
+      });
+    } else if (data.password.length < 8) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message: 'Must Contain 8 Characters',
+      });
+    } else if (!/^(?=.*[a-z])/.test(data.password)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message: 'Must Contain One Lowercase Character',
+      });
+    } else if (!/^(?=.*[A-Z])/.test(data.password)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message: 'Must Contain One Uppercase Character',
+      });
+    } else if (!/^(?=.*\d)/.test(data.password)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message: 'Must Contain One Number Character',
+      });
+    } else if (!/^(?=.*[!@#$%^&*])/.test(data.password)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message: 'Must Contain  One Special Case Character',
+      });
+    }
+
+    if (!data.confirmPassword) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['confirmPassword'],
+        message: 'Password confirmation is required',
+      });
+    } else if (data.confirmPassword !== data.password) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['confirmPassword'],
+        message: 'Passwords must match',
+      });
+    }
+  });
 
 export default schema;

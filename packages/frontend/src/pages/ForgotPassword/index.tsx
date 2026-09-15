@@ -1,19 +1,19 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
-import { yupResolver } from '@hookform/resolvers/yup';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import schema from './schema';
-import PasswordField from '../../components/PasswordField';
-import PasswordPopover from '../../components/PasswordPopover';
-import sendOtp from '../../api/user/send-otp';
-import { FORGOT_PASSWORD } from '../../constants';
-import useFeedback from '../../hooks/useFeedback';
-import changePassword from '../../api/user/change-password';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import schema from './schema';
 import { IForgotPasswordFormInput } from './types';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
-import { Input } from '../../components/ui/input';
-import AuthCardLayout from '../../components/AuthCardLayout';
+import changePassword from '@/api/user/change-password';
+import sendOtp from '@/api/user/send-otp';
+import AuthCardLayout from '@/components/AuthCardLayout';
+import PasswordField from '@/components/PasswordField';
+import PasswordPopover from '@/components/PasswordPopover';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { FORGOT_PASSWORD } from '@/constants';
+import useFeedback from '@/hooks/useFeedback';
 
 const ForgotPassword = () => {
   const [searchParams] = useSearchParams();
@@ -27,7 +27,7 @@ const ForgotPassword = () => {
     formState: { errors, dirtyFields },
     setValue,
   } = useForm<IForgotPasswordFormInput>({
-    resolver: yupResolver(schema, {}),
+    resolver: zodResolver(schema, {}),
     criteriaMode: 'all',
     mode: 'onChange',
     defaultValues: {
@@ -54,9 +54,9 @@ const ForgotPassword = () => {
 
   const navigateToLogin = () => {
     if (searchParams.has('interactionId')) {
-      navigate(`/oauth/login/${searchParams.get('interactionId')}`);
+      void navigate(`/oauth/login/${searchParams.get('interactionId')}`);
     } else {
-      navigate('/login');
+      void navigate('/login');
     }
   };
 
@@ -98,7 +98,9 @@ const ForgotPassword = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm">
         <Card className="border-t-4 border-t-primary shadow-xl shadow-slate-200/60 dark:shadow-none">
           <CardHeader className="text-center p-6 pb-4 sm:p-8 sm:pb-4">
-            <h1 className="text-2xl font-semibold tracking-tight">Forgot Password</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Forgot Password
+            </h1>
           </CardHeader>
           <CardContent className="space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
             {!emailSent && (

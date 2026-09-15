@@ -1,10 +1,29 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
-const getClient = async (id: string): Promise<AxiosResponse> => {
-  const response = await axios.get(`/api/admin/clients/${id}`, {
-    withCredentials: true,
-  });
+export interface IAdminClient {
+  id: string;
+  clientId: string;
+  clientName: string;
+  secret: string;
+  scopes: string[];
+  grants: string[];
+  redirectUris: string[];
+}
+
+interface GetClientResponseData {
+  client: IAdminClient;
+}
+
+const getClient = async (
+  id: string,
+): Promise<AxiosResponse<GetClientResponseData>> => {
+  const response = await axios.get<GetClientResponseData>(
+    `/api/admin/clients/${id}`,
+    {
+      withCredentials: true,
+    },
+  );
   return response;
 };
 

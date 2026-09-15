@@ -1,18 +1,13 @@
 import React, { FC, useEffect, useCallback } from 'react';
-import {
-  APP_MFA,
-  EMAIL_MFA,
-  EMAIL_VERIFICATION,
-  SMS_MFA,
-} from '../../../constants';
-import { Button } from '../../../components/ui/button';
-import OTPInput from 'react-otp-input';
-import useTimer from '../../../hooks/useTimer';
-import sendOtp from '../../../api/user/send-otp';
-import useFeedback from '../../../hooks/useFeedback';
 import { Control, Controller } from 'react-hook-form';
-import { ILoginFormInput } from '../types';
+import OTPInput from 'react-otp-input';
 import OtpMessage from './OtpMessage';
+import sendOtp from '@/api/user/send-otp';
+import { Button } from '@/components/ui/button';
+import { APP_MFA, EMAIL_MFA, EMAIL_VERIFICATION, SMS_MFA } from '@/constants';
+import useFeedback from '@/hooks/useFeedback';
+import useTimer from '@/hooks/useTimer';
+import { ILoginFormInput } from '@/pages/Login/types';
 
 interface IVerifyOtpInput {
   email: string;
@@ -25,10 +20,10 @@ const OtpResendSection: FC<{ handleResendOtp: () => void; timer: number }> = ({
   timer,
 }) => (
   <div className="flex items-center justify-center gap-2">
-    <span className="text-sm text-foreground">Haven't received OTP?</span>
-    <Button 
+    <span className="text-sm text-foreground">Haven&apos;t received OTP?</span>
+    <Button
       variant="link"
-      onClick={handleResendOtp} 
+      onClick={handleResendOtp}
       disabled={timer !== 0}
       className="text-sm p-0 h-auto"
     >
@@ -43,8 +38,9 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = React.memo(
     const { feedbackAxiosError } = useFeedback();
 
     useEffect(() => {
-      if ([SMS_MFA, EMAIL_MFA, EMAIL_VERIFICATION].includes(type))
-        handleResendOtp();
+      if ([SMS_MFA, EMAIL_MFA, EMAIL_VERIFICATION].includes(type)) {
+        void handleResendOtp();
+      }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [type]);
 

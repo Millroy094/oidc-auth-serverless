@@ -1,23 +1,25 @@
-import { FC, useEffect, useMemo, useState } from 'react';
-import { Button } from '../../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter } from '../../../../components/ui/card';
-import { Input } from '../../../../components/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { UserCircle } from 'lucide-react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
 import schema from './schema';
-import updateUser from '../../../../api/admin/update-user';
-import useFeedback from '../../../../hooks/useFeedback';
-import getUser from '../../../../api/admin/get-user';
-import { MobileNumberInput } from '../../../../components/MobileNumberInput';
-import ControlledSelect from '../../../../components/ControlledSelect';
 import { IUserPopupInput } from './type';
-import resetMfa from '../../../../api/admin/reset-mfa';
+import getUser from '@/api/admin/get-user';
+import resetMfa from '@/api/admin/reset-mfa';
+import updateUser from '@/api/admin/update-user';
+import ControlledSelect from '@/components/ControlledSelect';
+import { MobileNumberInput } from '@/components/MobileNumberInput';
+import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-} from '../../../../components/ui/dialog';
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+} from '@/components/ui/card';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import useFeedback from '@/hooks/useFeedback';
 
 interface UserPopupProps {
   open: boolean;
@@ -48,7 +50,7 @@ const UserPopup: FC<UserPopupProps> = (props) => {
     formState: { errors },
     reset,
   } = useForm<IUserPopupInput>({
-    resolver: yupResolver(schema),
+    resolver: zodResolver(schema),
     criteriaMode: 'all',
     mode: 'onChange',
     values: user,
@@ -102,7 +104,7 @@ const UserPopup: FC<UserPopupProps> = (props) => {
 
   useEffect(() => {
     if (open && userIdentifier) {
-      fetchUser(userIdentifier);
+      void fetchUser(userIdentifier);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, userIdentifier]);
@@ -136,14 +138,13 @@ const UserPopup: FC<UserPopupProps> = (props) => {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-1">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium mb-1"
+                  >
                     Email Address
                   </label>
-                  <Input
-                    {...register('email')}
-                    id="email"
-                    disabled
-                  />
+                  <Input {...register('email')} id="email" disabled />
                   <p className="text-xs text-slate-500 mt-1">
                     Last login: {lastLoggedInAsDate}
                   </p>
@@ -151,13 +152,13 @@ const UserPopup: FC<UserPopupProps> = (props) => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium mb-1">
+                    <label
+                      htmlFor="firstName"
+                      className="block text-sm font-medium mb-1"
+                    >
                       First Name
                     </label>
-                    <Input
-                      {...register('firstName')}
-                      id="firstName"
-                    />
+                    <Input {...register('firstName')} id="firstName" />
                     {errors.firstName && (
                       <p className="text-sm text-red-500 mt-1">
                         {errors.firstName.message}
@@ -165,13 +166,13 @@ const UserPopup: FC<UserPopupProps> = (props) => {
                     )}
                   </div>
                   <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium mb-1">
+                    <label
+                      htmlFor="lastName"
+                      className="block text-sm font-medium mb-1"
+                    >
                       Last Name
                     </label>
-                    <Input
-                      {...register('lastName')}
-                      id="lastName"
-                    />
+                    <Input {...register('lastName')} id="lastName" />
                     {errors.lastName && (
                       <p className="text-sm text-red-500 mt-1">
                         {errors.lastName.message}
@@ -181,12 +182,16 @@ const UserPopup: FC<UserPopupProps> = (props) => {
                 </div>
 
                 <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label
+                    htmlFor="emailVerified"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <Controller
                       name="emailVerified"
                       control={control}
                       render={({ field: { onChange, value } }) => (
                         <input
+                          id="emailVerified"
                           type="checkbox"
                           checked={value}
                           onChange={onChange}
@@ -196,12 +201,16 @@ const UserPopup: FC<UserPopupProps> = (props) => {
                     />
                     <span className="text-sm">Email verified?</span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label
+                    htmlFor="suspended"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <Controller
                       name="suspended"
                       control={control}
                       render={({ field: { onChange, value } }) => (
                         <input
+                          id="suspended"
                           type="checkbox"
                           checked={value}
                           onChange={onChange}
@@ -228,7 +237,10 @@ const UserPopup: FC<UserPopupProps> = (props) => {
                 />
 
                 <div>
-                  <label htmlFor="mobile" className="block text-sm font-medium mb-1">
+                  <label
+                    htmlFor="mobile"
+                    className="block text-sm font-medium mb-1"
+                  >
                     Mobile Number
                   </label>
                   <Controller
@@ -249,16 +261,10 @@ const UserPopup: FC<UserPopupProps> = (props) => {
             </CardContent>
 
             <CardFooter className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onResetMFA}
-              >
+              <Button type="button" variant="outline" onClick={onResetMFA}>
                 Reset MFA
               </Button>
-              <Button type="submit">
-                Update User
-              </Button>
+              <Button type="submit">Update User</Button>
             </CardFooter>
           </form>
         </Card>

@@ -1,7 +1,7 @@
-import { Input } from '../../../../components/ui/input';
 import React, { FC } from 'react';
-import { MobileNumberInput } from '../../../../components/MobileNumberInput';
-import { APP_MFA, EMAIL_MFA, SMS_MFA } from '../../../../constants';
+import { MobileNumberInput } from '@/components/MobileNumberInput';
+import { Input } from '@/components/ui/input';
+import { APP_MFA, EMAIL_MFA, SMS_MFA } from '@/constants';
 
 interface ISubscriberInput {
   value: string;

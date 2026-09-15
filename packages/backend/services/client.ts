@@ -1,6 +1,5 @@
 import isEmpty from 'lodash/isEmpty.js';
-import { AnyItem } from 'dynamoose/dist/Item';
-import Client from '../models/Client.ts';
+import Client, { ClientItem } from '../models/Client.ts';
 
 class ClientService {
   public static async createClient(fields: {
@@ -20,12 +19,12 @@ class ClientService {
     await Client.create(fields);
   }
 
-  public static async getClients(): Promise<AnyItem[]> {
+  public static async getClients(): Promise<ClientItem[]> {
     const clients = await Client.scan().exec();
     return clients;
   }
 
-  public static async getClientById(id: string): Promise<AnyItem> {
+  public static async getClientById(id: string): Promise<ClientItem> {
     const client = await Client.get(id);
 
     if (isEmpty(client)) {
@@ -37,7 +36,7 @@ class ClientService {
 
   public static async updateClient(
     id: string,
-    updatedFields: any,
+    updatedFields: Record<string, unknown>,
   ): Promise<boolean> {
     await Client.update(id, updatedFields);
 

@@ -1,29 +1,29 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { FC, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import schema from './schema';
 import { useNavigate, useParams } from 'react-router-dom';
-import authenticateInteraction from '../../api/oidc/authenticate-interaction';
-import useFeedback from '../../hooks/useFeedback';
-import { useAuth } from '../../context/AuthProvider';
-import getLoginConfiguration from '../../api/user/get-login-configuration';
+import PasskeyAuthentication from './PasskeyAuthentication';
+import PasswordInput from './PasswordInput';
+import RecoveryCodeInput from './RecoveryCodeInput';
+import schema from './schema';
+import { ILoginFormInput } from './types';
+import UsernameInput from './UsernameInput';
+import VerifyMFAOtpInput from './VerifyOtpInput';
+import authenticateInteraction from '@/api/oidc/authenticate-interaction';
+import getLoginConfiguration from '@/api/user/get-login-configuration';
+import Logo from '@/assets/logo.svg';
+import AuthCardLayout from '@/components/AuthCardLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
   EMAIL_VERIFICATION,
   MFA_LOGIN_STAGE,
   PASSWORD_LOGIN_STAGE,
   RECOVERY_CODE_STAGE,
   USERNAME_LOGIN_STAGE,
-} from '../../constants';
-import { ILoginFormInput } from './types';
-import UsernameInput from './UsernameInput';
-import PasswordInput from './PasswordInput';
-import VerifyMFAOtpInput from './VerifyOtpInput';
-import RecoveryCodeInput from './RecoveryCodeInput';
-import Logo from '../../assets/logo.svg';
-import PasskeyAuthentication from './PasskeyAuthentication';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
-import AuthCardLayout from '../../components/AuthCardLayout';
+} from '@/constants';
+import { useAuth } from '@/context/AuthProvider';
+import useFeedback from '@/hooks/useFeedback';
 
 type ILoginStage = 'USERNAME' | 'PASSWORD' | 'MFA' | 'RECOVERY_CODE';
 
@@ -44,7 +44,7 @@ const Login: FC = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<ILoginFormInput>({
-    resolver: yupResolver(schema),
+    resolver: zodResolver(schema),
     defaultValues: {
       email: '',
       password: '',
@@ -85,9 +85,13 @@ const Login: FC = () => {
       loginStage === PASSWORD_LOGIN_STAGE &&
       (await trigger('password'))
     ) {
-      mfaType ? setLoginStage(MFA_LOGIN_STAGE) : handleSubmit(onSubmit)();
+      if (mfaType) {
+        setLoginStage(MFA_LOGIN_STAGE);
+      } else {
+        await handleSubmit(onSubmit)();
+      }
     } else {
-      handleSubmit(onSubmit)();
+      await handleSubmit(onSubmit)();
     }
   };
 
@@ -97,8 +101,9 @@ const Login: FC = () => {
         ? await authenticateInteraction({ ...data, interactionId })
         : await Auth?.login(data);
 
-      response?.data.redirect &&
-        (window.location.href = response.data.redirect);
+      if (response?.data.redirect) {
+        window.location.href = response.data.redirect;
+      }
     } catch (err) {
       feedbackAxiosError(
         err,
@@ -187,12 +192,20 @@ const Login: FC = () => {
         >
           {loginStage !== USERNAME_LOGIN_STAGE &&
             loginStage !== MFA_LOGIN_STAGE && (
-              <Button variant="outline" onClick={onReset} className="w-full sm:w-auto">
+              <Button
+                variant="outline"
+                onClick={onReset}
+                className="w-full sm:w-auto"
+              >
                 Sign in with a different user
               </Button>
             )}
           {loginStage === MFA_LOGIN_STAGE && (
-            <Button variant="outline" onClick={loginViaRecoveryCode} className="w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={loginViaRecoveryCode}
+              className="w-full sm:w-auto"
+            >
               Having trouble with MFA?
             </Button>
           )}

@@ -1,14 +1,48 @@
 import { Request, Response } from 'express';
-import { AnyItem } from 'dynamoose/dist/Item';
-import logger from '../utils/logger.ts';
+import HTTP_STATUSES from '../constants/http-status.ts';
 import ClientService from '../services/client.ts';
 import MFAService from '../services/mfa/index.ts';
 import OIDCService from '../services/oidc.ts';
 import UserService from '../services/user.ts';
-import HTTP_STATUSES from '../constants/http-status.ts';
+import logger from '../utils/logger.ts';
+
+export interface IdParams {
+  [key: string]: string;
+  id: string;
+}
+
+export interface CreateClientBody {
+  clientId: string;
+  clientName: string;
+  scopes: string[];
+  grants: string[];
+  redirectUris: string[];
+}
+
+export interface UpdateClientBody {
+  clientId?: string;
+  clientName?: string;
+  scopes?: string[];
+  grants?: string[];
+  redirectUris?: string[];
+  [key: string]: unknown;
+}
+
+export interface UpdateUserBody {
+  suspended?: boolean;
+  failedLogins?: number;
+  firstName?: string;
+  lastName?: string;
+  mobile?: string;
+  roles?: string[];
+  [key: string]: unknown;
+}
 
 class AdminController {
-  public static async createClient(req: Request, res: Response) {
+  public static async createClient(
+    req: Request<Record<string, string>, unknown, CreateClientBody>,
+    res: Response,
+  ) {
     try {
       await ClientService.createClient(req.body);
       res
@@ -22,11 +56,11 @@ class AdminController {
     }
   }
 
-  public static async getClients(req: Request, res: Response) {
+  public static async getClients(_req: Request, res: Response) {
     try {
       const clients = await ClientService.getClients();
 
-      const results = clients.map((client: AnyItem) => ({
+      const results = clients.map((client) => ({
         id: client.id,
         clientId: client.clientId,
         clientName: client.clientName,
@@ -44,7 +78,7 @@ class AdminController {
     }
   }
 
-  public static async getClient(req: Request, res: Response) {
+  public static async getClient(req: Request<IdParams>, res: Response) {
     try {
       const { id } = req.params;
       const clientRecord = await ClientService.getClientById(id);
@@ -57,7 +91,10 @@ class AdminController {
     }
   }
 
-  public static async updateClient(req: Request, res: Response) {
+  public static async updateClient(
+    req: Request<IdParams, unknown, UpdateClientBody>,
+    res: Response,
+  ) {
     try {
       const { id } = req.params;
       await ClientService.updateClient(id, req.body);
@@ -72,7 +109,7 @@ class AdminController {
     }
   }
 
-  public static async deleteClient(req: Request, res: Response) {
+  public static async deleteClient(req: Request<IdParams>, res: Response) {
     try {
       const { id } = req.params;
       await ClientService.deleteClients(id);
@@ -94,7 +131,7 @@ class AdminController {
       const users = await UserService.getUsers();
 
       const results = users
-        .map((user: AnyItem) => ({
+        .map((user) => ({
           id: user.userId,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -115,7 +152,7 @@ class AdminController {
     }
   }
 
-  public static async deleteUser(req: Request, res: Response) {
+  public static async deleteUser(req: Request<IdParams>, res: Response) {
     try {
       const { id } = req.params;
 
@@ -146,7 +183,7 @@ class AdminController {
     }
   }
 
-  public static async getUser(req: Request, res: Response) {
+  public static async getUser(req: Request<IdParams>, res: Response) {
     try {
       const { id } = req.params;
       const userRecord = await UserService.getUserById(id);
@@ -159,7 +196,10 @@ class AdminController {
     }
   }
 
-  public static async updateUser(req: Request, res: Response) {
+  public static async updateUser(
+    req: Request<IdParams, unknown, UpdateUserBody>,
+    res: Response,
+  ) {
     try {
       const { id } = req.params;
 
@@ -194,7 +234,10 @@ class AdminController {
     }
   }
 
-  public static async deleteUserSessions(req: Request, res: Response) {
+  public static async deleteUserSessions(
+    req: Request<IdParams>,
+    res: Response,
+  ) {
     try {
       const { id } = req.params;
       await OIDCService.deleteAllSessions(id);
@@ -209,7 +252,7 @@ class AdminController {
     }
   }
 
-  public static async resetMFA(req: Request, res: Response) {
+  public static async resetMFA(req: Request<IdParams>, res: Response) {
     try {
       const { id } = req.params;
       await MFAService.resetMFA(id);

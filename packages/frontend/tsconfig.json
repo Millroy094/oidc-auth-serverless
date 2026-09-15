@@ -20,13 +20,13 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* Path aliases */
-    "baseUrl": ".",
+    /* Path aliases (kept in sync with vite.config.ts's single '@' alias —
+       do not add extra sub-aliases here, since the IDE will prefer the
+       most specific match when auto-shortening imports, but Vite only
+       knows about '@' and would fail to resolve anything else at build
+       time) */
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/ui/*": ["./src/components/ui/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src", "setup.ts"],

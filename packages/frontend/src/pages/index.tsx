@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
+import { MutatingDots } from 'react-loader-spinner';
 import {
   Route,
   Routes,
@@ -6,13 +7,11 @@ import {
   useNavigate,
   useSearchParams,
 } from 'react-router-dom';
-import { MutatingDots } from 'react-loader-spinner';
-
-import getInteractionStatus from '../api/oidc/get-interaction-status';
-import { PUBLIC_ROUTES } from '../constants';
-import useFeedback from '../hooks/useFeedback';
-import globalRouter from '../utils/global-router';
-import { useAuth } from '../context/AuthProvider';
+import getInteractionStatus from '@/api/oidc/get-interaction-status';
+import { PUBLIC_ROUTES } from '@/constants';
+import { useAuth } from '@/context/AuthProvider';
+import useFeedback from '@/hooks/useFeedback';
+import globalRouter from '@/utils/global-router';
 
 const Login = lazy(() => import('./Login'));
 const Confirm = lazy(() => import('./Confirm'));
@@ -34,7 +33,7 @@ function Pages() {
     try {
       const response = await getInteractionStatus(interactionId);
       if (response.data.status) {
-        navigate(
+        await navigate(
           `/oauth/${response.data.status}/${searchParams.get('interactionId')}`,
         );
       }
@@ -45,9 +44,9 @@ function Pages() {
 
   useEffect(() => {
     if (pathname === '/' && searchParams.has('interactionId')) {
-      navigateByInteractionStage(searchParams.get('interactionId') ?? '');
+      void navigateByInteractionStage(searchParams.get('interactionId') ?? '');
     } else if (!PUBLIC_ROUTES.includes(pathname) && pathname !== '/login') {
-      Auth?.refreshUser();
+      void Auth?.refreshUser();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

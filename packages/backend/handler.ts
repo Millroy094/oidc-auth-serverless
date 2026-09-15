@@ -7,10 +7,9 @@ let initialized = false;
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   if (!initialized) {
-    await app.initialize();
+    app.initialize();
     initialized = true;
   }
-  
+
   return serverless(app.expressApp)(event, context);
 };
-

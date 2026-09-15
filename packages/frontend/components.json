@@ -6,13 +6,16 @@
   "baseColor": "slate",
   "cssVariables": true,
   "tailwind": {
-    "config": "tailwind.config.ts",
-    "css": "src/index.css"
+    "config": "",
+    "css": "src/index.css",
+    "baseColor": "",
+    "cssVariables": false
   },
   "aliases": {
-    "@": "./src",
-    "@/components": "./src/components",
-    "@/lib": "./src/lib",
-    "@/ui": "./src/components/ui"
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
   }
 }

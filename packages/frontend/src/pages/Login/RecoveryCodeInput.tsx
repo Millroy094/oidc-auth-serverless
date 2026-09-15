@@ -6,8 +6,8 @@ import {
   UseFormRegister,
 } from 'react-hook-form';
 import { ILoginFormInput } from './types';
-import { Input } from '../../components/ui/input';
-import { Checkbox } from '../../components/ui/checkbox';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 
 interface IRecoveryCodeInput {
   control: Control<ILoginFormInput>;
@@ -42,12 +42,16 @@ const RecoveryCodeInput: FC<IRecoveryCodeInput> = React.memo((props) => {
             control={control}
             render={({ field: props }) => (
               <Checkbox
+                id="resetMfa"
                 checked={props.value}
                 onCheckedChange={props.onChange}
               />
             )}
           />
-          <label className="text-sm text-foreground cursor-pointer">
+          <label
+            htmlFor="resetMfa"
+            className="text-sm text-foreground cursor-pointer"
+          >
             Reset Multi-factor authentication
           </label>
         </div>

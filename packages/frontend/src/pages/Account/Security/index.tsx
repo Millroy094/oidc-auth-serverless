@@ -1,7 +1,6 @@
 import { FC } from 'react';
-
-import Sessions from './Session';
 import MFA from './MFA';
+import Sessions from './Session';
 
 const Security: FC = () => {
   return (

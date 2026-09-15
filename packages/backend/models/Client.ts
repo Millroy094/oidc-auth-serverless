@@ -1,10 +1,21 @@
-import dynamoose from 'dynamoose';
 import crypto from 'crypto';
-import { v4 as uuid } from 'uuid';
+import dynamoose from 'dynamoose';
+import { Item } from 'dynamoose/dist/Item';
 import { ValueType } from 'dynamoose/dist/Schema';
+import { v4 as uuid } from 'uuid';
 import { decryptData, encryptData } from '../utils/encryption.ts';
 
 const { Schema, model } = dynamoose;
+
+export interface ClientItem extends Item {
+  id: string;
+  clientId: string;
+  clientName: string;
+  secret: string;
+  grants: string[];
+  scopes: string[];
+  redirectUris: string[];
+}
 
 const ClientSchema = new Schema(
   {
@@ -47,6 +58,6 @@ const ClientSchema = new Schema(
     timestamps: true,
   },
 );
-const Client = model('Client', ClientSchema);
+const Client = model<ClientItem>('Client', ClientSchema);
 
 export default Client;

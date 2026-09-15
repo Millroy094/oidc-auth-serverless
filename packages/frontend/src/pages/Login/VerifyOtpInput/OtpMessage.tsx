@@ -1,10 +1,5 @@
 import { ReactNode } from 'react';
-import {
-  APP_MFA,
-  EMAIL_MFA,
-  EMAIL_VERIFICATION,
-  SMS_MFA,
-} from '../../../constants';
+import { APP_MFA, EMAIL_MFA, EMAIL_VERIFICATION, SMS_MFA } from '@/constants';
 
 interface IOtpMessageProps {
   type: string;

@@ -1,11 +1,22 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
-const getPasskeys = async (userId: string): Promise<AxiosResponse> => {
-  const response = await axios.get('/api/user/get-passkeys', {
-    params: { userId },
-    withCredentials: true,
-  });
+interface GetPasskeysResponseData {
+  messages: string;
+  deviceNames: string[];
+  verified: boolean;
+}
+
+const getPasskeys = async (
+  userId: string,
+): Promise<AxiosResponse<GetPasskeysResponseData>> => {
+  const response = await axios.get<GetPasskeysResponseData>(
+    '/api/user/get-passkeys',
+    {
+      params: { userId },
+      withCredentials: true,
+    },
+  );
 
   return response;
 };

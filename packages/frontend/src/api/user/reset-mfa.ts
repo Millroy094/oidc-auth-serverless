@@ -1,8 +1,14 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
-const resetMfa = async (type: string): Promise<AxiosResponse> => {
-  const response = await axios.post(
+interface ResetMfaResponseData {
+  message: string;
+}
+
+const resetMfa = async (
+  type: string,
+): Promise<AxiosResponse<ResetMfaResponseData>> => {
+  const response = await axios.post<ResetMfaResponseData>(
     '/api/user/mfa-reset',
     {
       type,

@@ -1,10 +1,19 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
-const clearUserSessions = async (id: string): Promise<AxiosResponse> => {
-  const response = await axios.delete(`/api/admin/users/${id}/sessions`, {
-    withCredentials: true,
-  });
+interface ClearUserSessionsResponseData {
+  message: string;
+}
+
+const clearUserSessions = async (
+  id: string,
+): Promise<AxiosResponse<ClearUserSessionsResponseData>> => {
+  const response = await axios.delete<ClearUserSessionsResponseData>(
+    `/api/admin/users/${id}/sessions`,
+    {
+      withCredentials: true,
+    },
+  );
   return response;
 };
 

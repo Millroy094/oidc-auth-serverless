@@ -1,10 +1,10 @@
 import { FC } from 'react';
 import { useParams } from 'react-router-dom';
-import authorizeInteraction from '../../api/oidc/authorize-interaction';
-import useFeedback from '../../hooks/useFeedback';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
-import AuthCardLayout from '../../components/AuthCardLayout';
+import authorizeInteraction from '@/api/oidc/authorize-interaction';
+import AuthCardLayout from '@/components/AuthCardLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import useFeedback from '@/hooks/useFeedback';
 
 const Confirm: FC = () => {
   const { interactionId } = useParams();
@@ -34,8 +34,17 @@ const Confirm: FC = () => {
             Can you confirm you want to authorize this request?
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Button onClick={() => onAuthorize(true)} className="w-full sm:w-auto">Yes</Button>
-            <Button variant="destructive" onClick={() => onAuthorize(false)} className="w-full sm:w-auto">
+            <Button
+              onClick={() => onAuthorize(true)}
+              className="w-full sm:w-auto"
+            >
+              Yes
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => onAuthorize(false)}
+              className="w-full sm:w-auto"
+            >
               No
             </Button>
           </div>

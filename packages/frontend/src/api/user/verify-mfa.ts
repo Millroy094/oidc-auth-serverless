@@ -1,14 +1,20 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
 type VerifyMFAArgs = {
   type: string;
   otp: string;
 };
 
-const verifyMFA = async (args: VerifyMFAArgs): Promise<AxiosResponse> => {
+interface VerifyMFAResponseData {
+  message: string;
+}
+
+const verifyMFA = async (
+  args: VerifyMFAArgs,
+): Promise<AxiosResponse<VerifyMFAResponseData>> => {
   const { type, otp } = args;
-  const response = await axios.post(
+  const response = await axios.post<VerifyMFAResponseData>(
     '/api/user/mfa-verify',
     {
       type,

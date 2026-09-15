@@ -1,25 +1,19 @@
-import { Configuration } from 'oidc-provider';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Configuration, JWKS } from 'oidc-provider';
 import DynamoDBAdapter from '../adapter/DynamoDbAdapter.ts';
 import User from '../models/User.ts';
 import ClientService from '../services/client.ts';
 import config from './env-config.ts';
 
-// Resolve relative to this module's own location (not process.cwd(), which
-// is unreliable across `pnpm build`, direct-node debugging, and Lambda).
-// deploy-backend.sh places keys.json alongside handler.mjs at the root of
-// the deployed zip, so it always lives next to this running module.
 const keysPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   'keys.json',
 );
 
-// Read once per cold start (getConfiguration runs on every request), not
-// once per request - the file's content is immutable for the container's
-// lifetime.
-const jwks = JSON.parse(fs.readFileSync(keysPath, 'utf-8'));
+const jwks = JSON.parse(fs.readFileSync(keysPath, 'utf-8')) as JWKS;
+const cookieSecrets = config.get('oidc.cookieSecrets');
 
 const getConfiguration = async (): Promise<Configuration> => {
   const clients = await ClientService.getClients();
@@ -28,7 +22,7 @@ const getConfiguration = async (): Promise<Configuration> => {
     adapter: DynamoDBAdapter,
     jwks,
     cookies: {
-      keys: [...config.get('oidc.cookieSecrets')],
+      keys: cookieSecrets,
       long: { httpOnly: true, sameSite: 'strict' },
       short: { httpOnly: true, sameSite: 'strict' },
     },
@@ -43,7 +37,7 @@ const getConfiguration = async (): Promise<Configuration> => {
       return (
         account && {
           accountId: id,
-          claims: async (_, scope) => {
+          claims: (_, scope) => {
             return {
               sub: id,
               ...(scope.includes('email') && {
@@ -69,7 +63,7 @@ const getConfiguration = async (): Promise<Configuration> => {
       grant_types: client.grants,
       scope: client.scopes.join(' '),
     })),
-    pkce: { required: () => true, methods: ['S256'] },
+    pkce: { required: () => true },
     claims: {
       openid: ['sub'],
       email: ['email', 'emailVerified'],
@@ -82,7 +76,8 @@ const getConfiguration = async (): Promise<Configuration> => {
       // correctly. Locally, the frontend (Vite) and backend (Ministack API
       // Gateway) run on different origins, so FRONTEND_URL must be set to
       // redirect back to the Vite dev server.
-      url: (ctx, interaction) => `${process.env.FRONTEND_URL ?? ''}/?interactionId=${interaction.jti}`,
+      url: (_ctx, interaction) =>
+        `${process.env.FRONTEND_URL ?? ''}/?interactionId=${interaction.jti}`,
     },
   };
 };

@@ -1,10 +1,56 @@
-import dynamoose from 'dynamoose';
 import bcrypt from 'bcryptjs';
-import { v4 as uuid } from 'uuid';
+import dynamoose from 'dynamoose';
+import { Item } from 'dynamoose/dist/Item';
 import { ValueType } from 'dynamoose/dist/Schema';
+import { v4 as uuid } from 'uuid';
 import { decryptData, encryptData } from '../utils/encryption.ts';
 
 const { Schema, model } = dynamoose;
+
+export interface MFACredential {
+  id: string;
+  publicKey: Buffer;
+  counter: number;
+  deviceName: string;
+}
+
+export interface UserMfa {
+  preference: string;
+  recoveryCodes: string[];
+  app: {
+    secret: string;
+    subscriber: string;
+    verified: boolean;
+  };
+  sms: {
+    subscriber: string;
+    verified: boolean;
+  };
+  email: {
+    subscriber: string;
+    verified: boolean;
+  };
+  passkey: {
+    credentials: MFACredential[];
+    verified: boolean;
+  };
+}
+
+export interface UserItem extends Item {
+  userId: string;
+  email: string;
+  emailVerified: boolean;
+  roles: string[];
+  firstName: string;
+  lastName: string;
+  mobile?: string;
+  password: string;
+  mfa: UserMfa;
+  lastLoggedIn: number;
+  failedLogins: number;
+  suspended: boolean;
+  credentials: MFACredential[];
+}
 
 const UserSchema = new Schema(
   {
@@ -181,6 +227,6 @@ const UserSchema = new Schema(
     timestamps: true,
   },
 );
-const User = model('User', UserSchema);
+const User = model<UserItem>('User', UserSchema);
 
 export default User;

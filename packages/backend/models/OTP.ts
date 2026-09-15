@@ -1,10 +1,19 @@
 import dynamoose from 'dynamoose';
-import { v4 as uuid } from 'uuid';
-import isEmpty from 'lodash/isEmpty.js';
+import { Item } from 'dynamoose/dist/Item';
 import { ValueType } from 'dynamoose/dist/Schema';
+import isEmpty from 'lodash/isEmpty.js';
+import { v4 as uuid } from 'uuid';
 import { decryptData, encryptData } from '../utils/encryption.ts';
 
 const { Schema, model } = dynamoose;
+
+export interface OTPItem extends Item {
+  id: string;
+  otp: string;
+  type: string;
+  userId: string;
+  expiresAt?: number;
+}
 
 const OTPSchema = new Schema(
   {
@@ -34,7 +43,7 @@ const OTPSchema = new Schema(
     timestamps: true,
   },
 );
-const OTP = model('OTP', OTPSchema, {
+const OTP = model<OTPItem>('OTP', OTPSchema, {
   expires: {
     ttl: 300,
     attribute: 'expiresAt',

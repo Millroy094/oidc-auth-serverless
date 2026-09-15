@@ -1,19 +1,25 @@
-import React, { FC } from 'react';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { omit } from 'lodash';
-import PasswordField from '../../components/PasswordField';
-import schema from './schema';
-import PasswordPopover from '../../components/PasswordPopover';
-import registerUser from '../../api/user/register-user';
+import React, { FC } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import useFeedback from '../../hooks/useFeedback';
-import { MobileNumberInput } from '../../components/MobileNumberInput';
+import schema from './schema';
 import { IRegisterFormInput } from './types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import AuthCardLayout from '../../components/AuthCardLayout';
+import registerUser from '@/api/user/register-user';
+import AuthCardLayout from '@/components/AuthCardLayout';
+import { MobileNumberInput } from '@/components/MobileNumberInput';
+import PasswordField from '@/components/PasswordField';
+import PasswordPopover from '@/components/PasswordPopover';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import useFeedback from '@/hooks/useFeedback';
 
 const Register: FC = () => {
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
@@ -25,7 +31,7 @@ const Register: FC = () => {
     formState: { errors, dirtyFields },
     reset,
   } = useForm<IRegisterFormInput>({
-    resolver: yupResolver(schema, {}),
+    resolver: zodResolver(schema, {}),
     criteriaMode: 'all',
     mode: 'onChange',
     defaultValues: {
@@ -58,7 +64,7 @@ const Register: FC = () => {
         'success',
       );
       reset();
-      navigate('/login');
+      await navigate('/login');
     } catch (err) {
       feedbackAxiosError(
         err,
@@ -95,7 +101,9 @@ const Register: FC = () => {
                   className={errors.firstName ? 'border-destructive' : ''}
                 />
                 {errors.firstName && (
-                  <p className="text-sm text-destructive">{errors.firstName.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.firstName.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -108,7 +116,9 @@ const Register: FC = () => {
                   className={errors.lastName ? 'border-destructive' : ''}
                 />
                 {errors.lastName && (
-                  <p className="text-sm text-destructive">{errors.lastName.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.lastName.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -124,7 +134,9 @@ const Register: FC = () => {
                 className={errors.email ? 'border-destructive' : ''}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -170,9 +182,7 @@ const Register: FC = () => {
             </div>
 
             <div className="flex justify-end">
-              <Button type="submit">
-                Register
-              </Button>
+              <Button type="submit">Register</Button>
             </div>
           </form>
           <PasswordPopover

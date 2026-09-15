@@ -1,13 +1,20 @@
-import { FC, useEffect, useState } from 'react';
-import getUserSessions from '../../../../api/user/get-user-sessions';
-import { Button } from '../../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter, CardTitle, CardDescription } from '../../../../components/ui/card';
-import { Trash2, Monitor } from 'lucide-react';
 import { format } from 'date-fns';
-import deleteUserSession from '../../../../api/user/delete-user-session';
-import deleteAllUserSession from '../../../../api/user/delete-all-user-session';
 import { isEmpty } from 'lodash';
-import useFeedback from '../../../../hooks/useFeedback';
+import { Trash2, Monitor } from 'lucide-react';
+import { FC, useEffect, useState } from 'react';
+import deleteAllUserSession from '@/api/user/delete-all-user-session';
+import deleteUserSession from '@/api/user/delete-user-session';
+import getUserSessions from '@/api/user/get-user-sessions';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import useFeedback from '@/hooks/useFeedback';
 
 interface Session {
   id: string;
@@ -34,7 +41,7 @@ const Sessions: FC = () => {
   };
 
   useEffect(() => {
-    fetchSessions();
+    void fetchSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -81,7 +88,8 @@ const Sessions: FC = () => {
         <div>
           <CardTitle className="text-lg">Active Sessions</CardTitle>
           <CardDescription>
-            These are the devices and applications currently signed in to your account.
+            These are the devices and applications currently signed in to your
+            account.
           </CardDescription>
         </div>
       </CardHeader>
@@ -97,26 +105,48 @@ const Sessions: FC = () => {
                 <thead className="border-b bg-muted/50">
                   <tr>
                     <th className="text-left py-3 px-4 font-medium">Clients</th>
-                    <th className="text-left py-3 px-4 font-medium">Logged in at</th>
-                    <th className="text-left py-3 px-4 font-medium">Started at</th>
-                    <th className="text-left py-3 px-4 font-medium">Expires at</th>
-                    <th className="text-center py-3 px-4 font-medium">Actions</th>
+                    <th className="text-left py-3 px-4 font-medium">
+                      Logged in at
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium">
+                      Started at
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium">
+                      Expires at
+                    </th>
+                    <th className="text-center py-3 px-4 font-medium">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {sessions.map((session) => (
-                    <tr key={session.id} className="border-b last:border-b-0 hover:bg-muted/50 transition-colors">
+                    <tr
+                      key={session.id}
+                      className="border-b last:border-b-0 hover:bg-muted/50 transition-colors"
+                    >
                       <td className="py-3 px-4">
-                        {!isEmpty(session.clients) ? session.clients?.join(', ') : 'None'}
+                        {!isEmpty(session.clients)
+                          ? session.clients?.join(', ')
+                          : 'None'}
                       </td>
                       <td className="whitespace-nowrap py-3 px-4">
-                        {format(new Date(session.loggedInAt * 1000), 'dd/MM/yyyy HH:mm:ss')}
+                        {format(
+                          new Date(session.loggedInAt * 1000),
+                          'dd/MM/yyyy HH:mm:ss',
+                        )}
                       </td>
                       <td className="whitespace-nowrap py-3 px-4">
-                        {format(new Date(session.iat * 1000), 'dd/MM/yyyy HH:mm:ss')}
+                        {format(
+                          new Date(session.iat * 1000),
+                          'dd/MM/yyyy HH:mm:ss',
+                        )}
                       </td>
                       <td className="whitespace-nowrap py-3 px-4">
-                        {format(new Date(session.exp * 1000), 'dd/MM/yyyy HH:mm:ss')}
+                        {format(
+                          new Date(session.exp * 1000),
+                          'dd/MM/yyyy HH:mm:ss',
+                        )}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <button
@@ -138,7 +168,9 @@ const Sessions: FC = () => {
                 <div key={session.id} className="rounded-lg border p-4">
                   <div className="flex items-start justify-between gap-2">
                     <p className="min-w-0 truncate font-medium">
-                      {!isEmpty(session.clients) ? session.clients?.join(', ') : 'None'}
+                      {!isEmpty(session.clients)
+                        ? session.clients?.join(', ')
+                        : 'None'}
                     </p>
                     <button
                       onClick={() => handleDelete(session.id)}
@@ -151,15 +183,30 @@ const Sessions: FC = () => {
                   <dl className="mt-3 space-y-1.5 border-t pt-3 text-sm">
                     <div className="flex justify-between gap-2">
                       <dt className="text-muted-foreground">Logged in at</dt>
-                      <dd>{format(new Date(session.loggedInAt * 1000), 'dd/MM/yyyy HH:mm:ss')}</dd>
+                      <dd>
+                        {format(
+                          new Date(session.loggedInAt * 1000),
+                          'dd/MM/yyyy HH:mm:ss',
+                        )}
+                      </dd>
                     </div>
                     <div className="flex justify-between gap-2">
                       <dt className="text-muted-foreground">Started at</dt>
-                      <dd>{format(new Date(session.iat * 1000), 'dd/MM/yyyy HH:mm:ss')}</dd>
+                      <dd>
+                        {format(
+                          new Date(session.iat * 1000),
+                          'dd/MM/yyyy HH:mm:ss',
+                        )}
+                      </dd>
                     </div>
                     <div className="flex justify-between gap-2">
                       <dt className="text-muted-foreground">Expires at</dt>
-                      <dd>{format(new Date(session.exp * 1000), 'dd/MM/yyyy HH:mm:ss')}</dd>
+                      <dd>
+                        {format(
+                          new Date(session.exp * 1000),
+                          'dd/MM/yyyy HH:mm:ss',
+                        )}
+                      </dd>
                     </div>
                   </dl>
                 </div>

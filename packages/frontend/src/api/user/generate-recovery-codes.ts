@@ -1,10 +1,20 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
-const generateRecoveryCodes = async (): Promise<AxiosResponse> => {
-  const response = await axios.get('/api/user/generate-recovery-codes', {
-    withCredentials: true,
-  });
+interface GenerateRecoveryCodesResponseData {
+  message: string;
+  recoveryCodes: string[];
+}
+
+const generateRecoveryCodes = async (): Promise<
+  AxiosResponse<GenerateRecoveryCodesResponseData>
+> => {
+  const response = await axios.get<GenerateRecoveryCodesResponseData>(
+    '/api/user/generate-recovery-codes',
+    {
+      withCredentials: true,
+    },
+  );
   return response;
 };
 

@@ -1,4 +1,4 @@
-import type { Provider } from 'your-provider-package';
+import type Provider from 'oidc-provider';
 
 declare global {
   namespace Express {

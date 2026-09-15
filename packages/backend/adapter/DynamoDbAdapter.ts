@@ -1,6 +1,6 @@
 import { Adapter, AdapterPayload } from 'oidc-provider';
-import logger from '../utils/logger.ts';
 import OIDCStore from '../models/OIDCStore.ts';
+import logger from '../utils/logger.ts';
 
 class DynamoDBAdapter implements Adapter {
   name: string;
@@ -86,7 +86,7 @@ class DynamoDBAdapter implements Adapter {
       }
 
       return record.payload;
-    } catch (error: any) {
+    } catch (error) {
       logger.error((error as Error).message);
       throw new Error(`There was an error finding record by uid ${uid}`);
     }
@@ -122,7 +122,7 @@ class DynamoDBAdapter implements Adapter {
         return;
       }
 
-      const modelIds = results.toJSON().reduce((ids: string[], result) => {
+      const modelIds = results.reduce((ids: string[], result) => {
         ids.push(result.id);
         return ids;
       }, []);

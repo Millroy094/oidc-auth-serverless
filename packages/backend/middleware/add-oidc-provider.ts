@@ -4,7 +4,7 @@ import getConfiguration from '../support/get-configuration.ts';
 
 const addOIDCProvider = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   const configuration = await getConfiguration();

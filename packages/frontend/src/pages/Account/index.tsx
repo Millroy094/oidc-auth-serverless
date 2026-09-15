@@ -1,13 +1,35 @@
-import * as React from 'react';
 import { User, Lock, Briefcase, UsersIcon, LogOut } from 'lucide-react';
+import * as React from 'react';
+import { Suspense, lazy } from 'react';
+import { MutatingDots } from 'react-loader-spinner';
+import Logo from '@/assets/logo.svg';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthProvider';
 import { cn } from '@/lib/utils';
-import { Button } from '../../components/ui/button';
-import Profile from './Profile';
-import Clients from './Clients';
-import Users from './Users';
-import { useAuth } from '../../context/AuthProvider';
-import Security from './Security';
-import Logo from '../../assets/logo.svg';
+
+// Each tab is only rendered when active, so lazy-loading keeps the initial
+// Account bundle small and splits Profile/Security/Clients/Users (and their
+// heavy dependencies, e.g. MobileNumberInput) into separate chunks.
+const Profile = lazy(() => import('./Profile'));
+const Security = lazy(() => import('./Security'));
+const Clients = lazy(() => import('./Clients'));
+const Users = lazy(() => import('./Users'));
+
+const tabFallback = (
+  <div className="flex justify-center items-center min-h-[300px]">
+    <MutatingDots
+      visible
+      height="80"
+      width="80"
+      color="#4fa94d"
+      secondaryColor="#4fa94d"
+      radius="12.5"
+      ariaLabel="mutating-dots-loading"
+      wrapperStyle={{}}
+      wrapperClass=""
+    />
+  </div>
+);
 
 interface INavItem {
   value: string;
@@ -25,12 +47,25 @@ export default function Account() {
   const navItems: INavItem[] = [
     { value: 'profile', label: 'Profile', icon: User, content: <Profile /> },
     { value: 'security', label: 'Security', icon: Lock, content: <Security /> },
-    { value: 'clients', label: 'Clients', icon: Briefcase, content: <Clients />, adminOnly: true },
-    { value: 'users', label: 'Users', icon: UsersIcon, content: <Users />, adminOnly: true },
+    {
+      value: 'clients',
+      label: 'Clients',
+      icon: Briefcase,
+      content: <Clients />,
+      adminOnly: true,
+    },
+    {
+      value: 'users',
+      label: 'Users',
+      icon: UsersIcon,
+      content: <Users />,
+      adminOnly: true,
+    },
   ].filter((item) => !item.adminOnly || isAdmin);
 
   const initials = Auth?.user?.email?.slice(0, 2).toUpperCase() ?? 'MF';
-  const activeItem = navItems.find((item) => item.value === active) ?? navItems[0];
+  const activeItem =
+    navItems.find((item) => item.value === active) ?? navItems[0];
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -40,7 +75,9 @@ export default function Account() {
             <div className="h-7 w-7 sm:h-8 sm:w-8">
               <Logo />
             </div>
-            <h1 className="text-lg sm:text-xl font-bold tracking-widest">MF Auth</h1>
+            <h1 className="text-lg sm:text-xl font-bold tracking-widest">
+              MF Auth
+            </h1>
           </div>
           <Button
             variant="ghost"
@@ -80,7 +117,9 @@ export default function Account() {
               {initials}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{Auth?.user?.email}</p>
+              <p className="truncate text-sm font-medium">
+                {Auth?.user?.email}
+              </p>
               <p className="text-xs text-muted-foreground capitalize">
                 {Auth?.user?.roles?.join(', ') ?? 'User'}
               </p>
@@ -118,7 +157,9 @@ export default function Account() {
           </div>
         </aside>
 
-        <div className="flex-1 min-w-0 w-full">{activeItem.content}</div>
+        <div className="flex-1 min-w-0 w-full">
+          <Suspense fallback={tabFallback}>{activeItem.content}</Suspense>
+        </div>
       </div>
     </div>
   );

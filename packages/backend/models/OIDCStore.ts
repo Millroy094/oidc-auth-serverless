@@ -1,6 +1,17 @@
 import dynamoose from 'dynamoose';
+import { Item } from 'dynamoose/dist/Item';
+import { AdapterPayload } from 'oidc-provider';
 
 const { Schema, model } = dynamoose;
+
+export interface OIDCStoreItem extends Item {
+  id: string;
+  payload: AdapterPayload;
+  expiresAt?: number;
+  userCode?: string;
+  uid?: string;
+  grantId?: string;
+}
 
 const OIDCStoreSchema = new Schema(
   {
@@ -29,7 +40,7 @@ const OIDCStoreSchema = new Schema(
     saveUnknown: ['payload.**'],
   },
 );
-const OIDCStore = model('OIDCStore', OIDCStoreSchema, {
+const OIDCStore = model<OIDCStoreItem>('OIDCStore', OIDCStoreSchema, {
   expires: {
     ttl: 7 * 24 * 60 * 60,
     attribute: 'expiresAt',

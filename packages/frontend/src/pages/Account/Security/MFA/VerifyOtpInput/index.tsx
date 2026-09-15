@@ -1,12 +1,12 @@
 import React, { FC } from 'react';
-import { APP_MFA } from '../../../../../constants';
-import { Button } from '../../../../../components/ui/button';
 import OTPInput from 'react-otp-input';
-import useTimer from '../../../../../hooks/useTimer';
-import sendOtp from '../../../../../api/user/send-otp';
-import { useAuth } from '../../../../../context/AuthProvider';
-import useFeedback from '../../../../../hooks/useFeedback';
 import OtpMessage from './OtpMessage';
+import sendOtp from '@/api/user/send-otp';
+import { Button } from '@/components/ui/button';
+import { APP_MFA } from '@/constants';
+import { useAuth } from '@/context/AuthProvider';
+import useFeedback from '@/hooks/useFeedback';
+import useTimer from '@/hooks/useTimer';
 
 interface IVerifyOtpInput {
   value: string;
@@ -21,7 +21,7 @@ const OtpResendSection: FC<{ handleResend: () => void; timer: number }> = ({
   timer,
 }) => (
   <div className="flex items-center justify-center gap-2">
-    <p className="text-sm">Haven't received OTP?</p>
+    <p className="text-sm">Haven&apos;t received OTP?</p>
     <Button
       variant="link"
       size="sm"
@@ -85,9 +85,7 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = ({
             }}
           />
         </div>
-        {error && (
-          <p className="text-sm text-red-500">OTP must be 6 digits</p>
-        )}
+        {error && <p className="text-sm text-red-500">OTP must be 6 digits</p>}
       </div>
     </div>
   );

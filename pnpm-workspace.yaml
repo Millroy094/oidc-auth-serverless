@@ -1,7 +1,8 @@
 packages:
-  - "packages/**"
+  - 'packages/**'
 allowBuilds:
   esbuild: false
+  unrs-resolver: true
 minimumReleaseAgeExclude:
   - lucide-react@1.46.0
 patchedDependencies:

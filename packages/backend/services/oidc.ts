@@ -1,7 +1,6 @@
-import { ObjectType } from 'dynamoose/dist/General';
 import { QueryResponse, ScanResponse } from 'dynamoose/dist/ItemRetriever';
-import { AnyItem } from 'dynamoose/dist/Item';
-import OIDCStore from '../models/OIDCStore.ts';
+import OIDCStore, { OIDCStoreItem } from '../models/OIDCStore.ts';
+import logger from '../utils/logger.ts';
 
 interface Session {
   id: string;
@@ -19,12 +18,12 @@ class OIDCService {
       .where('payload.kind')
       .eq('Session')
       .exec();
-    const sessions = sessionResponse.toJSON().map((session: ObjectType) => ({
-      id: session.payload.jti,
+    const sessions = sessionResponse.map((session) => ({
+      id: session.payload.jti as string,
       loggedInAt: session.payload.loginTs,
-      clients: Object.keys(session?.payload?.authorizations ?? {}),
-      iat: session.payload.iat,
-      exp: session.payload.exp,
+      clients: Object.keys(session.payload.authorizations ?? {}),
+      iat: session.payload.iat as number,
+      exp: session.payload.exp as number,
     }));
     return sessions;
   }
@@ -76,16 +75,16 @@ class OIDCService {
   }
 
   public static async deleteAllResults(
-    results: QueryResponse<AnyItem> | ScanResponse<AnyItem>,
+    results: QueryResponse<OIDCStoreItem> | ScanResponse<OIDCStoreItem>,
   ): Promise<void> {
     if (results.count > 0) {
-      const modelIds = results.toJSON().reduce((ids: string[], result) => {
+      const modelIds = results.reduce((ids: string[], result) => {
         ids.push(result.id);
         return ids;
       }, []);
 
       const response = await OIDCStore.batchDelete(modelIds);
-      console.log(
+      logger.info(
         `Successfully deleted items. ${response.unprocessedItems.length} of unprocessed items.`,
       );
     }

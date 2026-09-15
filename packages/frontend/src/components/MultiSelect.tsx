@@ -1,13 +1,9 @@
-import { FC, useState } from 'react';
 import { ChevronsUpDown, X } from 'lucide-react';
-import { Button } from './ui/button';
+import { FC, useState } from 'react';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from './ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { cn } from '@/lib/utils';
 
 export type MultiSelectOption = {
@@ -45,7 +41,7 @@ const MultiSelect: FC<MultiSelectProps> = (props) => {
     }
   };
 
-  const removeValue = (optionValue: string, e: React.MouseEvent): void => {
+  const removeValue = (optionValue: string, e: React.SyntheticEvent): void => {
     e.stopPropagation();
     onChange(value.filter((v) => v !== optionValue));
   };
@@ -82,6 +78,12 @@ const MultiSelect: FC<MultiSelectProps> = (props) => {
                     role="button"
                     tabIndex={0}
                     onClick={(e) => removeValue(option.value, e)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        removeValue(option.value, e);
+                      }
+                    }}
                     className="shrink-0 rounded-sm hover:bg-muted-foreground/20"
                   >
                     <X className="h-3 w-3" />
@@ -90,7 +92,9 @@ const MultiSelect: FC<MultiSelectProps> = (props) => {
               ))}
             </div>
           ) : (
-            <span className="truncate text-muted-foreground">{placeholder}</span>
+            <span className="truncate text-muted-foreground">
+              {placeholder}
+            </span>
           )}
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>

@@ -1,7 +1,7 @@
-import { BrowserRouter as Router } from 'react-router-dom';
 import { SnackbarProvider } from 'notistack';
-import Pages from './pages';
+import { BrowserRouter as Router } from 'react-router-dom';
 import AuthProvider from './context/AuthProvider';
+import Pages from './pages';
 
 function App() {
   return (

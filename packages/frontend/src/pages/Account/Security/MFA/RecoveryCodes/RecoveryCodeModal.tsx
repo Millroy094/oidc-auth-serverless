@@ -1,13 +1,15 @@
-import { FC, useEffect, useState } from 'react';
-import { Button } from '../../../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter } from '../../../../../components/ui/card';
-import generateRecoveryCodes from '../../../../../api/user/generate-recovery-codes';
-import useFeedback from '../../../../../hooks/useFeedback';
 import { Download } from 'lucide-react';
+import { FC, useEffect, useState } from 'react';
+import generateRecoveryCodes from '@/api/user/generate-recovery-codes';
+import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-} from '../../../../../components/ui/dialog';
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+} from '@/components/ui/card';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import useFeedback from '@/hooks/useFeedback';
 
 interface RecoveryCodeModalProps {
   open: boolean;
@@ -45,7 +47,7 @@ const RecoveryCodeModal: FC<RecoveryCodeModalProps> = (props) => {
 
   useEffect(() => {
     if (open) {
-      fetchRecoveryCodes();
+      void fetchRecoveryCodes();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -75,14 +77,15 @@ const RecoveryCodeModal: FC<RecoveryCodeModalProps> = (props) => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <p className="text-sm text-slate-700">
-                    Don't forget to save your recovery codes, without these you
-                    will not able to recover your account if you were to lose
-                    your 2FA Device.
+                    Don&apos;t forget to save your recovery codes, without these
+                    you will not able to recover your account if you were to
+                    lose your 2FA Device.
                   </p>
                   <p className="text-sm text-slate-700">
                     Each code is one time use only therefore after its use, you
-                    won't be able to use it again. If you lose your recovery
-                    codes or run out of them you can always regenerate it here.
+                    won&apos;t be able to use it again. If you lose your
+                    recovery codes or run out of them you can always regenerate
+                    it here.
                   </p>
                 </div>
 
@@ -109,10 +112,7 @@ const RecoveryCodeModal: FC<RecoveryCodeModalProps> = (props) => {
             )}
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button
-              onClick={exportRecoveryCodes}
-              className="gap-2"
-            >
+            <Button onClick={exportRecoveryCodes} className="gap-2">
               <Download className="w-4 h-4" />
               Download Recovery Codes
             </Button>

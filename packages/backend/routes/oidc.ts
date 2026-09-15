@@ -1,17 +1,25 @@
 import { Router } from 'express';
-import OIDCController from '../controllers/oidc.ts';
+import OIDCController, {
+  AuthenticateInteractionBody,
+  AuthorizeInteractionBody,
+} from '../controllers/oidc.ts';
 
 const router = Router();
 
-router.get('/interaction/:uid/status', OIDCController.getInteractionStatus);
-
-router.post(
-  '/interaction/:uid/authenticate',
-  OIDCController.authenticateInteraction,
+router.get('/interaction/:uid/status', (req, res) =>
+  OIDCController.getInteractionStatus(req, res),
 );
 
-router.post('/interaction/:uid/authorize', OIDCController.authorizeInteraction);
+router.post<Record<string, string>, unknown, AuthenticateInteractionBody>(
+  '/interaction/:uid/authenticate',
+  (req, res) => OIDCController.authenticateInteraction(req, res),
+);
 
-router.use('/', OIDCController.setupOidc);
+router.post<Record<string, string>, unknown, AuthorizeInteractionBody>(
+  '/interaction/:uid/authorize',
+  (req, res) => OIDCController.authorizeInteraction(req, res),
+);
+
+router.use('/', (req, res) => OIDCController.setupOidc(req, res));
 
 export default router;

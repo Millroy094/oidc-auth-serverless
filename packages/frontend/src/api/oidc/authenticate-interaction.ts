@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import axios from '../../utils/axios-instance';
+import axios from '@/utils/axios-instance';
 
 type validateCredentialsArgs = {
   email: string;
@@ -11,9 +11,14 @@ type validateCredentialsArgs = {
   interactionId: string;
 };
 
+interface AuthenticateInteractionResponseData {
+  redirect: string;
+  message?: string;
+}
+
 const authenticateInteraction = async (
   args: validateCredentialsArgs,
-): Promise<AxiosResponse> => {
+): Promise<AxiosResponse<AuthenticateInteractionResponseData>> => {
   const {
     email,
     password,
@@ -23,7 +28,7 @@ const authenticateInteraction = async (
     resetMfa,
     interactionId,
   } = args;
-  const response = await axios.post(
+  const response = await axios.post<AuthenticateInteractionResponseData>(
     `/api/oidc/interaction/${interactionId}/authenticate`,
     {
       email,

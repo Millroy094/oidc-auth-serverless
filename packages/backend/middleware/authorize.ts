@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import logger from '../utils/logger.ts';
 import UserService from '../services/user.ts';
+import logger from '../utils/logger.ts';
 
 const authorize = (permissions: string[] | undefined) => {
   return async (req: Request, res: Response, next: NextFunction) => {
