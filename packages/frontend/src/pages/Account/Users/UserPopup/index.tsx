@@ -125,7 +125,7 @@ const UserPopup: FC<UserPopupProps> = (props) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
         <Card className="border-0">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -136,7 +136,7 @@ const UserPopup: FC<UserPopupProps> = (props) => {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
                   <label
                     htmlFor="email"
@@ -181,7 +181,7 @@ const UserPopup: FC<UserPopupProps> = (props) => {
                   </div>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-4 sm:gap-6">
                   <label
                     htmlFor="emailVerified"
                     className="flex items-center gap-2 cursor-pointer"
@@ -236,27 +236,19 @@ const UserPopup: FC<UserPopupProps> = (props) => {
                   errors={errors}
                 />
 
-                <div>
-                  <label
-                    htmlFor="mobile"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Mobile Number
-                  </label>
-                  <Controller
-                    name="mobile"
-                    control={control}
-                    render={({ field: { onChange, value } }) => (
-                      <MobileNumberInput
-                        label="Mobile Number"
-                        onChange={onChange}
-                        value={value ?? ''}
-                        error={!!errors.mobile}
-                        helperText={errors.mobile ? errors.mobile.message : ''}
-                      />
-                    )}
-                  />
-                </div>
+                <Controller
+                  name="mobile"
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <MobileNumberInput
+                      label="Mobile Number"
+                      onChange={onChange}
+                      value={value ?? ''}
+                      error={!!errors.mobile}
+                      helperText={errors.mobile ? errors.mobile.message : ''}
+                    />
+                  )}
+                />
               </div>
             </CardContent>
 

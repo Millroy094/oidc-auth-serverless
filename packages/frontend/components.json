@@ -3,13 +3,11 @@
   "style": "default",
   "rsc": false,
   "tsx": true,
-  "baseColor": "slate",
-  "cssVariables": true,
   "tailwind": {
     "config": "",
     "css": "src/index.css",
-    "baseColor": "",
-    "cssVariables": false
+    "baseColor": "slate",
+    "cssVariables": true
   },
   "aliases": {
     "components": "@/components",
