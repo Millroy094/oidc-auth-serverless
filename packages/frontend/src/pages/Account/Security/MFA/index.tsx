@@ -1,4 +1,9 @@
-import { AlertCircle, CheckCircle, ShieldCheck } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle,
+  ShieldCheck,
+} from 'lucide-react';
 import React, { FC, useEffect, useState } from 'react';
 import Passkeys from './Passkeys';
 import RecoveryCodes from './RecoveryCodes';
@@ -94,8 +99,41 @@ const MFA: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const hasVerifiedMethod =
+    mfaTypes.some((mfaType) => mfaType.verified) || passkeyVerified;
+
   return (
     <>
+      {!hasVerifiedMethod && (
+        <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" />
+          <div>
+            <p className="text-sm font-medium text-amber-900">
+              Multi-factor authentication is not set up
+            </p>
+            <p className="text-sm text-amber-800">
+              Your account is only protected by a password. Set up at least one
+              MFA method below (authenticator app, SMS, email, or a passkey) to
+              better secure your account.
+            </p>
+          </div>
+        </div>
+      )}
+      {hasVerifiedMethod && !mfaPreference && (
+        <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" />
+          <div>
+            <p className="text-sm font-medium text-amber-900">
+              No preferred MFA method selected
+            </p>
+            <p className="text-sm text-amber-800">
+              You have a verified MFA method, but haven&apos;t chosen one as
+              your preference, so it won&apos;t be used at login. Tick a method
+              below to enable it.
+            </p>
+          </div>
+        </div>
+      )}
       <Card className="border-t-4 border-t-primary shadow-sm">
         <CardHeader className="flex flex-row items-start gap-3 space-y-0">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">

@@ -23,8 +23,7 @@ Each method stores a `subscriber` (the phone/email/TOTP secret) and a `verified`
 ## Passkeys (WebAuthn)
 Implemented via `@simplewebauthn/server` (backend) and `@simplewebauthn/browser` (frontend), with `services/passkey.ts` + the `Challenge` DynamoDB table (TTL 300s) tracking in-flight WebAuthn ceremonies:
 - **Registration**: `POST /api/user/register-passkey` issues a challenge (stored in `Challenge`), the browser's WebAuthn API signs it, `POST /api/user/verify-passkey-registration` verifies the attestation and stores the resulting credential under `user.mfa.passkey.credentials`.
-- **Login**: `POST /api/user/login-with-passkey` (unauthenticated — used as an alternative to password login) issues a challenge; `POST /api/user/verify-passkey-login` verifies the assertion against stored credentials and completes login.
-- Passkeys can also be used as an MFA method after password login, using the same challenge/verify pair, gated behind `authenticate` middleware.
+- **Login (MFA step)**: after password verification succeeds and the account's MFA preference is `passkey`, `POST /api/user/login-with-passkey` issues a challenge (unauthenticated — no session cookie exists yet at this point in the flow); `POST /api/user/verify-passkey-login` verifies the assertion against stored credentials and completes login. Passkeys are used solely as an MFA factor here, never as a password replacement — the same challenge/verify pair as registration, gated behind `authenticate` for setup and unauthenticated for the login-time verification.
 
 ## Sessions
 `GET /api/user/sessions` / `DELETE /api/user/sessions` / `DELETE /api/user/sessions/:sessionId` let a user list and revoke other active sessions (backed by the OIDC provider's session/grant records in the `OIDCStore` table). Admins can force-revoke a specific user's sessions via `DELETE /api/admin/users/:id/sessions`.

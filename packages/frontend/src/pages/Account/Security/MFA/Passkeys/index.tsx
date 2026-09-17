@@ -162,7 +162,8 @@ const Passkeys: FC<PasskeysProps> = (props) => {
               <CardDescription>
                 Passkeys are webauthn credentials that validate your identity
                 using touch, facial recognition, a device password, or a PIN.
-                They can be used as a password replacement or as a 2FA method.
+                They&apos;re used as your second factor (MFA) after your
+                password, not as a replacement for it.
               </CardDescription>
             </div>
             <label
