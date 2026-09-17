@@ -1,36 +1,32 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt, { SignOptions } from 'jsonwebtoken';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants/authentication.ts';
 import UserService from '../services/user.ts';
 import config from '../support/env-config.ts';
+import { signJwt, verifyJwt, isJwtExpiredError } from '../utils/jwt.ts';
 import logger from '../utils/logger.ts';
-
-interface JwtPayload {
-  userId: string;
-  email: string;
-}
 
 const accessTokenSecret = config.get('authentication.accessTokenSecret');
 const accessTokenExpiry = config.get('authentication.accessTokenExpiry');
 const refreshTokenSecret = config.get('authentication.refreshTokenSecret');
 const refreshTokenExpiry = config.get('authentication.accessTokenExpiry');
 
-const generateNewTokensFromRefreshToken = (
+const generateNewTokensFromRefreshToken = async (
   refreshToken: string,
   req: Request,
   res: Response,
 ) => {
   try {
-    const { userId, email } = jwt.verify(
-      refreshToken,
-      refreshTokenSecret,
-    ) as JwtPayload;
-    const newAccessToken = jwt.sign({ userId, email }, accessTokenSecret, {
-      expiresIn: accessTokenExpiry as SignOptions['expiresIn'],
-    });
-    const newRefreshToken = jwt.sign({ userId, email }, accessTokenSecret, {
-      expiresIn: refreshTokenExpiry as SignOptions['expiresIn'],
-    });
+    const { userId, email } = await verifyJwt(refreshToken, refreshTokenSecret);
+    const newAccessToken = await signJwt(
+      { userId, email },
+      accessTokenSecret,
+      accessTokenExpiry,
+    );
+    const newRefreshToken = await signJwt(
+      { userId, email },
+      accessTokenSecret,
+      refreshTokenExpiry,
+    );
 
     res
       .cookie(ACCESS_TOKEN, newAccessToken, {
@@ -50,7 +46,7 @@ const generateNewTokensFromRefreshToken = (
   }
 };
 
-const validateTokensFromCookies = (req: Request, res: Response) => {
+const validateTokensFromCookies = async (req: Request, res: Response) => {
   const accessToken = req?.cookies[ACCESS_TOKEN] as string | undefined;
   const refreshToken = req?.cookies[REFRESH_TOKEN] as string | undefined;
 
@@ -61,15 +57,12 @@ const validateTokensFromCookies = (req: Request, res: Response) => {
   }
 
   try {
-    const { userId, email } = jwt.verify(
-      accessToken,
-      accessTokenSecret,
-    ) as JwtPayload;
+    const { userId, email } = await verifyJwt(accessToken, accessTokenSecret);
 
     req.user = { userId, email };
   } catch (error) {
-    if ((error as Error).name === 'TokenExpiredError') {
-      generateNewTokensFromRefreshToken(refreshToken, req, res);
+    if (isJwtExpiredError(error)) {
+      await generateNewTokensFromRefreshToken(refreshToken, req, res);
     } else {
       logger.error((error as Error).message);
       throw new Error('Authentication failed, for an unexpected reason');
@@ -83,7 +76,7 @@ const authenticate = async (
   next: NextFunction,
 ) => {
   try {
-    validateTokensFromCookies(req, res);
+    await validateTokensFromCookies(req, res);
 
     const userAccount = await UserService.getUserById(req.user?.userId ?? '');
 

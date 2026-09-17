@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import jwt, { SignOptions } from 'jsonwebtoken';
 import { pick } from 'lodash';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants/authentication.ts';
 import HTTP_STATUSES from '../constants/http-status.ts';
@@ -7,6 +6,7 @@ import MFAService from '../services/mfa/index.ts';
 import OIDCService from '../services/oidc.ts';
 import UserService from '../services/user.ts';
 import config from '../support/env-config.ts';
+import { signJwt } from '../utils/jwt.ts';
 import logger from '../utils/logger.ts';
 
 export interface RegisterBody {
@@ -120,24 +120,16 @@ class UserController {
         roles: user.roles,
       };
 
-      const accessToken = jwt.sign(
+      const accessToken = await signJwt(
         payload,
         config.get('authentication.accessTokenSecret'),
-        {
-          expiresIn: config.get(
-            'authentication.accessTokenExpiry',
-          ) as SignOptions['expiresIn'],
-        },
+        config.get('authentication.accessTokenExpiry'),
       );
 
-      const refreshToken = jwt.sign(
+      const refreshToken = await signJwt(
         payload,
         config.get('authentication.refreshTokenSecret'),
-        {
-          expiresIn: config.get(
-            'authentication.refreshTokenExpiry',
-          ) as SignOptions['expiresIn'],
-        },
+        config.get('authentication.refreshTokenExpiry'),
       );
 
       res

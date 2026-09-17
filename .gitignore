@@ -26,7 +26,5 @@ infra/modules/lambda/lambda_placeholder.zip
 ministack-data/
 .ministack/
 
-patches/
-
 # TypeScript build cache
 *.tsbuildinfo

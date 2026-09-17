@@ -5,5 +5,3 @@ allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - lucide-react@1.46.0
-patchedDependencies:
-  buffer-equal-constant-time@1.0.1: patches/buffer-equal-constant-time@1.0.1.patch
