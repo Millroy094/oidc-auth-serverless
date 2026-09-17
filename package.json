@@ -7,7 +7,7 @@
     "setup:local": "./scripts/setup-local-dev.sh",
     "dev": "pnpm --filter @oauth-server/frontend dev",
     "backend:build": "pnpm --filter @oauth-server/backend build",
-    "backend:deploy": "./scripts/deploy-backend.sh",
+    "backend:deploy": "./scripts/watch-backend.sh --once",
     "backend:watch": "./scripts/watch-backend.sh",
     "admin:create": "./scripts/create-admin-user.sh",
     "lint": "eslint '**/*.{js,jsx,ts,tsx}'",

@@ -46,3 +46,13 @@ variable "environment_variables" {
   default     = {}
   description = "Environment variables for Lambda"
 }
+
+variable "artifacts_bucket_name" {
+  type        = string
+  description = "S3 bucket (created and populated outside Terraform by scripts/build-artifacts.sh) holding the Lambda deployment package"
+}
+
+variable "artifact_s3_key" {
+  type        = string
+  description = "S3 key of the Lambda deployment zip within the artifacts bucket, set by scripts/build-artifacts.sh"
+}

@@ -33,3 +33,13 @@ variable "frontend_url" {
   default     = "http://localhost:5173"
   description = "Frontend origin, used to build absolute OIDC interaction redirect URLs since the frontend (Vite dev server) and backend (API Gateway) run on different origins locally"
 }
+
+variable "artifacts_bucket_name" {
+  type        = string
+  description = "S3 bucket holding the Lambda deployment package, created and populated by scripts/build-artifacts.sh before Terraform runs"
+}
+
+variable "lambda_artifact_key" {
+  type        = string
+  description = "S3 key of the Lambda deployment zip within the artifacts bucket, set by scripts/build-artifacts.sh"
+}

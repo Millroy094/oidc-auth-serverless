@@ -11,7 +11,6 @@ terraform {
     }
   }
 
-  # Local state for development
   backend "local" {
     path = "/tmp/terraform/oidc-auth-local.tfstate"
   }
@@ -45,7 +44,6 @@ provider "aws" {
   }
 }
 
-# SSM Parameter Store (JWT secrets, encryption keys, cookie secrets, etc.)
 module "ssm" {
   source = "../../modules/ssm"
 
@@ -53,14 +51,12 @@ module "ssm" {
   path_prefix = "/${var.project_name}/local/"
 }
 
-# DynamoDB tables
 module "dynamodb" {
   source = "../../modules/dynamodb"
 
   environment = "local"
 }
 
-# SNS topic for notifications
 module "sns" {
   source = "../../modules/sns"
 
@@ -68,7 +64,6 @@ module "sns" {
   environment = "local"
 }
 
-# Lambda function for OIDC backend
 module "lambda" {
   source = "../../modules/lambda"
 
@@ -77,6 +72,9 @@ module "lambda" {
   runtime       = "nodejs22.x"
   timeout       = 30
   memory_size   = 512
+
+  artifacts_bucket_name = var.artifacts_bucket_name
+  artifact_s3_key       = var.lambda_artifact_key
 
   dynamodb_table_arns  = module.dynamodb.table_arns
   sns_topic_arn        = module.sns.topic_arn
@@ -95,7 +93,6 @@ module "lambda" {
   }
 }
 
-# API Gateway for Lambda
 module "api_gateway" {
   source = "../../modules/api_gateway"
 
@@ -107,45 +104,4 @@ module "api_gateway" {
   lambda_function_invoke_arn = module.lambda.function_invoke_arn
 
   cors_origins = var.cors_origins
-}
-
-# Outputs
-output "api_gateway_url" {
-  value       = module.api_gateway.invoke_url
-  description = "API Gateway endpoint (backend only). Cosmetic AWS-style URL; not directly reachable against Ministack (see api_gateway_invoke_host)."
-}
-
-# Ministack routes API Gateway requests by Host header rather than by real
-# DNS, so the invoke_url above can't be curled/proxied directly against it.
-# This is the Host header + stage that must be used when calling
-# http://localhost:4566 to reach this API through Ministack locally.
-output "api_gateway_invoke_host" {
-  value       = "${module.api_gateway.api_id}.execute-api.${replace(var.aws_endpoint, "http://", "")}"
-  description = "Host header value for invoking the API Gateway through Ministack locally"
-}
-
-output "api_gateway_stage" {
-  value       = "local"
-  description = "API Gateway stage name"
-}
-
-output "aws_endpoint" {
-  value       = var.aws_endpoint
-  description = "Ministack endpoint reachable from the host machine"
-}
-
-output "lambda_function_name" {
-  value       = module.lambda.function_name
-  description = "Lambda function name"
-}
-
-output "dynamodb_table_names" {
-  value = {
-    user       = module.dynamodb.user_table_name
-    client     = module.dynamodb.client_table_name
-    oidc_store = module.dynamodb.oidc_store_table_name
-    otp        = module.dynamodb.otp_table_name
-    challenge  = module.dynamodb.challenge_table_name
-  }
-  description = "DynamoDB table names"
 }

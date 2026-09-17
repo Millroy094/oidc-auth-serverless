@@ -10,13 +10,6 @@ resource "aws_apigatewayv2_api" "main" {
   }
 }
 
-locals {
-  # Ministack's HTTP API emulation rejects access_log_settings with
-  # "Invalid ARN specified" regardless of ARN format, so access logging is
-  # only enabled for real AWS environments.
-  enable_access_logs = var.environment != "local"
-}
-
 resource "aws_apigatewayv2_stage" "main" {
   api_id      = aws_apigatewayv2_api.main.id
   name        = var.stage_name
@@ -68,19 +61,4 @@ resource "aws_lambda_permission" "api_gateway_invoke" {
   function_name = var.lambda_function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
-}
-
-output "invoke_url" {
-  value       = aws_apigatewayv2_stage.main.invoke_url
-  description = "API Gateway invoke URL"
-}
-
-output "api_endpoint" {
-  value       = aws_apigatewayv2_api.main.api_endpoint
-  description = "API endpoint"
-}
-
-output "api_id" {
-  value       = aws_apigatewayv2_api.main.id
-  description = "API Gateway ID"
 }

@@ -17,7 +17,6 @@ EMAIL="admin@example.com"
 FIRST_NAME="Admin"
 LAST_NAME="User"
 
-# For local/Ministack, use endpoint URL
 if [ "$ENVIRONMENT" = "local" ]; then
   AWS_ENDPOINT="--endpoint-url http://localhost:4566"
 fi
@@ -27,7 +26,6 @@ echo "   Email: $EMAIL"
 echo "   Environment: $ENVIRONMENT"
 echo "   Region: $AWS_REGION"
 
-# Check if user already exists (scan by email, matching how the backend looks up users)
 echo "📋 Checking if user already exists..."
 EXISTING=$(aws dynamodb scan \
   $AWS_ENDPOINT \
@@ -59,12 +57,10 @@ if [ -z "$HASHED_PASSWORD" ]; then
   exit 1
 fi
 
-# Generate UUID for userId (hash key on the User table)
 USER_ID=$(pnpm exec node -e "console.log(require('crypto').randomUUID())")
 
 echo "📝 Creating user with ID: $USER_ID"
 
-# Create user in DynamoDB, matching packages/backend/models/User.ts schema
 aws dynamodb put-item \
   $AWS_ENDPOINT \
   --table-name "$TABLE_NAME" \
