@@ -1,0 +1,124 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    env:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      TF_ORG: ${{ vars.TF_ORG }}
+      TF_WORKSPACE: ${{ vars.TF_WORKSPACE }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Build and upload artifacts
+        env:
+          ENVIRONMENT: production
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          ARTIFACTS_BUCKET_NAME: oidc-auth-artifacts
+          ARTIFACT_SHA: ${{ github.sha }}
+        run: ./scripts/build-artifacts.sh
+
+      - name: Update Terraform Cloud workspace variable
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="Authorization: Bearer $TF_API_TOKEN"
+          WORKSPACE_ID=$(curl -s \
+            --header "$AUTH_HEADER" \
+            --header "Content-Type: application/vnd.api+json" \
+            "https://app.terraform.io/api/v2/organizations/${TF_ORG}/workspaces/${TF_WORKSPACE}" \
+            | jq -r '.data.id')
+
+          VAR_ID=$(curl -s \
+            --header "$AUTH_HEADER" \
+            --header "Content-Type: application/vnd.api+json" \
+            "https://app.terraform.io/api/v2/workspaces/${WORKSPACE_ID}/vars" \
+            | jq -r '.data[] | select(.attributes.key == "artifact_sha") | .id')
+
+          curl -s -X PATCH \
+            --header "$AUTH_HEADER" \
+            --header "Content-Type: application/vnd.api+json" \
+            "https://app.terraform.io/api/v2/workspaces/${WORKSPACE_ID}/vars/${VAR_ID}" \
+            -d '{"data":{"type":"vars","id":"'"$VAR_ID"'","attributes":{"key":"artifact_sha","category":"terraform","value":"'"${{ github.sha }}"'","hcl":false,"sensitive":false}}}'
+
+      - name: Upload Terraform configuration
+        id: upload
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
+        with:
+          directory: ./infra/environments/production
+          workspace: ${{ env.TF_WORKSPACE }}
+          token: ${{ env.TF_API_TOKEN }}
+          organization: ${{ env.TF_ORG }}
+
+      - name: Create Terraform run
+        id: run
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.2
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.upload.outputs.configuration_version_id }}
+          token: ${{ env.TF_API_TOKEN }}
+          organization: ${{ env.TF_ORG }}
+
+      - name: Apply Terraform run
+        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.3.2
+        with:
+          run: ${{ steps.run.outputs.run_id }}
+          token: ${{ env.TF_API_TOKEN }}
+
+      - name: Terraform summary
+        run: |
+          echo "## Terraform Deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Terraform Run: ${{ steps.run.outputs.run_link }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Get workspace outputs
+        id: website_outputs
+        uses: hashicorp/tfc-workflows-github/actions/workspace-output@v1.3.2
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          token: ${{ env.TF_API_TOKEN }}
+          organization: ${{ env.TF_ORG }}
+
+      - name: Parse outputs
+        id: parsed
+        run: |
+          echo '${{ steps.website_outputs.outputs.outputs }}' > outputs.json
+          echo "bucket=$(jq -r '.[] | select(.name == "frontend_bucket_name") | .value' outputs.json)" >> "$GITHUB_OUTPUT"
+          echo "distribution_id=$(jq -r '.[] | select(.name == "cloudfront_distribution_id") | .value' outputs.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Sync frontend to S3
+        run: aws s3 sync artifacts/website "s3://${{ steps.parsed.outputs.bucket }}" --delete
+
+      - name: Invalidate CloudFront cache
+        run: aws cloudfront create-invalidation --distribution-id "${{ steps.parsed.outputs.distribution_id }}" --paths "/*"

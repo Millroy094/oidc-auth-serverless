@@ -25,6 +25,6 @@ variable "lambda_function_invoke_arn" {
 
 variable "cors_origins" {
   type        = list(string)
-  default     = ["*"]
-  description = "CORS allowed origins"
+  default     = []
+  description = "CORS allowed origins; leave empty to omit CORS configuration entirely (e.g. when the frontend and API share the same origin behind CloudFront)"
 }

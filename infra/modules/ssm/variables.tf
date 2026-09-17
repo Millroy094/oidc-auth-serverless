@@ -13,7 +13,7 @@ variable "path_prefix" {
   }
 }
 
-variable "email_from_address" {
+variable "support_email" {
   type        = string
   default     = "noreply@oidc-auth.local"
   description = "Verified SES sender address used for outbound email"

@@ -28,7 +28,7 @@ module "lambda" {
   memory_size   = 512
 
   artifacts_bucket_name = var.artifacts_bucket_name
-  artifact_s3_key       = var.lambda_artifact_key
+  artifact_sha          = var.artifact_sha
 
   dynamodb_table_arns  = module.dynamodb.table_arns
   sns_topic_arn        = module.sns.topic_arn
@@ -42,7 +42,6 @@ module "lambda" {
     AWS_REGION             = var.aws_region
     AWS_ACCESS_KEY_ID      = "test"
     AWS_SECRET_ACCESS_KEY  = "test"
-    CORS_ORIGINS           = join(",", var.cors_origins)
     FRONTEND_URL           = var.frontend_url
   }
 }

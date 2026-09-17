@@ -7,8 +7,11 @@ set -e
 # of a placeholder. The bucket itself is created here (not by Terraform) and
 # is separate from the (not-yet-provisioned) website hosting bucket.
 #
-# Writes infra/environments/local/artifacts.auto.tfvars so `terraform apply`
-# automatically picks up the bucket name + object key.
+# For local, writes infra/environments/local/artifacts.auto.tfvars so
+# `terraform apply` automatically picks up the bucket name. For other
+# environments, the bucket name and artifact_sha are Terraform Cloud
+# workspace variables managed outside this script (the latter updated by CI
+# on each deploy), so no tfvars file is written.
 #
 # Usage: ./scripts/build-artifacts.sh
 
@@ -20,6 +23,7 @@ WEBSITE_ARTIFACT_DIR="$ARTIFACTS_DIR/website"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 ENVIRONMENT="${ENVIRONMENT:-local}"
 ARTIFACTS_BUCKET_NAME="${ARTIFACTS_BUCKET_NAME:-oidc-auth-lambda-artifacts-local}"
+ARTIFACT_SHA="${ARTIFACT_SHA:-local}"
 
 if [ "$ENVIRONMENT" = "local" ]; then
   AWS_ENDPOINT="--endpoint-url http://localhost:4566"
@@ -40,7 +44,6 @@ cp packages/backend/keys.json "$LAMBDA_ARTIFACT_DIR/keys.json"
 cd "$LAMBDA_ARTIFACT_DIR"
 rm -f handler.zip
 zip -q handler.zip handler.mjs keys.json
-LAMBDA_HASH=$(shasum -a 256 handler.zip | cut -d' ' -f1 | cut -c1-12)
 cd "$ROOT_DIR"
 
 echo "🔨 Building frontend..."
@@ -54,21 +57,27 @@ echo "✅ Website built to $WEBSITE_ARTIFACT_DIR (not yet deployed - CloudFront/
 
 echo "☁️  Ensuring artifacts bucket exists ($ARTIFACTS_BUCKET_NAME)..."
 if ! aws $AWS_ENDPOINT s3api head-bucket --bucket "$ARTIFACTS_BUCKET_NAME" --region "$AWS_REGION" > /dev/null 2>&1; then
-  aws $AWS_ENDPOINT s3api create-bucket --bucket "$ARTIFACTS_BUCKET_NAME" --region "$AWS_REGION" > /dev/null
+  if [ "$AWS_REGION" = "us-east-1" ]; then
+    aws $AWS_ENDPOINT s3api create-bucket --bucket "$ARTIFACTS_BUCKET_NAME" --region "$AWS_REGION" > /dev/null
+  else
+    aws $AWS_ENDPOINT s3api create-bucket --bucket "$ARTIFACTS_BUCKET_NAME" --region "$AWS_REGION" \
+      --create-bucket-configuration LocationConstraint="$AWS_REGION" > /dev/null
+  fi
   echo "✓ Created bucket $ARTIFACTS_BUCKET_NAME"
 else
   echo "✓ Bucket $ARTIFACTS_BUCKET_NAME already exists"
 fi
 
-LAMBDA_S3_KEY="lambda/handler-$LAMBDA_HASH.zip"
+LAMBDA_S3_KEY="lambda/$ARTIFACT_SHA/handler.zip"
 echo "📦 Uploading Lambda artifact to s3://$ARTIFACTS_BUCKET_NAME/$LAMBDA_S3_KEY..."
 aws $AWS_ENDPOINT s3 cp "$LAMBDA_ARTIFACT_DIR/handler.zip" "s3://$ARTIFACTS_BUCKET_NAME/$LAMBDA_S3_KEY" --region "$AWS_REGION" --checksum-algorithm SHA256 > /dev/null
 
-TFVARS_FILE="$ROOT_DIR/infra/environments/local/artifacts.auto.tfvars"
-cat > "$TFVARS_FILE" << EOF
+if [ "$ENVIRONMENT" = "local" ]; then
+  TFVARS_FILE="$ROOT_DIR/infra/environments/local/artifacts.auto.tfvars"
+  cat > "$TFVARS_FILE" << EOF
 artifacts_bucket_name = "$ARTIFACTS_BUCKET_NAME"
-lambda_artifact_key   = "$LAMBDA_S3_KEY"
 EOF
-echo "✓ Wrote $TFVARS_FILE"
+  echo "✓ Wrote $TFVARS_FILE"
+fi
 
 echo "✅ Artifacts built and uploaded (Lambda key: $LAMBDA_S3_KEY)"

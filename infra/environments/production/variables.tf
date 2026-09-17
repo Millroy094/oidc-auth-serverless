@@ -1,6 +1,6 @@
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "eu-west-2"
   description = "AWS region"
 }
 
@@ -16,34 +16,14 @@ variable "author" {
   description = "Resource owner, applied as the Author tag"
 }
 
-variable "cors_origins" {
-  type        = list(string)
-  description = "CORS allowed origins for the frontend (e.g. the CloudFront domain, or the custom domain once linked)"
-}
-
-variable "frontend_url" {
-  type        = string
-  description = "Frontend origin used to build absolute OIDC interaction redirect URLs (e.g. the CloudFront domain, or the custom domain once linked)"
-}
-
-variable "email_from_address" {
+variable "support_email" {
   type        = string
   description = "Verified SES sender address used for outbound email"
 }
 
-variable "artifacts_bucket_name" {
+variable "artifact_sha" {
   type        = string
-  description = "Pre-existing S3 bucket (created outside Terraform) holding the Lambda deployment package"
-}
-
-variable "lambda_artifact_key" {
-  type        = string
-  description = "S3 key of the Lambda deployment zip within the artifacts bucket"
-}
-
-variable "frontend_bucket_name" {
-  type        = string
-  description = "S3 bucket name for the CloudFront-fronted static frontend (must be globally unique)"
+  description = "Identifier (git SHA) for the uploaded Lambda deployment zip; used to build the S3 key lambda/<artifact_sha>/handler.zip. Updated by CI on each deploy."
 }
 
 variable "domain_aliases" {

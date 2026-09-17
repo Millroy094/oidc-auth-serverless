@@ -2,11 +2,14 @@ resource "aws_apigatewayv2_api" "main" {
   name          = var.api_name
   protocol_type = "HTTP"
 
-  cors_configuration {
-    allow_origins = var.cors_origins
-    allow_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
-    allow_headers = ["*"]
-    max_age       = 86400
+  dynamic "cors_configuration" {
+    for_each = length(var.cors_origins) > 0 ? [1] : []
+    content {
+      allow_origins = var.cors_origins
+      allow_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
+      allow_headers = ["*"]
+      max_age       = 86400
+    }
   }
 }
 

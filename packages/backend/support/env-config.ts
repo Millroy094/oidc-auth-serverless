@@ -89,12 +89,12 @@ const config = convict({
     },
   },
   email: {
-    fromAddress: {
-      doc: 'SES verified "from" email address',
+    supportEmail: {
+      doc: 'SES verified support/sender email address',
       default: '',
       nullable: false,
       format: String,
-      env: 'EMAIL_FROM_ADDRESS',
+      env: 'SUPPORT_EMAIL',
     },
   },
 });

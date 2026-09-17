@@ -41,7 +41,7 @@ export const sendEmail = async (
   try {
     await sesClient.send(
       new SendEmailCommand({
-        Source: config.get('email.fromAddress'),
+        Source: config.get('email.supportEmail'),
         Destination: {
           ToAddresses: [email],
         },

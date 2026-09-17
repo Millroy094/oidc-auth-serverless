@@ -52,7 +52,7 @@ variable "artifacts_bucket_name" {
   description = "S3 bucket (created and populated outside Terraform by scripts/build-artifacts.sh) holding the Lambda deployment package"
 }
 
-variable "artifact_s3_key" {
+variable "artifact_sha" {
   type        = string
-  description = "S3 key of the Lambda deployment zip within the artifacts bucket, set by scripts/build-artifacts.sh"
+  description = "Identifier (git SHA, or \"local\") for the uploaded Lambda deployment zip; used to build the S3 key lambda/<artifact_sha>/handler.zip"
 }

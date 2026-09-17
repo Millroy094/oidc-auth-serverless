@@ -1,6 +1,6 @@
 resource "aws_lambda_function" "backend" {
   s3_bucket     = var.artifacts_bucket_name
-  s3_key        = var.artifact_s3_key
+  s3_key        = "lambda/${var.artifact_sha}/handler.zip"
   function_name = var.function_name
   role          = aws_iam_role.lambda_role.arn
   handler       = "handler.handler"

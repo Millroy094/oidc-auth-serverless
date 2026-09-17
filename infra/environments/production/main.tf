@@ -1,9 +1,9 @@
 module "ssm" {
   source = "../../modules/ssm"
 
-  environment        = "production"
-  path_prefix        = "/${var.project_name}/production/"
-  email_from_address = var.email_from_address
+  environment   = "production"
+  path_prefix   = "/${var.project_name}/production/"
+  support_email = var.support_email
 }
 
 module "dynamodb" {
@@ -28,8 +28,8 @@ module "lambda" {
   timeout       = 30
   memory_size   = 512
 
-  artifacts_bucket_name = var.artifacts_bucket_name
-  artifact_s3_key       = var.lambda_artifact_key
+  artifacts_bucket_name = "oidc-auth-artifacts"
+  artifact_sha          = var.artifact_sha
 
   dynamodb_table_arns  = module.dynamodb.table_arns
   sns_topic_arn        = module.sns.topic_arn
@@ -40,8 +40,6 @@ module "lambda" {
     DEPLOYMENT_ENVIRONMENT = "production"
     SSM_PARAMETER_PREFIX   = module.ssm.path_prefix
     AWS_REGION             = var.aws_region
-    CORS_ORIGINS           = join(",", var.cors_origins)
-    FRONTEND_URL           = var.frontend_url
   }
 }
 
@@ -54,14 +52,12 @@ module "api_gateway" {
 
   lambda_function_name       = module.lambda.function_name
   lambda_function_invoke_arn = module.lambda.function_invoke_arn
-
-  cors_origins = var.cors_origins
 }
 
 module "website" {
   source = "../../modules/website"
 
-  bucket_name         = var.frontend_bucket_name
+  bucket_name         = "oidc-auth-website"
   environment         = "production"
   distribution_name   = var.project_name
   api_gateway_domain  = module.api_gateway.api_endpoint

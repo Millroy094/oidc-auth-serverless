@@ -9,6 +9,6 @@ locals {
     "ENCRYPTION_SECRET_IV"  = { value = random_password.encryption_secret_iv.result, secure = true }
     "ENCRYPTION_METHOD"     = { value = "aes-256-cbc", secure = false }
     "COOKIE_SECRETS"        = { value = random_password.cookie_secret.result, secure = true }
-    "EMAIL_FROM_ADDRESS"    = { value = var.email_from_address, secure = false }
+    "SUPPORT_EMAIL"         = { value = var.support_email, secure = false }
   }
 }
