@@ -15,8 +15,12 @@ resource "aws_dynamodb_table" "user" {
 
   global_secondary_index {
     name            = "email-index"
-    hash_key        = "email"
     projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "email"
+      key_type       = "HASH"
+    }
   }
 }
 
@@ -79,32 +83,52 @@ resource "aws_dynamodb_table" "oidc_store" {
 
   global_secondary_index {
     name            = "uid-index"
-    hash_key        = "uid"
     projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "uid"
+      key_type       = "HASH"
+    }
   }
 
   global_secondary_index {
     name            = "grantId-index"
-    hash_key        = "grantId"
     projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "grantId"
+      key_type       = "HASH"
+    }
   }
 
   global_secondary_index {
     name            = "userCode-index"
-    hash_key        = "userCode"
     projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "userCode"
+      key_type       = "HASH"
+    }
   }
 
   global_secondary_index {
     name            = "accountId-index"
-    hash_key        = "accountId"
     projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "accountId"
+      key_type       = "HASH"
+    }
   }
 
   global_secondary_index {
     name            = "sessionUid-index"
-    hash_key        = "sessionUid"
     projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "sessionUid"
+      key_type       = "HASH"
+    }
   }
 
   ttl {
@@ -130,8 +154,12 @@ resource "aws_dynamodb_table" "otp" {
 
   global_secondary_index {
     name            = "userId-index"
-    hash_key        = "userId"
     projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "userId"
+      key_type       = "HASH"
+    }
   }
 
   ttl {
@@ -157,8 +185,12 @@ resource "aws_dynamodb_table" "challenge" {
 
   global_secondary_index {
     name            = "userId-index"
-    hash_key        = "userId"
     projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "userId"
+      key_type       = "HASH"
+    }
   }
 
   ttl {
