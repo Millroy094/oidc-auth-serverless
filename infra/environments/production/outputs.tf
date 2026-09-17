@@ -3,6 +3,22 @@ output "cloudfront_domain_name" {
   description = "CloudFront distribution domain (use as frontend_url/cors_origins before a custom domain is linked)"
 }
 
+output "acm_certificate_validation_records" {
+  value = [
+    for dvo in aws_acm_certificate.website.domain_validation_options : {
+      name  = dvo.resource_record_name
+      type  = dvo.resource_record_type
+      value = dvo.resource_record_value
+    }
+  ]
+  description = "DNS validation record(s) to add in IONOS for the var.domain_name ACM certificate"
+}
+
+output "custom_domain_cname_target" {
+  value       = module.website.domain_name
+  description = "Point var.domain_name (CNAME) in IONOS to this CloudFront domain"
+}
+
 output "cloudfront_distribution_id" {
   value = module.website.distribution_id
 }

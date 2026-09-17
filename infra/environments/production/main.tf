@@ -2,7 +2,7 @@ module "ssm" {
   source = "../../modules/ssm"
 
   environment   = "production"
-  path_prefix   = "/${var.project_name}/production/"
+  path_prefix   = "/${var.resource_prefix}/production/"
   support_email = var.support_email
 }
 
@@ -15,14 +15,14 @@ module "dynamodb" {
 module "sns" {
   source = "../../modules/sns"
 
-  topic_name  = "${var.project_name}-notifications"
+  topic_name  = "${var.resource_prefix}-notifications"
   environment = "production"
 }
 
 module "lambda" {
   source = "../../modules/lambda"
 
-  function_name = "${var.project_name}-backend"
+  function_name = "${var.resource_prefix}-backend"
   environment   = "production"
   runtime       = "nodejs22.x"
   timeout       = 30
@@ -46,7 +46,7 @@ module "lambda" {
 module "api_gateway" {
   source = "../../modules/api_gateway"
 
-  api_name    = "${var.project_name}-api"
+  api_name    = "${var.resource_prefix}-api"
   environment = "production"
   stage_name  = "production"
 
@@ -59,8 +59,8 @@ module "website" {
 
   bucket_name         = "oidc-auth-website"
   environment         = "production"
-  distribution_name   = var.project_name
+  distribution_name   = var.resource_prefix
   api_gateway_domain  = module.api_gateway.api_endpoint
-  aliases             = var.domain_aliases
-  acm_certificate_arn = var.acm_certificate_arn
+  aliases             = [var.domain_name]
+  acm_certificate_arn = aws_acm_certificate_validation.website.certificate_arn
 }

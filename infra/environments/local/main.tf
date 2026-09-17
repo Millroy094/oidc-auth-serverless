@@ -2,7 +2,7 @@ module "ssm" {
   source = "../../modules/ssm"
 
   environment = "local"
-  path_prefix = "/${var.project_name}/local/"
+  path_prefix = "/${var.resource_prefix}/local/"
 }
 
 module "dynamodb" {
@@ -14,14 +14,14 @@ module "dynamodb" {
 module "sns" {
   source = "../../modules/sns"
 
-  topic_name  = "${var.project_name}-notifications-local"
+  topic_name  = "${var.resource_prefix}-notifications-local"
   environment = "local"
 }
 
 module "lambda" {
   source = "../../modules/lambda"
 
-  function_name = "${var.project_name}-backend-local"
+  function_name = "${var.resource_prefix}-backend-local"
   environment   = "local"
   runtime       = "nodejs22.x"
   timeout       = 30
@@ -49,7 +49,7 @@ module "lambda" {
 module "api_gateway" {
   source = "../../modules/api_gateway"
 
-  api_name    = "${var.project_name}-api-local"
+  api_name    = "${var.resource_prefix}-api-local"
   environment = "local"
   stage_name  = "local"
 

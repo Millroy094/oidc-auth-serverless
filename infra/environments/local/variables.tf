@@ -7,7 +7,18 @@ variable "aws_region" {
 variable "project_name" {
   type        = string
   default     = "oidc-auth"
-  description = "Project name"
+  description = "Project name, used for tagging (spaces allowed)"
+}
+
+variable "resource_prefix" {
+  type        = string
+  default     = "oidc-auth"
+  description = "Prefix used to build AWS resource names (no spaces)"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]+$", var.resource_prefix))
+    error_message = "resource_prefix must contain only lowercase letters, numbers, and hyphens (no spaces)."
+  }
 }
 
 variable "author" {

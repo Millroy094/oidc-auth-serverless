@@ -6,8 +6,19 @@ variable "aws_region" {
 
 variable "project_name" {
   type        = string
+  default     = "oidc-auth-serverless"
+  description = "Project name, used for tagging (spaces allowed)"
+}
+
+variable "resource_prefix" {
+  type        = string
   default     = "oidc-auth"
-  description = "Project name"
+  description = "Prefix used to build AWS resource names (no spaces)"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]+$", var.resource_prefix))
+    error_message = "resource_prefix must contain only lowercase letters, numbers, and hyphens (no spaces)."
+  }
 }
 
 variable "author" {
@@ -26,14 +37,7 @@ variable "artifact_sha" {
   description = "Identifier (git SHA) for the uploaded Lambda deployment zip; used to build the S3 key lambda/<artifact_sha>/handler.zip. Updated by CI on each deploy."
 }
 
-variable "domain_aliases" {
-  type        = list(string)
-  default     = []
-  description = "Custom domain names (CNAMEs) for the CloudFront distribution, e.g. [\"app.example.com\"]. Requires acm_certificate_arn to also be set."
-}
-
-variable "acm_certificate_arn" {
+variable "domain_name" {
   type        = string
-  default     = ""
-  description = "ACM certificate ARN (must be in us-east-1) covering domain_aliases. Leave empty to use the default CloudFront certificate."
+  description = "Custom domain name for the CloudFront distribution"
 }
