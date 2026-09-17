@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/context/AuthProvider';
 import useFeedback from '@/hooks/useFeedback';
 
 interface UserPopupProps {
@@ -48,6 +49,8 @@ const UserPopup: FC<UserPopupProps> = (props) => {
   const [user, setUser] = useState<IUserPopupInput>(defaultValues);
   const [resources, setResources] = useState<IAdminResourceListItem[]>([]);
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
+  const Auth = useAuth();
+  const isSelf = !!userIdentifier && userIdentifier === Auth?.user?.userId;
   const {
     watch,
     control,
@@ -254,6 +257,7 @@ const UserPopup: FC<UserPopupProps> = (props) => {
                   name="roles"
                   label="Roles"
                   multiple
+                  disabled={isSelf}
                   options={[
                     {
                       label: 'Admin',
@@ -262,6 +266,11 @@ const UserPopup: FC<UserPopupProps> = (props) => {
                   ]}
                   errors={errors}
                 />
+                {isSelf && (
+                  <p className="text-xs text-muted-foreground -mt-3">
+                    You cannot change your own role.
+                  </p>
+                )}
 
                 <Controller
                   name="mobile"

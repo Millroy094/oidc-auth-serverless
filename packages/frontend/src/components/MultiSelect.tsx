@@ -19,6 +19,7 @@ interface MultiSelectProps {
   placeholder?: string;
   className?: string;
   invalid?: boolean;
+  disabled?: boolean;
 }
 
 const MultiSelect: FC<MultiSelectProps> = (props) => {
@@ -30,6 +31,7 @@ const MultiSelect: FC<MultiSelectProps> = (props) => {
     placeholder = 'Select...',
     className,
     invalid,
+    disabled,
   } = props;
   const [open, setOpen] = useState(false);
 
@@ -51,7 +53,7 @@ const MultiSelect: FC<MultiSelectProps> = (props) => {
   );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={disabled ? false : open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           id={id}
@@ -59,6 +61,7 @@ const MultiSelect: FC<MultiSelectProps> = (props) => {
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          disabled={disabled}
           className={cn(
             'h-auto min-h-10 w-full min-w-0 justify-between whitespace-normal font-normal',
             invalid && 'border-destructive',

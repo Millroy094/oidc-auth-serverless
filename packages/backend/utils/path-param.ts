@@ -6,8 +6,8 @@
 //
 // Base64url has none of those characters, so it survives the CloudFront ->
 // API Gateway -> Lambda round trip completely unmodified. Pairs with
-// `decodePathParam` on the backend.
-const encodePathParam = (value: string): string =>
-  btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+// `encodePathParam` on the frontend.
+const decodePathParam = (value: string): string =>
+  Buffer.from(value, 'base64url').toString('utf8');
 
-export default encodePathParam;
+export default decodePathParam;

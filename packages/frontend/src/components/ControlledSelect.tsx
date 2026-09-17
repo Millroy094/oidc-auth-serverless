@@ -27,12 +27,13 @@ interface ControlledSelectProps<TFieldValues extends FieldValues> {
   options: ControlledSelectOption[];
   control: Control<TFieldValues>;
   errors: FieldErrors<TFieldValues>;
+  disabled?: boolean;
 }
 
 const ControlledSelect = <TFieldValues extends FieldValues>(
   props: ControlledSelectProps<TFieldValues>,
 ) => {
-  const { name, control, label, options, errors, multiple } = props;
+  const { name, control, label, options, errors, multiple, disabled } = props;
   const id = label.toLocaleLowerCase();
 
   return (
@@ -48,9 +49,14 @@ const ControlledSelect = <TFieldValues extends FieldValues>(
               onChange={field.onChange}
               placeholder={`Select ${label.toLowerCase()}`}
               invalid={!!errors[name]}
+              disabled={disabled}
             />
           ) : (
-            <Select value={field.value} onValueChange={field.onChange}>
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              disabled={disabled}
+            >
               <SelectTrigger
                 id={id}
                 className={errors[name] ? 'border-destructive' : ''}

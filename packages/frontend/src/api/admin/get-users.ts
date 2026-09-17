@@ -8,6 +8,7 @@ export interface IAdminUserListItem {
   email: string;
   mobile: string;
   roles: string[];
+  isSelf: boolean;
 }
 
 interface GetUsersResponseData {

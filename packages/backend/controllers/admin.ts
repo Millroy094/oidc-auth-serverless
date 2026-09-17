@@ -7,6 +7,7 @@ import OIDCService from '../services/oidc.ts';
 import ResourceService, { ResourceInUseError } from '../services/resource.ts';
 import UserService from '../services/user.ts';
 import logger from '../utils/logger.ts';
+import decodePathParam from '../utils/path-param.ts';
 
 export interface IdParams {
   [key: string]: string;
@@ -176,16 +177,15 @@ class AdminController {
 
       const users = await UserService.getUsers();
 
-      const results = users
-        .filter((user) => user.userId !== currentUserId)
-        .map((user) => ({
-          id: user.userId,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          mobile: user.mobile,
-          roles: user.roles,
-        }));
+      const results = users.map((user) => ({
+        id: user.userId,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        mobile: user.mobile,
+        roles: user.roles,
+        isSelf: user.userId === currentUserId,
+      }));
 
       res
         .json({ results, message: 'Successfully retrieved users!' })
@@ -259,20 +259,22 @@ class AdminController {
   ) {
     try {
       const { id } = req.params;
-
-      if (id === req.user?.userId) {
-        res
-          .status(HTTP_STATUSES.forbidden)
-          .json({ error: 'You cannot edit your own account from here' });
-        return;
-      }
+      const isSelf = id === req.user?.userId;
 
       const targetUser = await UserService.getUserById(id);
-      if (targetUser?.roles?.includes('admin')) {
+
+      if (!isSelf && targetUser?.roles?.includes('admin')) {
         res
           .status(HTTP_STATUSES.forbidden)
           .json({ error: 'Admin accounts cannot be edited' });
         return;
+      }
+
+      if (isSelf) {
+        // Users can update their own profile but can never change their own
+        // role via this endpoint - only another admin editing a different
+        // account can do that.
+        req.body.roles = targetUser?.roles ?? [];
       }
 
       if (!req.body.suspended) {
@@ -359,7 +361,7 @@ class AdminController {
 
   public static async getResource(req: Request<IdParams>, res: Response) {
     try {
-      const { id } = req.params;
+      const id = decodePathParam(req.params.id);
       const resourceRecord = await ResourceService.getResource(id);
       res.status(HTTP_STATUSES.ok).json({ resource: resourceRecord });
     } catch (err) {
@@ -375,7 +377,7 @@ class AdminController {
     res: Response,
   ) {
     try {
-      const { id } = req.params;
+      const id = decodePathParam(req.params.id);
       await ResourceService.updateResource(id, req.body);
       res
         .status(HTTP_STATUSES.ok)
@@ -390,7 +392,7 @@ class AdminController {
 
   public static async deleteResource(req: Request<IdParams>, res: Response) {
     try {
-      const { id } = req.params;
+      const id = decodePathParam(req.params.id);
       await ResourceService.deleteResource(id);
       res
         .status(HTTP_STATUSES.ok)

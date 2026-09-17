@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import authenticateUser from '@/api/user/authenticate-user';
 import isAuthenticated from '@/api/user/is-authenticated-user';
 import logoutUser from '@/api/user/logout-user';
+import { ACCOUNT_ACTIVE_TAB_STORAGE_KEY } from '@/constants';
 import useFeedback from '@/hooks/useFeedback';
 import { ILoginFormInput } from '@/pages/Login/types';
 
@@ -63,6 +64,7 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
     try {
       await logoutUser();
       setUser(null);
+      localStorage.removeItem(ACCOUNT_ACTIVE_TAB_STORAGE_KEY);
       await navigate('/login');
     } catch (err) {
       feedbackAxiosError(err, 'Failed to logout user, please try again.');

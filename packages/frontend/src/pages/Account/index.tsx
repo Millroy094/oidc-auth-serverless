@@ -4,6 +4,7 @@ import { Suspense, lazy } from 'react';
 import { MutatingDots } from 'react-loader-spinner';
 import Logo from '@/assets/logo.svg';
 import { Button } from '@/components/ui/button';
+import { ACCOUNT_ACTIVE_TAB_STORAGE_KEY } from '@/constants';
 import { useAuth } from '@/context/AuthProvider';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +40,9 @@ interface INavItem {
 }
 
 export default function Account() {
-  const [active, setActive] = React.useState('profile');
+  const [active, setActive] = React.useState(
+    () => localStorage.getItem(ACCOUNT_ACTIVE_TAB_STORAGE_KEY) ?? 'profile',
+  );
   const Auth = useAuth();
   const isAdmin = !!Auth?.user?.roles?.includes('admin');
 
@@ -73,6 +76,11 @@ export default function Account() {
   const activeItem =
     navItems.find((item) => item.value === active) ?? navItems[0];
 
+  const handleTabChange = (value: string) => {
+    setActive(value);
+    localStorage.setItem(ACCOUNT_ACTIVE_TAB_STORAGE_KEY, value);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <div className="bg-primary text-primary-foreground shadow-sm">
@@ -103,7 +111,7 @@ export default function Account() {
             <button
               key={value}
               type="button"
-              onClick={() => setActive(value)}
+              onClick={() => handleTabChange(value)}
               className={cn(
                 'flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
                 active === value
@@ -137,7 +145,7 @@ export default function Account() {
               <button
                 key={value}
                 type="button"
-                onClick={() => setActive(value)}
+                onClick={() => handleTabChange(value)}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                   active === value

@@ -22,6 +22,7 @@ interface User {
   lastName: string;
   email: string;
   mobile: string;
+  isSelf: boolean;
 }
 
 const Users: FC = () => {
@@ -147,6 +148,7 @@ const Users: FC = () => {
                 <tbody>
                   {users.map((user) => {
                     const isAdmin = user?.email === ADMIN_EMAIL;
+                    const canDelete = !isAdmin && !user.isSelf;
                     return (
                       <tr
                         key={user.id}
@@ -163,6 +165,11 @@ const Users: FC = () => {
                             {isAdmin && (
                               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                                 Admin
+                              </span>
+                            )}
+                            {user.isSelf && (
+                              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                                You
                               </span>
                             )}
                           </div>
@@ -186,14 +193,18 @@ const Users: FC = () => {
                               <RotateCcw className="w-4 h-4" />
                             </button>
                             <button
-                              disabled={isAdmin}
+                              disabled={!canDelete}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 void handleDelete(user.id);
                               }}
-                              title="Delete user"
+                              title={
+                                user.isSelf
+                                  ? 'You cannot delete your own account'
+                                  : 'Delete user'
+                              }
                               className={`p-1 rounded ${
-                                isAdmin
+                                !canDelete
                                   ? 'opacity-50 cursor-not-allowed'
                                   : 'hover:bg-destructive/10 text-destructive'
                               }`}
@@ -212,6 +223,7 @@ const Users: FC = () => {
             <div className="space-y-3 md:hidden">
               {users.map((user) => {
                 const isAdmin = user?.email === ADMIN_EMAIL;
+                const canDelete = !isAdmin && !user.isSelf;
                 return (
                   <div
                     key={user.id}
@@ -237,6 +249,11 @@ const Users: FC = () => {
                           {isAdmin && (
                             <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                               Admin
+                            </span>
+                          )}
+                          {user.isSelf && (
+                            <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                              You
                             </span>
                           )}
                         </div>
@@ -266,14 +283,18 @@ const Users: FC = () => {
                           <RotateCcw className="w-4 h-4" />
                         </button>
                         <button
-                          disabled={isAdmin}
+                          disabled={!canDelete}
                           onClick={(e) => {
                             e.stopPropagation();
                             void handleDelete(user.id);
                           }}
-                          title="Delete user"
+                          title={
+                            user.isSelf
+                              ? 'You cannot delete your own account'
+                              : 'Delete user'
+                          }
                           className={`rounded p-1 ${
-                            isAdmin
+                            !canDelete
                               ? 'cursor-not-allowed opacity-50'
                               : 'text-destructive hover:bg-destructive/10'
                           }`}
