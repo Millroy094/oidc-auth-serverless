@@ -3,9 +3,17 @@ import generateOtp from '../../utils/generate-otp.ts';
 import { sendEmail, sendSMS } from '../../utils/notification.ts';
 import OTPService from '../otp.ts';
 
+type OtpPurpose = 'login' | 'setup';
+
+const purposeMessage: Record<OtpPurpose, string> = {
+  login: 'to login',
+  setup: 'to verify and complete MFA setup',
+};
+
 export const sendEmailOtp = async (
   userId: string,
   subscriber: string,
+  purpose: OtpPurpose = 'login',
 ): Promise<void> => {
   const user = await User.get(userId);
 
@@ -15,12 +23,17 @@ export const sendEmailOtp = async (
 
   const otp = generateOtp();
   await OTPService.storeOtp(userId, 'email', otp);
-  await sendEmail(subscriber, 'Login OTP', `Here's your OTP ${otp} to login`);
+  await sendEmail(
+    subscriber,
+    purpose === 'setup' ? 'MFA setup OTP' : 'Login OTP',
+    `Here's your OTP ${otp} ${purposeMessage[purpose]}`,
+  );
 };
 
 export const sendSMSOtp = async (
   userId: string,
   subscriber: string,
+  purpose: OtpPurpose = 'login',
 ): Promise<void> => {
   const user = await User.get(userId);
 
@@ -30,5 +43,8 @@ export const sendSMSOtp = async (
 
   const otp = generateOtp();
   await OTPService.storeOtp(userId, 'sms', otp);
-  await sendSMS(subscriber, `Here's your OTP ${otp} to login`);
+  await sendSMS(
+    subscriber,
+    `Here's your OTP ${otp} ${purposeMessage[purpose]}`,
+  );
 };

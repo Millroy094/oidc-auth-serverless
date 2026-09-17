@@ -31,6 +31,15 @@ export interface UpdateClientBody {
   [key: string]: unknown;
 }
 
+export interface CreateUserBody {
+  email: string;
+  firstName: string;
+  lastName: string;
+  mobile?: string;
+  roles?: string[];
+  resources?: ResourceScope[];
+}
+
 export interface UpdateUserBody {
   suspended?: boolean;
   failedLogins?: number;
@@ -137,6 +146,27 @@ class AdminController {
       res
         .status(HTTP_STATUSES.notFound)
         .json({ error: 'There was an issue deleting client' });
+    }
+  }
+
+  public static async createUser(
+    req: Request<Record<string, string>, unknown, CreateUserBody>,
+    res: Response,
+  ) {
+    try {
+      await UserService.createUser(req.body);
+      await UserService.sendAccountCreatedNotification(
+        req.body.email,
+        req.body.firstName,
+      );
+      res
+        .status(HTTP_STATUSES.ok)
+        .json({ message: 'Successfully created user!' });
+    } catch (err) {
+      logger.error((err as Error).message);
+      res
+        .status(HTTP_STATUSES.serverError)
+        .json({ error: 'Failed creating user' });
     }
   }
 

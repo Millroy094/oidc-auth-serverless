@@ -19,7 +19,7 @@ import {
 
 export interface MobileNumberInputProps {
   value: string;
-  readOnly?: boolean;
+  disabled?: boolean;
   onChange: (phone: string) => void;
   label?: string;
   error?: boolean;
@@ -29,7 +29,7 @@ export interface MobileNumberInputProps {
 export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
   value,
   onChange,
-  readOnly,
+  disabled,
   label = 'Phone number',
   error,
   helperText,
@@ -51,7 +51,7 @@ export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
         <Select
           value={country.iso2}
           onValueChange={(value) => setCountry(value)}
-          disabled={readOnly}
+          disabled={disabled}
         >
           <SelectTrigger className="w-full gap-1 px-2 sm:w-[7.5rem] sm:shrink-0">
             <SelectValue />
@@ -77,7 +77,7 @@ export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
           value={inputValue}
           onChange={handlePhoneValueChange}
           ref={inputRef}
-          readOnly={readOnly}
+          disabled={disabled}
           className={error ? 'border-destructive' : ''}
         />
       </div>

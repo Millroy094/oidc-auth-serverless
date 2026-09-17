@@ -74,6 +74,7 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = React.memo(
                     value={value}
                     onChange={onChange}
                     numInputs={6}
+                    skipDefaultStyles
                     renderInput={(props) => (
                       <input
                         {...props}

@@ -1,5 +1,7 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import isEmpty from 'lodash/isEmpty.js';
+import { ResourceScope } from '../models/Resource.ts';
 import User, { UserItem } from '../models/User.ts';
 import generateOtp from '../utils/generate-otp.ts';
 import logger from '../utils/logger.ts';
@@ -55,9 +57,11 @@ class UserService {
     firstName: string;
     lastName: string;
     mobile?: string;
-    password: string;
+    password?: string;
+    roles?: string[];
+    resources?: ResourceScope[];
   }): Promise<void> {
-    const { email } = fields;
+    const { email, password } = fields;
     const [userAccount] = await User.query('email')
       .using('email-index')
       .eq(email)
@@ -67,7 +71,13 @@ class UserService {
       throw new Error('User already exists');
     }
 
-    await User.create(fields);
+    await User.create({
+      ...fields,
+      // Admin-created users have no password of their own yet; generate an
+      // unusable placeholder and have them set a real one via the password
+      // reset flow (email invite).
+      password: password ?? crypto.randomBytes(32).toString('hex'),
+    });
   }
 
   public static async getUsers(): Promise<UserItem[]> {
@@ -185,6 +195,19 @@ class UserService {
       email,
       'Password reset OTP',
       `Please use ${otp} to reset your password`,
+    );
+  }
+
+  public static async sendAccountCreatedNotification(
+    email: string,
+    firstName: string,
+  ): Promise<void> {
+    await sendEmail(
+      email,
+      'Your account has been created',
+      `Hi ${firstName}, an account has been created for you. Please use the ` +
+        `"Forgot Password" option on the login page with this email address ` +
+        `to set your password and get started.`,
     );
   }
 

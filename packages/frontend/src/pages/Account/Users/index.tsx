@@ -1,9 +1,11 @@
-import { RotateCcw, UserX, UsersIcon } from 'lucide-react';
+import { RotateCcw, UserPlus, UserX, UsersIcon } from 'lucide-react';
 import { FC, startTransition, useEffect, useState } from 'react';
+import CreateUserPopup from './CreateUserPopup';
 import UserPopup from './UserPopup';
 import clearUserSessions from '@/api/admin/clear-user-sessions';
 import deleteUser from '@/api/admin/delete-user';
 import getUsers from '@/api/admin/get-users';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -25,6 +27,7 @@ interface User {
 const Users: FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const { feedbackAxiosError, feedbackAxiosResponse } = useFeedback();
 
@@ -91,18 +94,31 @@ const Users: FC = () => {
     void fetchUsers();
   };
 
+  const onCreateClose = () => {
+    setCreateOpen(false);
+    void fetchUsers();
+  };
+
   return (
     <Card className="border-t-4 border-t-primary shadow-sm">
       <CardHeader className="flex flex-row items-start gap-3 space-y-0">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <UsersIcon className="h-5 w-5" />
         </div>
-        <div>
+        <div className="flex-1">
           <CardTitle className="text-xl">Users</CardTitle>
           <CardDescription>
             View and manage the users registered on this platform.
           </CardDescription>
         </div>
+        <Button
+          type="button"
+          onClick={() => setCreateOpen(true)}
+          className="gap-2"
+        >
+          <UserPlus className="w-4 h-4" />
+          Add User
+        </Button>
       </CardHeader>
       <CardContent>
         {users.length === 0 ? (
@@ -277,6 +293,7 @@ const Users: FC = () => {
           userIdentifier={selectedUserId}
           onClose={onClose}
         />
+        <CreateUserPopup open={createOpen} onClose={onCreateClose} />
       </CardContent>
     </Card>
   );

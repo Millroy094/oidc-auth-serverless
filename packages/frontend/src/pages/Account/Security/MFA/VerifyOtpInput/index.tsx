@@ -71,6 +71,7 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = ({
             value={value}
             onChange={onChange}
             numInputs={6}
+            skipDefaultStyles
             renderInput={(props) => (
               <input
                 {...props}

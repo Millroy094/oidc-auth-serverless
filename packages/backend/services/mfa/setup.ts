@@ -44,7 +44,7 @@ export const setupSMSMFA = async (
     throw new Error('User does not exist');
   }
 
-  await sendSMSOtp(userId, subscriber);
+  await sendSMSOtp(userId, subscriber, 'setup');
 
   user.mfa.sms.subscriber = subscriber;
   await user.save();
@@ -59,7 +59,7 @@ export const setupEmailMFA = async (
   if (!user) {
     throw new Error('User does not exist');
   }
-  await sendEmailOtp(userId, subscriber);
+  await sendEmailOtp(userId, subscriber, 'setup');
 
   user.mfa.email.subscriber = subscriber;
   await user.save();

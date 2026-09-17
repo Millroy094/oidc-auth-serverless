@@ -2,6 +2,7 @@ import { Router } from 'express';
 import AdminController, {
   CreateClientBody,
   CreateResourceBody,
+  CreateUserBody,
   IdParams,
   UpdateClientBody,
   UpdateResourceBody,
@@ -42,6 +43,12 @@ adminRouter.delete<IdParams>(
 
 adminRouter.get('/users', authenticate, authorize(['admin']), (req, res) =>
   AdminController.getUsers(req, res),
+);
+adminRouter.post<Record<string, string>, unknown, CreateUserBody>(
+  '/users/new',
+  authenticate,
+  authorize(['admin']),
+  (req, res) => AdminController.createUser(req, res),
 );
 adminRouter.get<IdParams>(
   '/users/:id',

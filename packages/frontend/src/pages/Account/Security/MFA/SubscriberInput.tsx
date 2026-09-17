@@ -47,7 +47,7 @@ const SubscriberInput: FC<ISubscriberInput> = (props) => {
           value={value}
           error={error}
           helperText={error ? 'Invalid number' : ''}
-          readOnly={disabled}
+          disabled={disabled}
         />
       </div>
     );

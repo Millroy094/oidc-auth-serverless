@@ -14,6 +14,11 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import useFeedback from '@/hooks/useFeedback';
 
 interface IMFAType {
@@ -137,16 +142,32 @@ const MFA: FC = () => {
                       Subscriber
                     </p>
                     {mfaType.subscriber && mfaType.verified && (
-                      <CheckCircle
-                        className="w-3 h-3 text-emerald-600"
-                        aria-label="Verified"
-                      />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>
+                            <CheckCircle
+                              className="w-3 h-3 text-emerald-600"
+                              aria-label="Verified"
+                            />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>Verified</TooltipContent>
+                      </Tooltip>
                     )}
                     {mfaType.subscriber && !mfaType.verified && (
-                      <AlertCircle
-                        className="w-3 h-3 text-amber-600"
-                        aria-label="Not Verified"
-                      />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>
+                            <AlertCircle
+                              className="w-3 h-3 text-amber-600"
+                              aria-label="Not Verified"
+                            />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Not verified — finish MFA setup to enable this method
+                        </TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                   <p

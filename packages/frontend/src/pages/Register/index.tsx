@@ -151,7 +151,7 @@ const Register: FC = () => {
                     value={value ?? ''}
                     error={!!errors.mobile}
                     helperText={errors.mobile ? errors.mobile.message : ''}
-                    readOnly={disabled ?? false}
+                    disabled={disabled ?? false}
                   />
                 )}
               />
