@@ -45,13 +45,17 @@ const RecoveryCodes: FC<IRecoveryCodeProps> = (props) => {
             </CardDescription>
           </div>
         </CardHeader>
-        <CardFooter className="flex justify-between items-center">
+        <CardFooter className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p
             className={`text-sm font-medium ${recoveryCodeCount === 0 ? 'text-destructive' : 'text-emerald-600'}`}
           >
             {recoveryCodeCount}/10 Recovery codes left
           </p>
-          <Button variant="outline" onClick={onGenerateRecoveryCodes}>
+          <Button
+            variant="outline"
+            onClick={onGenerateRecoveryCodes}
+            className="w-full sm:w-auto"
+          >
             Generate recovery codes
           </Button>
         </CardFooter>
