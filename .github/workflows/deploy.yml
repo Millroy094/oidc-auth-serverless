@@ -72,7 +72,7 @@ jobs:
         id: upload
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         with:
-          directory: ./infra/environments/production
+          directory: ./infra
           workspace: ${{ env.TF_WORKSPACE }}
           token: ${{ env.TF_API_TOKEN }}
           organization: ${{ env.TF_ORG }}
