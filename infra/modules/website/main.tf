@@ -35,7 +35,7 @@ resource "aws_s3_bucket_cors_configuration" "frontend" {
 
   cors_rule {
     allowed_headers = ["*"]
-    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    allowed_methods = ["GET", "HEAD"]
     allowed_origins = ["*"]
     expose_headers  = ["ETag"]
     max_age_seconds = 3000
@@ -56,7 +56,7 @@ resource "aws_s3_bucket_policy" "cloudfront_access" {
         Sid    = "AllowCloudFrontAccess"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity/${aws_cloudfront_origin_access_identity.s3_oai.id}"
+          AWS = aws_cloudfront_origin_access_identity.s3_oai.iam_arn
         }
         Action   = "s3:GetObject"
         Resource = "${aws_s3_bucket.frontend.arn}/*"
