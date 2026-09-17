@@ -3,6 +3,7 @@ import { Item } from 'dynamoose/dist/Item';
 import { ValueType } from 'dynamoose/dist/Schema';
 import isEmpty from 'lodash/isEmpty.js';
 import { v4 as uuid } from 'uuid';
+import tableOptions from '../support/dynamoose-table-options.ts';
 import { decryptData, encryptData } from '../utils/encryption.ts';
 
 const { Schema, model } = dynamoose;
@@ -43,6 +44,7 @@ const ChallengeSchema = new Schema(
   },
 );
 const Challenge = model<ChallengeItem>('Challenge', ChallengeSchema, {
+  ...tableOptions,
   expires: {
     ttl: 300,
     attribute: 'expiresAt',

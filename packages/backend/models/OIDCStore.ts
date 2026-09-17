@@ -1,6 +1,7 @@
 import dynamoose from 'dynamoose';
 import { Item } from 'dynamoose/dist/Item';
 import { AdapterPayload } from 'oidc-provider';
+import tableOptions from '../support/dynamoose-table-options.ts';
 
 const { Schema, model } = dynamoose;
 
@@ -69,6 +70,7 @@ const OIDCStoreSchema = new Schema(
   },
 );
 const OIDCStore = model<OIDCStoreItem>('OIDCStore', OIDCStoreSchema, {
+  ...tableOptions,
   expires: {
     ttl: 7 * 24 * 60 * 60,
     attribute: 'expiresAt',

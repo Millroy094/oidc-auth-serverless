@@ -3,6 +3,7 @@ import dynamoose from 'dynamoose';
 import { Item } from 'dynamoose/dist/Item';
 import { ValueType } from 'dynamoose/dist/Schema';
 import { v4 as uuid } from 'uuid';
+import tableOptions from '../support/dynamoose-table-options.ts';
 import { decryptData, encryptData } from '../utils/encryption.ts';
 import { ResourceScope } from './Resource.ts';
 
@@ -91,6 +92,6 @@ const ClientSchema = new Schema(
     timestamps: true,
   },
 );
-const Client = model<ClientItem>('Client', ClientSchema);
+const Client = model<ClientItem>('Client', ClientSchema, tableOptions);
 
 export default Client;

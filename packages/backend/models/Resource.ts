@@ -1,6 +1,7 @@
 import dynamoose from 'dynamoose';
 import { Item } from 'dynamoose/dist/Item';
 import { ValueType } from 'dynamoose/dist/Schema';
+import tableOptions from '../support/dynamoose-table-options.ts';
 
 const { Schema, model } = dynamoose;
 
@@ -48,6 +49,6 @@ const ResourceSchema = new Schema(
     timestamps: true,
   },
 );
-const Resource = model<ResourceItem>('Resource', ResourceSchema);
+const Resource = model<ResourceItem>('Resource', ResourceSchema, tableOptions);
 
 export default Resource;
