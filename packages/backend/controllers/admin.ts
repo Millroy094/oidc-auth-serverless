@@ -156,10 +156,19 @@ class AdminController {
   ) {
     try {
       await UserService.createUser(req.body);
-      await UserService.sendAccountCreatedNotification(
-        req.body.email,
-        req.body.firstName,
-      );
+
+      try {
+        await UserService.sendAccountCreatedNotification(
+          req.body.email,
+          req.body.firstName,
+        );
+      } catch (notificationErr) {
+        // The user record was already created successfully - a failure to
+        // send the notification email shouldn't be reported as a failure to
+        // create the user.
+        logger.error((notificationErr as Error).message);
+      }
+
       res
         .status(HTTP_STATUSES.ok)
         .json({ message: 'Successfully created user!' });
