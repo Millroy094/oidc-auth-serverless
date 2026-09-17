@@ -10,6 +10,12 @@ variable "project_name" {
   description = "Project name"
 }
 
+variable "author" {
+  type        = string
+  default     = "Millroy Fernandes"
+  description = "Resource owner, applied as the Author tag"
+}
+
 variable "cors_origins" {
   type        = list(string)
   default     = ["http://localhost:5173", "http://localhost:3000"]

@@ -29,8 +29,4 @@ resource "aws_ssm_parameter" "params" {
   name  = "${var.path_prefix}${each.key}"
   type  = each.value.secure ? "SecureString" : "String"
   value = each.value.value
-
-  tags = {
-    Environment = var.environment
-  }
 }

@@ -1,9 +1,5 @@
 resource "aws_sns_topic" "notifications" {
   name = var.topic_name
-
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_sns_topic_policy" "lambda_publish" {

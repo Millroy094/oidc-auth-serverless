@@ -1,28 +1,29 @@
 module "ssm" {
   source = "../../modules/ssm"
 
-  environment = "local"
-  path_prefix = "/${var.project_name}/local/"
+  environment        = "production"
+  path_prefix        = "/${var.project_name}/production/"
+  email_from_address = var.email_from_address
 }
 
 module "dynamodb" {
   source = "../../modules/dynamodb"
 
-  environment = "local"
+  environment = "production"
 }
 
 module "sns" {
   source = "../../modules/sns"
 
-  topic_name  = "${var.project_name}-notifications-local"
-  environment = "local"
+  topic_name  = "${var.project_name}-notifications"
+  environment = "production"
 }
 
 module "lambda" {
   source = "../../modules/lambda"
 
-  function_name = "${var.project_name}-backend-local"
-  environment   = "local"
+  function_name = "${var.project_name}-backend"
+  environment   = "production"
   runtime       = "nodejs22.x"
   timeout       = 30
   memory_size   = 512
@@ -36,12 +37,9 @@ module "lambda" {
 
   environment_variables = {
     NODE_ENV               = "production"
-    DEPLOYMENT_ENVIRONMENT = "local"
-    AWS_ENDPOINT_URL       = var.lambda_aws_endpoint
+    DEPLOYMENT_ENVIRONMENT = "production"
     SSM_PARAMETER_PREFIX   = module.ssm.path_prefix
     AWS_REGION             = var.aws_region
-    AWS_ACCESS_KEY_ID      = "test"
-    AWS_SECRET_ACCESS_KEY  = "test"
     CORS_ORIGINS           = join(",", var.cors_origins)
     FRONTEND_URL           = var.frontend_url
   }
@@ -50,12 +48,23 @@ module "lambda" {
 module "api_gateway" {
   source = "../../modules/api_gateway"
 
-  api_name    = "${var.project_name}-api-local"
-  environment = "local"
-  stage_name  = "local"
+  api_name    = "${var.project_name}-api"
+  environment = "production"
+  stage_name  = "production"
 
   lambda_function_name       = module.lambda.function_name
   lambda_function_invoke_arn = module.lambda.function_invoke_arn
 
   cors_origins = var.cors_origins
+}
+
+module "website" {
+  source = "../../modules/website"
+
+  bucket_name         = var.frontend_bucket_name
+  environment         = "production"
+  distribution_name   = var.project_name
+  api_gateway_domain  = module.api_gateway.api_endpoint
+  aliases             = var.domain_aliases
+  acm_certificate_arn = var.acm_certificate_arn
 }

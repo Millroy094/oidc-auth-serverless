@@ -18,10 +18,6 @@ resource "aws_dynamodb_table" "user" {
     hash_key        = "email"
     projection_type = "ALL"
   }
-
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_dynamodb_table" "client" {
@@ -33,10 +29,6 @@ resource "aws_dynamodb_table" "client" {
     name = "id"
     type = "S"
   }
-
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_dynamodb_table" "resource" {
@@ -47,10 +39,6 @@ resource "aws_dynamodb_table" "resource" {
   attribute {
     name = "id"
     type = "S"
-  }
-
-  tags = {
-    Environment = var.environment
   }
 }
 
@@ -123,10 +111,6 @@ resource "aws_dynamodb_table" "oidc_store" {
     attribute_name = "expiresAt"
     enabled        = true
   }
-
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_dynamodb_table" "otp" {
@@ -154,10 +138,6 @@ resource "aws_dynamodb_table" "otp" {
     attribute_name = "expiresAt"
     enabled        = true
   }
-
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_dynamodb_table" "challenge" {
@@ -184,9 +164,5 @@ resource "aws_dynamodb_table" "challenge" {
   ttl {
     attribute_name = "expiresAt"
     enabled        = true
-  }
-
-  tags = {
-    Environment = var.environment
   }
 }

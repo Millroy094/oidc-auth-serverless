@@ -12,3 +12,9 @@ variable "path_prefix" {
     error_message = "path_prefix must end with a trailing slash."
   }
 }
+
+variable "email_from_address" {
+  type        = string
+  default     = "noreply@oidc-auth.local"
+  description = "Verified SES sender address used for outbound email"
+}
