@@ -21,15 +21,15 @@ provider "aws" {
   region = var.aws_region
 
   endpoints {
-    lambda     = var.aws_endpoint
+    lambda       = var.aws_endpoint
     apigatewayv2 = var.aws_endpoint
-    dynamodb   = var.aws_endpoint
-    sns        = var.aws_endpoint
-    ses        = var.aws_endpoint
-    ssm        = var.aws_endpoint
-    cloudwatch = var.aws_endpoint
-    logs       = var.aws_endpoint
-    iam        = var.aws_endpoint
+    dynamodb     = var.aws_endpoint
+    sns          = var.aws_endpoint
+    ses          = var.aws_endpoint
+    ssm          = var.aws_endpoint
+    cloudwatch   = var.aws_endpoint
+    logs         = var.aws_endpoint
+    iam          = var.aws_endpoint
   }
 
   skip_credentials_validation = true
@@ -83,15 +83,15 @@ module "lambda" {
   ssm_parameter_prefix = module.ssm.path_prefix
 
   environment_variables = {
-    NODE_ENV              = "production"
+    NODE_ENV               = "production"
     DEPLOYMENT_ENVIRONMENT = "local"
-    AWS_ENDPOINT_URL      = var.lambda_aws_endpoint
-    SSM_PARAMETER_PREFIX  = module.ssm.path_prefix
-    AWS_REGION            = var.aws_region
-    AWS_ACCESS_KEY_ID     = "test"
-    AWS_SECRET_ACCESS_KEY = "test"
-    CORS_ORIGINS          = join(",", var.cors_origins)
-    FRONTEND_URL          = var.frontend_url
+    AWS_ENDPOINT_URL       = var.lambda_aws_endpoint
+    SSM_PARAMETER_PREFIX   = module.ssm.path_prefix
+    AWS_REGION             = var.aws_region
+    AWS_ACCESS_KEY_ID      = "test"
+    AWS_SECRET_ACCESS_KEY  = "test"
+    CORS_ORIGINS           = join(",", var.cors_origins)
+    FRONTEND_URL           = var.frontend_url
   }
 }
 

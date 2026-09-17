@@ -1,4 +1,5 @@
 import { AxiosResponse } from 'axios';
+import { IResourceScope } from './types.ts';
 import axios from '@/utils/axios-instance';
 
 export interface IAdminClient {
@@ -9,6 +10,7 @@ export interface IAdminClient {
   scopes: string[];
   grants: string[];
   redirectUris: string[];
+  resources: IResourceScope[];
 }
 
 interface GetClientResponseData {

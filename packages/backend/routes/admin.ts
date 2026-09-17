@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import AdminController, {
   CreateClientBody,
+  CreateResourceBody,
   IdParams,
   UpdateClientBody,
+  UpdateResourceBody,
   UpdateUserBody,
 } from '../controllers/admin.ts';
 import authenticate from '../middleware/authenticate.ts';
@@ -71,6 +73,34 @@ adminRouter.post<IdParams>(
   authenticate,
   authorize(['admin']),
   (req, res) => AdminController.resetMFA(req, res),
+);
+
+adminRouter.get('/resources', authenticate, authorize(['admin']), (req, res) =>
+  AdminController.getResources(req, res),
+);
+adminRouter.post<Record<string, string>, unknown, CreateResourceBody>(
+  '/resources/new',
+  authenticate,
+  authorize(['admin']),
+  (req, res) => AdminController.createResource(req, res),
+);
+adminRouter.get<IdParams>(
+  '/resources/:id',
+  authenticate,
+  authorize(['admin']),
+  (req, res) => AdminController.getResource(req, res),
+);
+adminRouter.put<IdParams, unknown, UpdateResourceBody>(
+  '/resources/:id',
+  authenticate,
+  authorize(['admin']),
+  (req, res) => AdminController.updateResource(req, res),
+);
+adminRouter.delete<IdParams>(
+  '/resources/:id',
+  authenticate,
+  authorize(['admin']),
+  (req, res) => AdminController.deleteResource(req, res),
 );
 
 export default adminRouter;

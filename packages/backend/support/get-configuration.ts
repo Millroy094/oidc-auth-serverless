@@ -1,8 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Configuration, JWKS } from 'oidc-provider';
+import { Configuration, JWKS, errors } from 'oidc-provider';
 import DynamoDBAdapter from '../adapter/DynamoDbAdapter.ts';
+import { ClientItem } from '../models/Client.ts';
+import Resource, { ResourceScope } from '../models/Resource.ts';
 import User from '../models/User.ts';
 import ClientService from '../services/client.ts';
 import config from './env-config.ts';
@@ -15,8 +17,25 @@ const keysPath = path.resolve(
 const jwks = JSON.parse(fs.readFileSync(keysPath, 'utf-8')) as JWKS;
 const cookieSecrets = config.get('oidc.cookieSecrets');
 
-const getConfiguration = async (): Promise<Configuration> => {
+const CLIENTS_CACHE_TTL_MS = 30_000;
+let clientsCache: { data: ClientItem[]; expiresAt: number } | null = null;
+
+const getCachedClients = async (): Promise<ClientItem[]> => {
+  if (clientsCache && Date.now() < clientsCache.expiresAt) {
+    return clientsCache.data;
+  }
+
   const clients = await ClientService.getClients();
+  clientsCache = {
+    data: clients,
+    expiresAt: Date.now() + CLIENTS_CACHE_TTL_MS,
+  };
+
+  return clients;
+};
+
+const getConfiguration = async (): Promise<Configuration> => {
+  const clients = await getCachedClients();
 
   return {
     adapter: DynamoDBAdapter,
@@ -31,6 +50,37 @@ const getConfiguration = async (): Promise<Configuration> => {
       clientCredentials: { enabled: true },
       deviceFlow: { enabled: true },
       revocation: { enabled: true },
+      resourceIndicators: {
+        enabled: true,
+        getResourceServerInfo: async (_ctx, resourceIndicator, client) => {
+          const resource = await Resource.get(resourceIndicator);
+
+          if (!resource) {
+            throw new errors.InvalidTarget(
+              'resource indicator is not recognised',
+            );
+          }
+
+          const grant = (client.resources as ResourceScope[] | undefined)?.find(
+            (entry) => entry.id === resourceIndicator,
+          );
+
+          const allowedScopes = grant
+            ? resource.scopes.filter((scope) => grant.scopes.includes(scope))
+            : [];
+
+          if (!allowedScopes.length) {
+            throw new errors.InvalidTarget(
+              'client is not authorized to access this resource',
+            );
+          }
+
+          return {
+            scope: allowedScopes.join(' '),
+            audience: resource.id,
+          };
+        },
+      },
     },
     findAccount: async (_, id) => {
       const account = await User.get(id);
@@ -62,7 +112,11 @@ const getConfiguration = async (): Promise<Configuration> => {
       redirect_uris: client.redirectUris,
       grant_types: client.grants,
       scope: client.scopes.join(' '),
+      resources: client.resources,
     })),
+    extraClientMetadata: {
+      properties: ['resources'],
+    },
     pkce: { required: () => true },
     claims: {
       openid: ['sub'],

@@ -1,6 +1,9 @@
 import { QueryResponse, ScanResponse } from 'dynamoose/dist/ItemRetriever';
+import DynamoDbAdapter from '../adapter/DynamoDbAdapter.ts';
 import OIDCStore, { OIDCStoreItem } from '../models/OIDCStore.ts';
 import logger from '../utils/logger.ts';
+
+const grantAdapter = new DynamoDbAdapter('Grant');
 
 interface Session {
   id: string;
@@ -12,7 +15,8 @@ interface Session {
 
 class OIDCService {
   public static async getSessions(userId: string): Promise<Session[]> {
-    const sessionResponse = await OIDCStore.scan('payload.accountId')
+    const sessionResponse = await OIDCStore.query('accountId')
+      .using('accountId-index')
       .eq(userId)
       .and()
       .where('payload.kind')
@@ -29,10 +33,8 @@ class OIDCService {
   }
 
   public static async deleteAllSessions(userId: string): Promise<true> {
-    const results = await OIDCStore.scan('payload.accountId')
-      .eq(userId)
-      .or()
-      .where('payload.session.accountId')
+    const results = await OIDCStore.query('accountId')
+      .using('accountId-index')
       .eq(userId)
       .exec();
 
@@ -42,7 +44,7 @@ class OIDCService {
   }
 
   public static async deleteSession(sessionId: string): Promise<true> {
-    const [session] = await OIDCStore.scan('payload.jti').eq(sessionId).exec();
+    const session = await OIDCStore.get(`Session:${sessionId}`);
 
     if (session) {
       const apps = session?.payload?.authorizations ?? {};
@@ -51,17 +53,17 @@ class OIDCService {
         const { grantId } = apps[key];
 
         if (grantId) {
-          const grantables = await OIDCStore.scan('grantId').eq(grantId).exec();
-          await OIDCService.deleteAllResults(grantables);
+          await grantAdapter.revokeByGrantId(grantId);
           await OIDCStore.delete(`Grant:${grantId}`);
         }
       }
 
-      const [interaction] = await OIDCStore.scan('payload.kind')
-        .eq('Interaction')
-        .and()
-        .where('payload.session.uid')
+      const [interaction] = await OIDCStore.query('sessionUid')
+        .using('sessionUid-index')
         .eq(session.uid)
+        .and()
+        .where('payload.kind')
+        .eq('Interaction')
         .exec();
 
       if (interaction) {

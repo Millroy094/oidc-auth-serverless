@@ -153,10 +153,23 @@ class OIDCController {
           grant.addOIDCClaims(details.missingOIDCClaims as string[]);
         }
         if (details.missingResourceScopes) {
+          const account = accountId
+            ? await UserService.getUserById(accountId, ['resources'])
+            : undefined;
+
           for (const [indicator, scopes] of Object.entries(
             details.missingResourceScopes as Record<string, string[]>,
           )) {
-            grant.addResourceScope(indicator, scopes.join(' '));
+            const userGrant = account?.resources?.find(
+              (entry) => entry.id === indicator,
+            );
+            const allowedScopes = scopes.filter((scope) =>
+              userGrant?.scopes.includes(scope),
+            );
+
+            if (allowedScopes.length) {
+              grant.addResourceScope(indicator, allowedScopes.join(' '));
+            }
           }
         }
 

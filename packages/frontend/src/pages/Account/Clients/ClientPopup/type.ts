@@ -1,3 +1,5 @@
+import { IResourceScopeInput } from '@/components/ResourceScopesField';
+
 interface IRedirectUri {
   id: string;
   value: string;
@@ -9,4 +11,5 @@ export interface IClientPopupInput {
   scopes: string[];
   grants: string[];
   redirectUris: IRedirectUri[];
+  resources: IResourceScopeInput[];
 }

@@ -4,6 +4,7 @@ import { Item } from 'dynamoose/dist/Item';
 import { ValueType } from 'dynamoose/dist/Schema';
 import { v4 as uuid } from 'uuid';
 import { decryptData, encryptData } from '../utils/encryption.ts';
+import { ResourceScope } from './Resource.ts';
 
 const { Schema, model } = dynamoose;
 
@@ -15,6 +16,7 @@ export interface ClientItem extends Item {
   grants: string[];
   scopes: string[];
   redirectUris: string[];
+  resources: ResourceScope[];
 }
 
 const ClientSchema = new Schema(
@@ -52,6 +54,37 @@ const ClientSchema = new Schema(
       type: Array,
       schema: [String],
       required: true,
+      validate: (value: ValueType) =>
+        (value as string[]).every((redirectUri) => {
+          try {
+            const url = new URL(redirectUri);
+            const isLocalhost = ['localhost', '127.0.0.1'].includes(
+              url.hostname,
+            );
+            return (
+              url.protocol === 'https:' ||
+              (url.protocol === 'http:' && isLocalhost)
+            );
+          } catch {
+            return false;
+          }
+        }),
+    },
+    resources: {
+      type: Array,
+      schema: [
+        {
+          type: Object,
+          schema: {
+            id: { type: String },
+            scopes: {
+              type: Array,
+              schema: [String],
+            },
+          },
+        },
+      ],
+      default: [],
     },
   },
   {

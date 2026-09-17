@@ -32,6 +32,10 @@ const ChallengeSchema = new Schema(
     userId: {
       type: String,
       required: true,
+      index: {
+        name: 'userId-index',
+        type: 'global',
+      },
     },
   },
   {

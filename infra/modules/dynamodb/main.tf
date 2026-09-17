@@ -44,6 +44,21 @@ resource "aws_dynamodb_table" "client" {
   }
 }
 
+resource "aws_dynamodb_table" "resource" {
+  name         = "Resource"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
 resource "aws_dynamodb_table" "oidc_store" {
   name         = "OIDCStore"
   billing_mode = "PAY_PER_REQUEST"
@@ -52,6 +67,61 @@ resource "aws_dynamodb_table" "oidc_store" {
   attribute {
     name = "id"
     type = "S"
+  }
+
+  attribute {
+    name = "uid"
+    type = "S"
+  }
+
+  attribute {
+    name = "grantId"
+    type = "S"
+  }
+
+  attribute {
+    name = "userCode"
+    type = "S"
+  }
+
+  attribute {
+    name = "accountId"
+    type = "S"
+  }
+
+  attribute {
+    name = "sessionUid"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "uid-index"
+    hash_key        = "uid"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "grantId-index"
+    hash_key        = "grantId"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "userCode-index"
+    hash_key        = "userCode"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "accountId-index"
+    hash_key        = "accountId"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "sessionUid-index"
+    hash_key        = "sessionUid"
+    projection_type = "ALL"
   }
 
   ttl {
@@ -74,6 +144,17 @@ resource "aws_dynamodb_table" "otp" {
     type = "S"
   }
 
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "userId-index"
+    hash_key        = "userId"
+    projection_type = "ALL"
+  }
+
   ttl {
     attribute_name = "expiresAt"
     enabled        = true
@@ -92,6 +173,17 @@ resource "aws_dynamodb_table" "challenge" {
   attribute {
     name = "id"
     type = "S"
+  }
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "userId-index"
+    hash_key        = "userId"
+    projection_type = "ALL"
   }
 
   ttl {
@@ -129,6 +221,7 @@ output "table_arns" {
   value = [
     aws_dynamodb_table.user.arn,
     aws_dynamodb_table.client.arn,
+    aws_dynamodb_table.resource.arn,
     aws_dynamodb_table.oidc_store.arn,
     aws_dynamodb_table.otp.arn,
     aws_dynamodb_table.challenge.arn,

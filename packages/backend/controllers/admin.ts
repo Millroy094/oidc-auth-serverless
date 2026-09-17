@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import HTTP_STATUSES from '../constants/http-status.ts';
+import { ResourceScope } from '../models/Resource.ts';
 import ClientService from '../services/client.ts';
 import MFAService from '../services/mfa/index.ts';
 import OIDCService from '../services/oidc.ts';
+import ResourceService, { ResourceInUseError } from '../services/resource.ts';
 import UserService from '../services/user.ts';
 import logger from '../utils/logger.ts';
 
@@ -25,6 +27,7 @@ export interface UpdateClientBody {
   scopes?: string[];
   grants?: string[];
   redirectUris?: string[];
+  resources?: ResourceScope[];
   [key: string]: unknown;
 }
 
@@ -35,6 +38,19 @@ export interface UpdateUserBody {
   lastName?: string;
   mobile?: string;
   roles?: string[];
+  resources?: ResourceScope[];
+  [key: string]: unknown;
+}
+
+export interface CreateResourceBody {
+  id: string;
+  name: string;
+  scopes: string[];
+}
+
+export interface UpdateResourceBody {
+  name?: string;
+  scopes?: string[];
   [key: string]: unknown;
 }
 
@@ -131,15 +147,15 @@ class AdminController {
       const users = await UserService.getUsers();
 
       const results = users
+        .filter((user) => user.userId !== currentUserId)
         .map((user) => ({
           id: user.userId,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
           mobile: user.mobile,
-          roles: [],
-        }))
-        .filter((user) => user.id !== currentUserId);
+          roles: user.roles,
+        }));
 
       res
         .json({ results, message: 'Successfully retrieved users!' })
@@ -186,7 +202,18 @@ class AdminController {
   public static async getUser(req: Request<IdParams>, res: Response) {
     try {
       const { id } = req.params;
-      const userRecord = await UserService.getUserById(id);
+      const userRecord = await UserService.getUserById(id, [
+        'userId',
+        'firstName',
+        'lastName',
+        'email',
+        'emailVerified',
+        'mobile',
+        'roles',
+        'suspended',
+        'lastLoggedIn',
+        'resources',
+      ]);
       res.status(HTTP_STATUSES.ok).json({ user: userRecord });
     } catch (err) {
       logger.error((err as Error).message);
@@ -262,6 +289,93 @@ class AdminController {
       res
         .status(HTTP_STATUSES.serverError)
         .json({ error: 'Failed to reset MFA' });
+    }
+  }
+
+  public static async createResource(
+    req: Request<Record<string, string>, unknown, CreateResourceBody>,
+    res: Response,
+  ) {
+    try {
+      await ResourceService.createResource(req.body);
+      res
+        .json({ message: 'Successfully registered resource!' })
+        .status(HTTP_STATUSES.ok);
+    } catch (err) {
+      logger.error((err as Error).message);
+      res
+        .status(HTTP_STATUSES.serverError)
+        .json({ error: 'Failed registering resource' });
+    }
+  }
+
+  public static async getResources(_req: Request, res: Response) {
+    try {
+      const resources = await ResourceService.getResources();
+
+      res
+        .json({
+          results: resources,
+          message: 'Successfully retrieved resources!',
+        })
+        .status(HTTP_STATUSES.ok);
+    } catch (err) {
+      logger.error((err as Error).message);
+      res
+        .status(HTTP_STATUSES.serverError)
+        .json({ error: 'Failed retrieve resources' });
+    }
+  }
+
+  public static async getResource(req: Request<IdParams>, res: Response) {
+    try {
+      const { id } = req.params;
+      const resourceRecord = await ResourceService.getResource(id);
+      res.status(HTTP_STATUSES.ok).json({ resource: resourceRecord });
+    } catch (err) {
+      logger.error((err as Error).message);
+      res
+        .status(HTTP_STATUSES.notFound)
+        .json({ error: 'There was an issue fetching resource info' });
+    }
+  }
+
+  public static async updateResource(
+    req: Request<IdParams, unknown, UpdateResourceBody>,
+    res: Response,
+  ) {
+    try {
+      const { id } = req.params;
+      await ResourceService.updateResource(id, req.body);
+      res
+        .status(HTTP_STATUSES.ok)
+        .json({ message: 'Successfully updated resource record!' });
+    } catch (err) {
+      logger.error((err as Error).message);
+      res
+        .status(HTTP_STATUSES.notFound)
+        .json({ error: 'There was an issue updating resource record' });
+    }
+  }
+
+  public static async deleteResource(req: Request<IdParams>, res: Response) {
+    try {
+      const { id } = req.params;
+      await ResourceService.deleteResource(id);
+      res
+        .status(HTTP_STATUSES.ok)
+        .json({ message: 'Successfully deleted resource record!' });
+    } catch (err) {
+      logger.error((err as Error).message);
+
+      if (err instanceof ResourceInUseError) {
+        res.status(HTTP_STATUSES.conflict).json({ error: err.message });
+        return;
+      }
+
+      res
+        .status(HTTP_STATUSES.notFound)
+        .json({ error: 'There was an issue deleting resource' });
     }
   }
 }

@@ -11,6 +11,8 @@ export interface OIDCStoreItem extends Item {
   userCode?: string;
   uid?: string;
   grantId?: string;
+  accountId?: string;
+  sessionUid?: string;
 }
 
 const OIDCStoreSchema = new Schema(
@@ -27,12 +29,38 @@ const OIDCStoreSchema = new Schema(
     },
     userCode: {
       type: String,
+      index: {
+        name: 'userCode-index',
+        type: 'global',
+      },
     },
     uid: {
       type: String,
+      index: {
+        name: 'uid-index',
+        type: 'global',
+      },
     },
     grantId: {
       type: String,
+      index: {
+        name: 'grantId-index',
+        type: 'global',
+      },
+    },
+    accountId: {
+      type: String,
+      index: {
+        name: 'accountId-index',
+        type: 'global',
+      },
+    },
+    sessionUid: {
+      type: String,
+      index: {
+        name: 'sessionUid-index',
+        type: 'global',
+      },
     },
   },
   {

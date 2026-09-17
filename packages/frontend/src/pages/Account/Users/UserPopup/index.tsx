@@ -5,11 +5,15 @@ import { FC, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import schema from './schema';
 import { IUserPopupInput } from './type';
+import getResources, {
+  IAdminResourceListItem,
+} from '@/api/admin/get-resources';
 import getUser from '@/api/admin/get-user';
 import resetMfa from '@/api/admin/reset-mfa';
 import updateUser from '@/api/admin/update-user';
 import ControlledSelect from '@/components/ControlledSelect';
 import { MobileNumberInput } from '@/components/MobileNumberInput';
+import ResourceScopesField from '@/components/ResourceScopesField';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -36,11 +40,13 @@ const defaultValues: IUserPopupInput = {
   emailVerified: false,
   suspended: false,
   lastLoggedIn: 0,
+  resources: [],
 };
 
 const UserPopup: FC<UserPopupProps> = (props) => {
   const { userIdentifier, open, onClose } = props;
   const [user, setUser] = useState<IUserPopupInput>(defaultValues);
+  const [resources, setResources] = useState<IAdminResourceListItem[]>([]);
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
   const {
     watch,
@@ -49,6 +55,7 @@ const UserPopup: FC<UserPopupProps> = (props) => {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<IUserPopupInput>({
     resolver: zodResolver(schema),
     criteriaMode: 'all',
@@ -83,6 +90,7 @@ const UserPopup: FC<UserPopupProps> = (props) => {
         emailVerified: response.data.user.emailVerified,
         suspended: response.data.user.suspended,
         lastLoggedIn: response.data.user.lastLoggedIn ?? 0,
+        resources: response.data.user.resources,
       });
     } catch (err) {
       feedbackAxiosError(
@@ -90,6 +98,18 @@ const UserPopup: FC<UserPopupProps> = (props) => {
         'There was an issue retrieving the user, please try again',
       );
       handleClose();
+    }
+  };
+
+  const fetchResources = async (): Promise<void> => {
+    try {
+      const response = await getResources();
+      setResources(response.data.results);
+    } catch (err) {
+      feedbackAxiosError(
+        err,
+        'There was an issue retrieving resources, please try again',
+      );
     }
   };
 
@@ -101,6 +121,13 @@ const UserPopup: FC<UserPopupProps> = (props) => {
       feedbackAxiosError(err, 'Failed to reset MFA');
     }
   };
+
+  useEffect(() => {
+    if (open) {
+      void fetchResources();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   useEffect(() => {
     if (open && userIdentifier) {
@@ -248,6 +275,14 @@ const UserPopup: FC<UserPopupProps> = (props) => {
                       helperText={errors.mobile ? errors.mobile.message : ''}
                     />
                   )}
+                />
+
+                <ResourceScopesField
+                  control={control}
+                  errors={errors}
+                  setValue={setValue}
+                  watch={watch}
+                  resources={resources}
                 />
               </div>
             </CardContent>

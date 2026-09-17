@@ -1,4 +1,5 @@
 import { AxiosResponse } from 'axios';
+import { IResourceScope } from './types.ts';
 import axios from '@/utils/axios-instance';
 
 type updateUserFields = {
@@ -8,6 +9,7 @@ type updateUserFields = {
   mobile?: string;
   roles: string[];
   suspended: boolean;
+  resources: IResourceScope[];
 };
 
 interface UpdateUserResponseData {
@@ -18,8 +20,15 @@ const updateUser = async (
   id: string,
   updatedFields: updateUserFields,
 ): Promise<AxiosResponse<UpdateUserResponseData>> => {
-  const { emailVerified, firstName, lastName, mobile, roles, suspended } =
-    updatedFields;
+  const {
+    emailVerified,
+    firstName,
+    lastName,
+    mobile,
+    roles,
+    suspended,
+    resources,
+  } = updatedFields;
   const response = await axios.put<UpdateUserResponseData>(
     `/api/admin/users/${id}`,
     {
@@ -29,6 +38,7 @@ const updateUser = async (
       mobile,
       roles,
       suspended,
+      resources,
     },
     { withCredentials: true },
   );

@@ -30,7 +30,8 @@ class PasskeyService {
     userId: string,
     challenge: string,
   ): Promise<string> {
-    const [challengeResult] = await Challenge.scan('userId')
+    const [challengeResult] = await Challenge.query('userId')
+      .using('userId-index')
       .eq(userId)
       .and()
       .where('challenge')
@@ -44,7 +45,8 @@ class PasskeyService {
     userId: string,
     challenge: string,
   ): Promise<void> {
-    const [challengeResult] = await Challenge.scan('userId')
+    const [challengeResult] = await Challenge.query('userId')
+      .using('userId-index')
       .eq(userId)
       .and()
       .where('challenge')

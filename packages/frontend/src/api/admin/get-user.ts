@@ -1,4 +1,5 @@
 import { AxiosResponse } from 'axios';
+import { IResourceScope } from './types.ts';
 import axios from '@/utils/axios-instance';
 
 export interface IAdminUser {
@@ -11,6 +12,7 @@ export interface IAdminUser {
   emailVerified: boolean;
   suspended: boolean;
   lastLoggedIn: number;
+  resources: IResourceScope[];
 }
 
 interface GetUserResponseData {

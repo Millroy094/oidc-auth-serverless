@@ -1,4 +1,4 @@
-import { User, Lock, Briefcase, UsersIcon, LogOut } from 'lucide-react';
+import { User, Lock, Briefcase, UsersIcon, LogOut, Server } from 'lucide-react';
 import * as React from 'react';
 import { Suspense, lazy } from 'react';
 import { MutatingDots } from 'react-loader-spinner';
@@ -7,13 +7,12 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthProvider';
 import { cn } from '@/lib/utils';
 
-// Each tab is only rendered when active, so lazy-loading keeps the initial
-// Account bundle small and splits Profile/Security/Clients/Users (and their
-// heavy dependencies, e.g. MobileNumberInput) into separate chunks.
+// Lazy-loaded since only the active tab needs to be rendered.
 const Profile = lazy(() => import('./Profile'));
 const Security = lazy(() => import('./Security'));
 const Clients = lazy(() => import('./Clients'));
 const Users = lazy(() => import('./Users'));
+const Resources = lazy(() => import('./Resources'));
 
 const tabFallback = (
   <div className="flex justify-center items-center min-h-[300px]">
@@ -59,6 +58,13 @@ export default function Account() {
       label: 'Users',
       icon: UsersIcon,
       content: <Users />,
+      adminOnly: true,
+    },
+    {
+      value: 'resources',
+      label: 'Resources',
+      icon: Server,
+      content: <Resources />,
       adminOnly: true,
     },
   ].filter((item) => !item.adminOnly || isAdmin);

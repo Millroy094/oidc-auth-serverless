@@ -20,8 +20,7 @@ class ClientService {
   }
 
   public static async getClients(): Promise<ClientItem[]> {
-    const clients = await Client.scan().exec();
-    return clients;
+    return Client.scan().exec();
   }
 
   public static async getClientById(id: string): Promise<ClientItem> {

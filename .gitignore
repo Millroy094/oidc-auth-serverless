@@ -26,3 +26,6 @@ ministack-data/
 .ministack/
 
 patches/
+
+# TypeScript build cache
+*.tsbuildinfo

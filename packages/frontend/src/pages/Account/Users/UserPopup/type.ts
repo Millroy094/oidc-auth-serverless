@@ -1,3 +1,5 @@
+import { IResourceScopeInput } from '@/components/ResourceScopesField';
+
 export interface IUserPopupInput {
   firstName: string;
   lastName: string;
@@ -7,4 +9,5 @@ export interface IUserPopupInput {
   roles: string[];
   suspended: boolean;
   lastLoggedIn?: number;
+  resources: IResourceScopeInput[];
 }

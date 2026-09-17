@@ -21,7 +21,8 @@ class OTPService {
     otp: string,
   ): Promise<boolean> {
     let isValid = false;
-    const [otpResult] = await OTP.scan('userId')
+    const [otpResult] = await OTP.query('userId')
+      .using('userId-index')
       .eq(userId)
       .and()
       .where('type')

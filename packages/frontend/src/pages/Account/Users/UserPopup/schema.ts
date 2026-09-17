@@ -12,6 +12,12 @@ const schema = z.object({
     .optional(),
   roles: z.array(z.string()),
   suspended: z.boolean(),
+  resources: z.array(
+    z.object({
+      id: z.string().min(1, 'resource is required'),
+      scopes: z.array(z.string()).min(1, 'atleast one scope is required'),
+    }),
+  ),
 });
 
 export default schema;

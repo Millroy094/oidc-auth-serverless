@@ -4,6 +4,7 @@ import { Item } from 'dynamoose/dist/Item';
 import { ValueType } from 'dynamoose/dist/Schema';
 import { v4 as uuid } from 'uuid';
 import { decryptData, encryptData } from '../utils/encryption.ts';
+import { ResourceScope } from './Resource.ts';
 
 const { Schema, model } = dynamoose;
 
@@ -50,6 +51,7 @@ export interface UserItem extends Item {
   failedLogins: number;
   suspended: boolean;
   credentials: MFACredential[];
+  resources: ResourceScope[];
 }
 
 const UserSchema = new Schema(
@@ -62,6 +64,10 @@ const UserSchema = new Schema(
     email: {
       type: String,
       required: true,
+      index: {
+        name: 'email-index',
+        type: 'global',
+      },
     },
     emailVerified: {
       type: Boolean,
@@ -217,6 +223,22 @@ const UserSchema = new Schema(
             },
             counter: { type: Number },
             deviceName: { type: String },
+          },
+        },
+      ],
+      default: [],
+    },
+    resources: {
+      type: Array,
+      schema: [
+        {
+          type: Object,
+          schema: {
+            id: { type: String },
+            scopes: {
+              type: Array,
+              schema: [String],
+            },
           },
         },
       ],

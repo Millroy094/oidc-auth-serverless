@@ -9,8 +9,12 @@ import schema from './schema';
 import { IClientPopupInput } from './type';
 import createClient from '@/api/admin/create-client';
 import getClient from '@/api/admin/get-client';
+import getResources, {
+  IAdminResourceListItem,
+} from '@/api/admin/get-resources';
 import updateClient from '@/api/admin/update-client';
 import ControlledSelect from '@/components/ControlledSelect';
+import ResourceScopesField from '@/components/ResourceScopesField';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -20,6 +24,7 @@ import {
 } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import UrlProtocolField from '@/components/UrlProtocolField';
 import useFeedback from '@/hooks/useFeedback';
 
 interface ClientPopupProps {
@@ -34,11 +39,13 @@ const defaultValues: IClientPopupInput = {
   grants: [],
   scopes: [],
   redirectUris: [{ id: uniqueId(), value: '' }],
+  resources: [],
 };
 
 const ClientPopup: FC<ClientPopupProps> = (props) => {
   const { clientIdentifier, open, onClose } = props;
   const [client, setClient] = useState<IClientPopupInput>(defaultValues);
+  const [resources, setResources] = useState<IAdminResourceListItem[]>([]);
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
   const {
     control,
@@ -72,6 +79,7 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
           id: uniqueId(),
           value: uri,
         })),
+        resources: response.data.client.resources,
       });
     } catch (err) {
       feedbackAxiosError(
@@ -81,6 +89,25 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
       handleClose();
     }
   };
+
+  const fetchResources = async (): Promise<void> => {
+    try {
+      const response = await getResources();
+      setResources(response.data.results);
+    } catch (err) {
+      feedbackAxiosError(
+        err,
+        'There was an issue retrieving resources, please try again',
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      void fetchResources();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   useEffect(() => {
     if (open && clientIdentifier) {
@@ -241,9 +268,11 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
                         Redirect URI {index + 1}
                       </label>
                       <div className="flex items-center gap-2">
-                        <Input
-                          {...register(`redirectUris.${index}.value`)}
-                          id={`redirectUri-${index}`}
+                        <UrlProtocolField
+                          control={control}
+                          name={`redirectUris.${index}.value`}
+                          protocols={['https://', 'http://']}
+                          invalid={has(errors, `redirectUris.${index}.value`)}
                           className="flex-1"
                         />
                         <div className="flex shrink-0 items-center gap-1">
@@ -283,6 +312,14 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
                     </div>
                   ))}
                 </div>
+
+                <ResourceScopesField
+                  control={control}
+                  errors={errors}
+                  setValue={setValue}
+                  watch={watch}
+                  resources={resources}
+                />
               </div>
             </CardContent>
 

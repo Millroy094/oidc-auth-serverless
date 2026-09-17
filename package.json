@@ -20,7 +20,7 @@
       "prettier --write"
     ],
     "*.tf": [
-      "prettier --write"
+      "terraform fmt"
     ],
     "*.yaml": [
       "prettier --write"

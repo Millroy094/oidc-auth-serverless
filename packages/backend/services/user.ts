@@ -12,7 +12,10 @@ class UserService {
     username: string,
     password: string,
   ): Promise<UserItem> {
-    const [userAccount] = await User.scan('email').eq(username).exec();
+    const [userAccount] = await User.query('email')
+      .using('email-index')
+      .eq(username)
+      .exec();
 
     if (isEmpty(userAccount)) {
       throw new Error('User does not exist');
@@ -55,7 +58,10 @@ class UserService {
     password: string;
   }): Promise<void> {
     const { email } = fields;
-    const [userAccount] = await User.scan('email').eq(email).exec();
+    const [userAccount] = await User.query('email')
+      .using('email-index')
+      .eq(email)
+      .exec();
 
     if (!isEmpty(userAccount)) {
       throw new Error('User already exists');
@@ -69,20 +75,21 @@ class UserService {
     return userAccounts;
   }
 
-  public static async getUserById(id: string): Promise<UserItem> {
-    const userAccount = await User.get(id, {
-      attributes: [
-        'userId',
-        'firstName',
-        'lastName',
-        'email',
-        'emailVerified',
-        'mobile',
-        'roles',
-        'suspended',
-        'lastLoggedIn',
-      ],
-    });
+  public static async getUserById(
+    id: string,
+    attributes: (keyof UserItem)[] = [
+      'userId',
+      'firstName',
+      'lastName',
+      'email',
+      'emailVerified',
+      'mobile',
+      'roles',
+      'suspended',
+      'lastLoggedIn',
+    ],
+  ): Promise<UserItem> {
+    const userAccount = await User.get(id, { attributes });
 
     if (isEmpty(userAccount)) {
       throw new Error('User does not exists');
@@ -92,7 +99,10 @@ class UserService {
   }
 
   public static async getUserByEmail(email: string) {
-    const [user] = await User.scan('email').eq(email).exec();
+    const [user] = await User.query('email')
+      .using('email-index')
+      .eq(email)
+      .exec();
 
     if (isEmpty(user)) {
       throw new Error('User does not exists');
