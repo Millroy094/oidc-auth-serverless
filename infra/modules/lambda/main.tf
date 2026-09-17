@@ -1,3 +1,8 @@
+resource "aws_cloudwatch_log_group" "lambda_logs" {
+  name              = "/aws/lambda/${var.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
+
 resource "aws_lambda_function" "backend" {
   s3_bucket     = var.artifacts_bucket_name
   s3_key        = "lambda/${var.artifact_sha}/handler.zip"
@@ -17,6 +22,7 @@ resource "aws_lambda_function" "backend" {
     aws_iam_role_policy.lambda_dynamodb,
     aws_iam_role_policy.lambda_sns,
     aws_iam_role_policy.lambda_ses,
-    aws_iam_role_policy.lambda_ssm
+    aws_iam_role_policy.lambda_ssm,
+    aws_cloudwatch_log_group.lambda_logs
   ]
 }

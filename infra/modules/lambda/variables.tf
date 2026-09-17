@@ -56,3 +56,9 @@ variable "artifact_sha" {
   type        = string
   description = "Identifier (git SHA, or \"local\") for the uploaded Lambda deployment zip; used to build the S3 key lambda/<artifact_sha>/handler.zip"
 }
+
+variable "log_retention_in_days" {
+  type        = number
+  default     = 30
+  description = "CloudWatch log group retention period for the Lambda function's logs"
+}

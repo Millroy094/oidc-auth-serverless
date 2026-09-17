@@ -47,7 +47,7 @@ module "api_gateway" {
 
   api_name    = "${var.resource_prefix}-api"
   environment = "production"
-  stage_name  = "production"
+  stage_name  = "$default"
 
   lambda_function_name       = module.lambda.function_name
   lambda_function_invoke_arn = module.lambda.function_invoke_arn
