@@ -46,7 +46,7 @@ export interface ResetMFABody {
 }
 
 export interface ChangeMFAPreferenceBody {
-  preference: 'app' | 'sms' | 'email';
+  preference: 'app' | 'sms' | 'email' | 'passkey' | '';
 }
 
 export interface SendOtpBody {

@@ -1,6 +1,6 @@
 import { startRegistration } from '@simplewebauthn/browser';
 import { Trash2, Fingerprint } from 'lucide-react';
-import { FC, useEffect, useState } from 'react';
+import { ChangeEvent, FC, useEffect, useState } from 'react';
 import checkPasskeyAlreadyExists from '@/api/user/check-passkey-exists';
 import deletePasskey from '@/api/user/delete-passkey';
 import getPasskeys from '@/api/user/get-passkeys';
@@ -61,10 +61,18 @@ function getBrowserName(userAgent: string): string {
 
 interface PasskeysProps {
   fetchMFASettings: () => Promise<void>;
+  mfaPreference: string;
+  passkeyVerified: boolean;
+  onChangePreference: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
 const Passkeys: FC<PasskeysProps> = (props) => {
-  const { fetchMFASettings } = props;
+  const {
+    fetchMFASettings,
+    mfaPreference,
+    passkeyVerified,
+    onChangePreference,
+  } = props;
   const [devices, setDevices] = useState<string[]>([]);
 
   const auth = useAuth();
@@ -147,13 +155,31 @@ const Passkeys: FC<PasskeysProps> = (props) => {
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Fingerprint className="h-5 w-5" />
         </div>
-        <div>
-          <CardTitle className="text-lg">Passkeys</CardTitle>
-          <CardDescription>
-            Passkeys are webauthn credentials that validate your identity using
-            touch, facial recognition, a device password, or a PIN. They can be
-            used as a password replacement or as a 2FA method.
-          </CardDescription>
+        <div className="flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <CardTitle className="text-lg">Passkeys</CardTitle>
+              <CardDescription>
+                Passkeys are webauthn credentials that validate your identity
+                using touch, facial recognition, a device password, or a PIN.
+                They can be used as a password replacement or as a 2FA method.
+              </CardDescription>
+            </div>
+            <label
+              className="flex items-center gap-2 shrink-0"
+              title="Use Passkey as MFA preference"
+            >
+              <input
+                type="checkbox"
+                disabled={!passkeyVerified}
+                value="passkey"
+                checked={mfaPreference === 'passkey'}
+                onChange={onChangePreference}
+                className="w-4 h-4"
+              />
+              <span className="sr-only">Use Passkey as MFA preference</span>
+            </label>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

@@ -13,6 +13,7 @@ class MFAService {
     types: { subscriber: string; verified: boolean }[];
     preference: string;
     recoveryCodeCount: number;
+    passkeyVerified: boolean;
   }> {
     const userAccountMfaSetting = await User.get(userId, {
       attributes: ['mfa'],
@@ -33,6 +34,7 @@ class MFAService {
       ),
       preference: userAccountMfaSetting.mfa.preference,
       recoveryCodeCount: userAccountMfaSetting.mfa.recoveryCodes?.length ?? 0,
+      passkeyVerified: userAccountMfaSetting.mfa.passkey?.verified ?? false,
     };
   }
 
@@ -118,12 +120,16 @@ class MFAService {
 
   public static async changePreference(
     userId: string,
-    preference: 'app' | 'sms' | 'email',
+    preference: 'app' | 'sms' | 'email' | 'passkey' | '',
   ): Promise<void> {
     const user = await User.get(userId);
 
     if (!user) {
       throw new Error('User does not exist');
+    }
+
+    if (preference && !user.mfa[preference]?.verified) {
+      throw new Error(`${preference} MFA has not been set up and verified`);
     }
 
     user.mfa.preference = preference;

@@ -12,6 +12,7 @@ interface GetMFASettingsResponseData {
     types: IMFATypeSetting[];
     preference: string;
     recoveryCodeCount: number;
+    passkeyVerified: boolean;
   };
 }
 

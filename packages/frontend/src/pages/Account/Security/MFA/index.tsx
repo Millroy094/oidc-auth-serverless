@@ -39,6 +39,7 @@ const MFA: FC = () => {
   const [mfaPreference, setMfaPreference] = useState<string>('');
   const [recoveryCodeCount, setRecoveryCodeCount] = useState<number>(0);
   const [mfaTypes, setMfaTypes] = useState<IMFAType[]>([]);
+  const [passkeyVerified, setPasskeyVerified] = useState<boolean>(false);
   const [setupModal, setSetupModal] = useState<ISetupModal>(setupModalDefault);
   const { feedbackAxiosError, feedback } = useFeedback();
 
@@ -48,6 +49,7 @@ const MFA: FC = () => {
       setMfaTypes(response.data.settings.types);
       setMfaPreference(response.data.settings.preference);
       setRecoveryCodeCount(response.data.settings.recoveryCodeCount);
+      setPasskeyVerified(response.data.settings.passkeyVerified);
     } catch (err) {
       feedbackAxiosError(
         err,
@@ -210,7 +212,12 @@ const MFA: FC = () => {
       </Card>
 
       <div className="mt-6 space-y-6">
-        <Passkeys fetchMFASettings={fetchMFASettings} />
+        <Passkeys
+          fetchMFASettings={fetchMFASettings}
+          mfaPreference={mfaPreference}
+          passkeyVerified={passkeyVerified}
+          onChangePreference={onChange}
+        />
         <RecoveryCodes
           recoveryCodeCount={recoveryCodeCount}
           fetchMFASettings={fetchMFASettings}
