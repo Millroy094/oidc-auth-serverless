@@ -86,12 +86,6 @@ jobs:
           token: ${{ env.TF_API_TOKEN }}
           organization: ${{ env.TF_ORG }}
 
-      - name: Apply Terraform run
-        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.3.2
-        with:
-          run: ${{ steps.run.outputs.run_id }}
-          token: ${{ env.TF_API_TOKEN }}
-
       - name: Terraform summary
         run: |
           echo "## Terraform Deploy" >> "$GITHUB_STEP_SUMMARY"
