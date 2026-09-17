@@ -120,7 +120,7 @@ class PasskeyController {
       const user = await User.get(userId);
 
       const options = await generateRegistrationOptions({
-        rpID: req.hostname,
+        rpID: config.get('authentication.rpId'),
         rpName: config.get('authentication.issuer'),
         userName: userId,
         userDisplayName: user.email,
@@ -170,8 +170,9 @@ class PasskeyController {
         response: req.body.credential,
         expectedChallenge: storedChallenge,
         expectedOrigin:
-          req.headers.origin ?? `${req.protocol}://${req.hostname}`,
-        expectedRPID: req.hostname,
+          req.headers.origin ??
+          `${req.protocol}://${config.get('authentication.rpId')}`,
+        expectedRPID: config.get('authentication.rpId'),
       });
 
       if (verification.verified) {
@@ -217,7 +218,7 @@ class PasskeyController {
       const user = await UserService.getUserByEmail(userEmail);
 
       const options = await generateAuthenticationOptions({
-        rpID: req.hostname,
+        rpID: config.get('authentication.rpId'),
         allowCredentials:
           user?.credentials?.map((cred: MFACredential) => ({
             id: cred.id,
@@ -271,8 +272,9 @@ class PasskeyController {
         response: req.body.credential,
         expectedChallenge: storedChallenge,
         expectedOrigin:
-          req.headers.origin ?? `${req.protocol}://${req.hostname}`,
-        expectedRPID: req.hostname,
+          req.headers.origin ??
+          `${req.protocol}://${config.get('authentication.rpId')}`,
+        expectedRPID: config.get('authentication.rpId'),
         credential: {
           id: credential.id,
           publicKey: new Uint8Array(credential.publicKey),

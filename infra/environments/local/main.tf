@@ -43,6 +43,7 @@ module "lambda" {
     AWS_ACCESS_KEY_ID      = "test"
     AWS_SECRET_ACCESS_KEY  = "test"
     FRONTEND_URL           = var.frontend_url
+    RP_ID                  = "localhost"
   }
 }
 

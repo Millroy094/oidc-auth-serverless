@@ -39,6 +39,7 @@ module "lambda" {
     NODE_ENV               = "production"
     DEPLOYMENT_ENVIRONMENT = "production"
     SSM_PARAMETER_PREFIX   = module.ssm.path_prefix
+    RP_ID                  = var.domain_name
   }
 }
 

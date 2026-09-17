@@ -64,6 +64,13 @@ const config = convict({
       format: String,
       env: 'ISSUER_NAME',
     },
+    rpId: {
+      doc: 'WebAuthn Relying Party ID - must match the domain the browser sees (e.g. "auth.example.com" or "localhost"), NOT the API Gateway/Lambda hostname. Passkeys are bound to this value; it must stay stable across deploys.',
+      default: 'localhost',
+      nullable: false,
+      format: String,
+      env: 'RP_ID',
+    },
   },
   encryption: {
     secret: {
