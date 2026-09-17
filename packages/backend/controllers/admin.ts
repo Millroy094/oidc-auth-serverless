@@ -209,14 +209,6 @@ class AdminController {
         return;
       }
 
-      const targetUser = await UserService.getUserById(id);
-      if (targetUser?.roles?.includes('admin')) {
-        res
-          .status(HTTP_STATUSES.forbidden)
-          .json({ error: 'Admin accounts cannot be deleted' });
-        return;
-      }
-
       await UserService.deleteUser(id);
       res
         .status(HTTP_STATUSES.ok)
@@ -262,13 +254,6 @@ class AdminController {
       const isSelf = id === req.user?.userId;
 
       const targetUser = await UserService.getUserById(id);
-
-      if (!isSelf && targetUser?.roles?.includes('admin')) {
-        res
-          .status(HTTP_STATUSES.forbidden)
-          .json({ error: 'Admin accounts cannot be edited' });
-        return;
-      }
 
       if (isSelf) {
         // Users can update their own profile but can never change their own
