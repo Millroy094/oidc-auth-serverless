@@ -42,6 +42,7 @@ const Login: FC = () => {
     reset,
     setValue,
     getValues,
+    watch,
     trigger,
     register,
     handleSubmit,
@@ -62,7 +63,7 @@ const Login: FC = () => {
 
   const email = getValues('email');
   const mfaType = getValues('mfaType');
-  const captchaToken = getValues('captchaToken');
+  const captchaToken = watch('captchaToken');
 
   useEffect(() => {
     const fetchPublicConfig = async () => {
