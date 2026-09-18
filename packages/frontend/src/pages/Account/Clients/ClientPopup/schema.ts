@@ -33,6 +33,7 @@ const schema = z.object({
       scopes: z.array(z.string()).min(1, 'atleast one scope is required'),
     }),
   ),
+  requirePkce: z.boolean(),
 });
 
 export default schema;

@@ -4,7 +4,7 @@ import get from 'lodash/get';
 import has from 'lodash/has';
 import { Plus, Trash2, Building2 } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm, Controller } from 'react-hook-form';
 import schema from './schema';
 import { IClientPopupInput } from './type';
 import createClient from '@/api/admin/create-client';
@@ -22,6 +22,7 @@ import {
   CardHeader,
   CardFooter,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import UrlProtocolField from '@/components/UrlProtocolField';
@@ -40,6 +41,7 @@ const defaultValues: IClientPopupInput = {
   scopes: [],
   redirectUris: [{ id: uniqueId(), value: '' }],
   resources: [],
+  requirePkce: true,
 };
 
 const ClientPopup: FC<ClientPopupProps> = (props) => {
@@ -80,6 +82,7 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
           value: uri,
         })),
         resources: response.data.client.resources,
+        requirePkce: response.data.client.requirePkce,
       });
     } catch (err) {
       feedbackAxiosError(
@@ -320,6 +323,33 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
                   watch={watch}
                   resources={resources}
                 />
+
+                <div className="flex items-start gap-2">
+                  <Controller
+                    name="requirePkce"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        id="requirePkce"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="mt-0.5"
+                      />
+                    )}
+                  />
+                  <div>
+                    <label
+                      htmlFor="requirePkce"
+                      className="block text-sm font-medium cursor-pointer"
+                    >
+                      Require PKCE
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      Recommended for all clients. Only disable this for
+                      confidential clients that cannot support PKCE.
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
 

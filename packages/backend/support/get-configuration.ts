@@ -129,11 +129,14 @@ const getConfiguration = async (): Promise<Configuration> => {
       grant_types: client.grants,
       scope: client.scopes.join(' '),
       resources: client.resources,
+      require_pkce: client.requirePkce,
     })),
     extraClientMetadata: {
-      properties: ['resources'],
+      properties: ['resources', 'require_pkce'],
     },
-    pkce: { required: () => true },
+    pkce: {
+      required: (_ctx, client) => client.require_pkce,
+    },
     claims: {
       openid: ['sub'],
       email: ['email', 'email_verified'],

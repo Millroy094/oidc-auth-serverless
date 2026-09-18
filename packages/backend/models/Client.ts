@@ -18,6 +18,7 @@ export interface ClientItem extends Item {
   scopes: string[];
   redirectUris: string[];
   resources: ResourceScope[];
+  requirePkce: boolean;
 }
 
 const ClientSchema = new Schema(
@@ -86,6 +87,10 @@ const ClientSchema = new Schema(
         },
       ],
       default: [],
+    },
+    requirePkce: {
+      type: Boolean,
+      default: true,
     },
   },
   {

@@ -8,6 +8,7 @@ class ClientService {
     scopes: string[];
     grants: string[];
     redirectUris: string[];
+    requirePkce?: boolean;
   }): Promise<void> {
     const { clientId } = fields;
     const [clientAccount] = await Client.scan('clientId').eq(clientId).exec();

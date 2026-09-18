@@ -7,6 +7,7 @@ type UpdateClientArgs = {
   grants: string[];
   redirectUris: string[];
   resources: IResourceScope[];
+  requirePkce: boolean;
 };
 
 interface UpdateClientResponseData {
@@ -17,7 +18,7 @@ const updateClient = async (
   id: string,
   args: UpdateClientArgs,
 ): Promise<AxiosResponse<UpdateClientResponseData>> => {
-  const { scopes, grants, redirectUris, resources } = args;
+  const { scopes, grants, redirectUris, resources, requirePkce } = args;
   const response = await axios.put<UpdateClientResponseData>(
     `/api/admin/clients/${id}`,
     {
@@ -25,6 +26,7 @@ const updateClient = async (
       grants,
       redirectUris,
       resources,
+      requirePkce,
     },
     { withCredentials: true },
   );

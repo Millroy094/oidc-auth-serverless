@@ -12,4 +12,5 @@ export interface IClientPopupInput {
   grants: string[];
   redirectUris: IRedirectUri[];
   resources: IResourceScopeInput[];
+  requirePkce: boolean;
 }

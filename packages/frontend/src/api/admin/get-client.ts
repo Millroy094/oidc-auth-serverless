@@ -11,6 +11,7 @@ export interface IAdminClient {
   grants: string[];
   redirectUris: string[];
   resources: IResourceScope[];
+  requirePkce: boolean;
 }
 
 interface GetClientResponseData {

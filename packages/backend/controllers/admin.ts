@@ -20,6 +20,7 @@ export interface CreateClientBody {
   scopes: string[];
   grants: string[];
   redirectUris: string[];
+  requirePkce?: boolean;
 }
 
 export interface UpdateClientBody {
@@ -29,6 +30,7 @@ export interface UpdateClientBody {
   grants?: string[];
   redirectUris?: string[];
   resources?: ResourceScope[];
+  requirePkce?: boolean;
   [key: string]: unknown;
 }
 

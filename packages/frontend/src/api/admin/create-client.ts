@@ -7,6 +7,7 @@ type CreateClientArgs = {
   scopes: string[];
   grants: string[];
   redirectUris: string[];
+  requirePkce: boolean;
 };
 
 interface CreateClientResponseData {
@@ -16,7 +17,8 @@ interface CreateClientResponseData {
 const createClient = async (
   args: CreateClientArgs,
 ): Promise<AxiosResponse<CreateClientResponseData>> => {
-  const { clientId, clientName, scopes, grants, redirectUris } = args;
+  const { clientId, clientName, scopes, grants, redirectUris, requirePkce } =
+    args;
   const response = await axios.post<CreateClientResponseData>(
     '/api/admin/clients/new',
     {
@@ -25,6 +27,7 @@ const createClient = async (
       scopes,
       grants,
       redirectUris,
+      requirePkce,
     },
     { withCredentials: true },
   );
