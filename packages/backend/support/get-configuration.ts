@@ -55,8 +55,8 @@ const getConfiguration = async (): Promise<Configuration> => {
     jwks,
     cookies: {
       keys: cookieSecrets,
-      long: { httpOnly: true, sameSite: 'strict' },
-      short: { httpOnly: true, sameSite: 'strict' },
+      long: { httpOnly: true, sameSite: 'lax' },
+      short: { httpOnly: true, sameSite: 'lax' },
     },
     features: {
       devInteractions: { enabled: false },

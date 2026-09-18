@@ -18,6 +18,13 @@ export interface AuthorizeInteractionBody {
   authorize: boolean;
 }
 
+const logOidcError = (err: unknown): void => {
+  const { message, error_description: description } = err as Error & {
+    error_description?: string;
+  };
+  logger.error(description ? `${message}: ${description}` : message);
+};
+
 class OIDCController {
   public static async getInteractionStatus(req: Request, res: Response) {
     try {
@@ -26,7 +33,7 @@ class OIDCController {
       } = await req.oidcProvider.interactionDetails(req, res);
       res.status(HTTP_STATUSES.ok).json({ status: name });
     } catch (err) {
-      logger.error((err as Error).message);
+      logOidcError(err);
       res.status(HTTP_STATUSES.badRequest).json({
         error: `Unable to process authentication: ${(err as Error).message}`,
       });
@@ -89,7 +96,7 @@ class OIDCController {
         .status(HTTP_STATUSES.ok)
         .json({ redirect, message: 'Login successful!' });
     } catch (err) {
-      logger.error((err as Error).message);
+      logOidcError(err);
       if ((err as Error).message === 'Interaction is not at login stage') {
         result = {
           error: 'access_denied',
@@ -190,7 +197,7 @@ class OIDCController {
           .status(HTTP_STATUSES.ok);
       }
     } catch (err) {
-      logger.error((err as Error).message);
+      logOidcError(err);
       if (
         [
           'Interaction is not at consent stage',
