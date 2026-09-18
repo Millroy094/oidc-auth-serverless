@@ -1,9 +1,8 @@
 import convict from 'convict';
 import { loadSsmParameters } from './ssm-config.ts';
 
-// Fetch secrets from SSM Parameter Store before building the config schema.
-// This must complete before any module (e.g. utils/encryption.ts) reads
-// config values at import time.
+// Fetch secrets from SSM before building the config schema - must complete
+// before any module (e.g. utils/encryption.ts) reads config at import time.
 if (process.env.SSM_PARAMETER_PREFIX) {
   await loadSsmParameters(process.env.SSM_PARAMETER_PREFIX);
 }

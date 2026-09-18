@@ -144,13 +144,12 @@ const getConfiguration = async (): Promise<Configuration> => {
       profile: ['given_name', 'family_name', 'name'],
     },
     interactions: {
-      // In production, CloudFront serves the frontend and proxies /api/* to
-      // the backend under the same origin, so a relative URL resolves
-      // correctly. Locally, the frontend (Vite) and backend (Ministack API
-      // Gateway) run on different origins, so FRONTEND_URL must be set to
-      // redirect back to the Vite dev server.
+      // Absolute URL so the redirect always lands on the intended domain,
+      // even if a request reaches the backend directly (bypassing
+      // CloudFront). FRONTEND_URL covers local dev where the frontend and
+      // backend run on different origins.
       url: (_ctx, interaction) =>
-        `${process.env.FRONTEND_URL ?? ''}/?interactionId=${interaction.jti}`,
+        `${process.env.FRONTEND_URL ?? config.get('oidc.issuerUrl') ?? ''}/?interactionId=${interaction.jti}`,
     },
   };
 };

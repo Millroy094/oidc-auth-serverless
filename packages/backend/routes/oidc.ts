@@ -8,11 +8,10 @@ import verifyOrigin from '../middleware/verify-origin.ts';
 
 const router = Router();
 
-// The interaction sub-routes below are only ever called by our own frontend
-// login UI, so they're gated behind verifyOrigin. Everything else on this
-// router (authorize, token, jwks, userinfo, discovery, etc., handled by
-// setupOidc) is the actual OIDC protocol surface external relying parties
-// call directly - it must stay reachable without going through CloudFront.
+// Interaction routes below are only ever called by our own frontend login
+// UI, so they're gated behind verifyOrigin. Everything else on this router
+// (authorize, token, jwks, userinfo, discovery, via setupOidc) is the actual
+// OIDC protocol surface external relying parties call directly.
 router.get('/interaction/:uid/status', verifyOrigin, (req, res) =>
   OIDCController.getInteractionStatus(req, res),
 );
