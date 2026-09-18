@@ -54,13 +54,13 @@ function Pages() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-2xl mx-auto min-h-[500px] flex justify-center items-center">
+        <div className="max-w-2xl mx-auto min-h-125 flex justify-center items-center">
           <MutatingDots
             visible
             height="100"
             width="100"
-            color="#4fa94d"
-            secondaryColor="#4fa94d"
+            color="hsl(var(--primary))"
+            secondaryColor="hsl(var(--primary))"
             radius="12.5"
             ariaLabel="mutating-dots-loading"
             wrapperStyle={{}}

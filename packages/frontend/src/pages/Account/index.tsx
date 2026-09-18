@@ -21,8 +21,8 @@ const tabFallback = (
       visible
       height="80"
       width="80"
-      color="#4fa94d"
-      secondaryColor="#4fa94d"
+      color="hsl(var(--primary))"
+      secondaryColor="hsl(var(--primary))"
       radius="12.5"
       ariaLabel="mutating-dots-loading"
       wrapperStyle={{}}

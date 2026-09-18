@@ -11,10 +11,8 @@ const cookieSecrets = config.get('oidc.cookieSecrets');
 
 let jwksCache: JWKS | null = null;
 
-// The JWKS signing key is generated once by Terraform and stored (as a PEM)
-// in SSM Parameter Store - it must never be regenerated at build/deploy
-// time, or every previously issued token would be invalidated. Derive the
-// JWK keystore from the PEM once per cold start and cache it.
+// Generated once by Terraform and stored as a PEM in SSM - must never be
+// regenerated here, or every previously issued token would be invalidated.
 const getJwks = async (): Promise<JWKS> => {
   if (jwksCache) {
     return jwksCache;

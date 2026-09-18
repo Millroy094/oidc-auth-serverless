@@ -51,8 +51,11 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
       setUser(response.data.user);
       await navigate('/account');
     } catch {
-      await logout();
-      if (pathname !== '/') {
+      const hadUser = user !== null;
+      setUser(null);
+      localStorage.removeItem(ACCOUNT_ACTIVE_TAB_STORAGE_KEY);
+      await navigate('/login');
+      if (hadUser && pathname !== '/') {
         enqueueSnackbar('Session expired, please login again', {
           variant: 'error',
         });

@@ -45,6 +45,7 @@ const MFA: FC = () => {
   const [recoveryCodeCount, setRecoveryCodeCount] = useState<number>(0);
   const [mfaTypes, setMfaTypes] = useState<IMFAType[]>([]);
   const [passkeyVerified, setPasskeyVerified] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [setupModal, setSetupModal] = useState<ISetupModal>(setupModalDefault);
   const { feedbackAxiosError, feedback } = useFeedback();
 
@@ -60,6 +61,8 @@ const MFA: FC = () => {
         err,
         'There was an issue retrieving mfa setting, please try again',
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -104,7 +107,7 @@ const MFA: FC = () => {
 
   return (
     <>
-      {!hasVerifiedMethod && (
+      {!isLoading && !hasVerifiedMethod && (
         <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4">
           <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" />
           <div>
@@ -119,7 +122,7 @@ const MFA: FC = () => {
           </div>
         </div>
       )}
-      {hasVerifiedMethod && !mfaPreference && (
+      {!isLoading && hasVerifiedMethod && !mfaPreference && (
         <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4">
           <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" />
           <div>

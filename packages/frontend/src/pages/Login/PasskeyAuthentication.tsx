@@ -66,7 +66,7 @@ const PasskeyAuthentication: FC<PasskeyAuthenticationProps> = (props) => {
             visible={true}
             height="40"
             width="80"
-            color="#4fa94d"
+            color="hsl(var(--primary))"
             radius="9"
             ariaLabel="three-dots-loading"
           />

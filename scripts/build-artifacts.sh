@@ -31,9 +31,8 @@ cd "$ROOT_DIR"
 
 cp packages/backend/build/handler.mjs "$LAMBDA_ARTIFACT_DIR/handler.mjs"
 
-# Hash the file contents themselves, not the zip - `zip` embeds file
-# modification timestamps, so the archive's bytes (and its hash) would
-# differ on every build even when the underlying files are unchanged.
+# Hash the file contents, not the zip - `zip` embeds timestamps, so the
+# archive's hash would differ every build even with unchanged content.
 ARTIFACT_SHA=$(sha256sum "$LAMBDA_ARTIFACT_DIR/handler.mjs" | awk '{print $1}')
 
 cd "$LAMBDA_ARTIFACT_DIR"
