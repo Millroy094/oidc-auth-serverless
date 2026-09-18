@@ -36,6 +36,21 @@ const config = convict({
       env: 'JWKS_PRIVATE_KEY',
     },
   },
+  captcha: {
+    turnstileSiteKey: {
+      doc: "Public Cloudflare Turnstile site key, served to the frontend via /api/user/public-config. Defaults to Cloudflare's always-passes test key for local development.",
+      default: '1x00000000000000000000AA',
+      format: String,
+      env: 'TURNSTILE_SITE_KEY',
+    },
+    turnstileSecretKey: {
+      doc: "Cloudflare Turnstile secret key used to verify captcha tokens server-side. Defaults to Cloudflare's always-passes test key for local development.",
+      default: '1x0000000000000000000000000000000AA',
+      nullable: false,
+      format: String,
+      env: 'TURNSTILE_SECRET_KEY',
+    },
+  },
   authentication: {
     accessTokenSecret: {
       doc: 'Access Token Secret for Login',

@@ -8,6 +8,7 @@ type AuthenticateUserArgs = {
   loginWithRecoveryCode?: boolean;
   recoveryCode?: string;
   resetMfa?: boolean;
+  captchaToken: string;
 };
 
 export interface IAuthenticatedUser {
@@ -31,6 +32,7 @@ const authenticateUser = async (
     loginWithRecoveryCode,
     recoveryCode,
     resetMfa,
+    captchaToken,
   } = args;
   const response = await axios.post<AuthenticateUserResponseData>(
     '/api/user/login',
@@ -41,6 +43,7 @@ const authenticateUser = async (
       loginWithRecoveryCode,
       recoveryCode,
       resetMfa,
+      captchaToken,
     },
     { withCredentials: true },
   );

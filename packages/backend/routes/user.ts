@@ -21,15 +21,19 @@ import UserController, {
   VerifyMFABody,
 } from '../controllers/user.ts';
 import authenticate from '../middleware/authenticate.ts';
+import verifyCaptcha from '../middleware/verify-captcha.ts';
 
 const router = Router();
 
 router.post<Record<string, string>, unknown, RegisterBody>(
   '/register',
+  verifyCaptcha,
   (req, res) => UserController.register(req, res),
 );
-router.post<Record<string, string>, unknown, LoginBody>('/login', (req, res) =>
-  UserController.login(req, res),
+router.post<Record<string, string>, unknown, LoginBody>(
+  '/login',
+  verifyCaptcha,
+  (req, res) => UserController.login(req, res),
 );
 router.get('/logout', (req, res) => UserController.logout(req, res));
 router.get('/is-authenticated', authenticate, (req, res) =>
@@ -130,6 +134,10 @@ router.post<Record<string, string>, unknown, ChangePasswordBody>(
 router.get<Record<string, string>, unknown, unknown, LoginConfigurationQuery>(
   '/get-login-configuration',
   (req, res) => UserController.getLoginConfiguration(req, res),
+);
+
+router.get('/public-config', (req, res) =>
+  UserController.getPublicConfig(req, res),
 );
 
 export default router;

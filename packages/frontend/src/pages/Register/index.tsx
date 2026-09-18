@@ -1,15 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { omit } from 'lodash';
-import React, { FC } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import schema from './schema';
 import { IRegisterFormInput } from './types';
+import getPublicConfig from '@/api/user/get-public-config';
 import registerUser from '@/api/user/register-user';
 import AuthCardLayout from '@/components/AuthCardLayout';
 import { MobileNumberInput } from '@/components/MobileNumberInput';
 import PasswordField from '@/components/PasswordField';
 import PasswordPopover from '@/components/PasswordPopover';
+import Turnstile from '@/components/Turnstile';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,6 +26,8 @@ import useFeedback from '@/hooks/useFeedback';
 const Register: FC = () => {
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
   const navigate = useNavigate();
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
+  const [captchaToken, setCaptchaToken] = useState<string>('');
   const {
     control,
     register,
@@ -55,9 +59,20 @@ const Register: FC = () => {
     setAnchorEl(null);
   };
 
+  useEffect(() => {
+    const fetchPublicConfig = async () => {
+      const response = await getPublicConfig();
+      setTurnstileSiteKey(response.data.turnstileSiteKey);
+    };
+    void fetchPublicConfig();
+  }, []);
+
   const onSubmit = async (data: IRegisterFormInput): Promise<void> => {
     try {
-      const response = await registerUser(omit(data, 'confirmPassword'));
+      const response = await registerUser({
+        ...omit(data, 'confirmPassword'),
+        captchaToken,
+      });
       feedbackAxiosResponse(
         response,
         'Successfully registered user',
@@ -181,8 +196,20 @@ const Register: FC = () => {
               />
             </div>
 
+            {turnstileSiteKey && (
+              <div className="flex justify-center">
+                <Turnstile
+                  siteKey={turnstileSiteKey}
+                  onVerify={setCaptchaToken}
+                  onExpire={() => setCaptchaToken('')}
+                />
+              </div>
+            )}
+
             <div className="flex justify-end">
-              <Button type="submit">Register</Button>
+              <Button type="submit" disabled={!captchaToken}>
+                Register
+              </Button>
             </div>
           </form>
           <PasswordPopover

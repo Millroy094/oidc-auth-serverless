@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import PasskeyAuthentication from './PasskeyAuthentication';
@@ -11,8 +11,10 @@ import UsernameInput from './UsernameInput';
 import VerifyMFAOtpInput from './VerifyOtpInput';
 import authenticateInteraction from '@/api/oidc/authenticate-interaction';
 import getLoginConfiguration from '@/api/user/get-login-configuration';
+import getPublicConfig from '@/api/user/get-public-config';
 import Logo from '@/assets/logo.svg';
 import AuthCardLayout from '@/components/AuthCardLayout';
+import Turnstile from '@/components/Turnstile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -29,6 +31,7 @@ type ILoginStage = 'USERNAME' | 'PASSWORD' | 'MFA' | 'RECOVERY_CODE';
 
 const Login: FC = () => {
   const [loginStage, setLoginStage] = useState<ILoginStage>('USERNAME');
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
   const { interactionId } = useParams();
   const navigate = useNavigate();
   const { feedbackAxiosError } = useFeedback();
@@ -53,11 +56,21 @@ const Login: FC = () => {
       loginWithRecoveryCode: false,
       recoveryCode: '',
       resetMfa: false,
+      captchaToken: '',
     },
   });
 
   const email = getValues('email');
   const mfaType = getValues('mfaType');
+  const captchaToken = getValues('captchaToken');
+
+  useEffect(() => {
+    const fetchPublicConfig = async () => {
+      const response = await getPublicConfig();
+      setTurnstileSiteKey(response.data.turnstileSiteKey);
+    };
+    void fetchPublicConfig();
+  }, []);
 
   const onReset = () => {
     setLoginStage(USERNAME_LOGIN_STAGE);
@@ -98,7 +111,11 @@ const Login: FC = () => {
   const onSubmit = async (data: ILoginFormInput) => {
     try {
       const response = interactionId
-        ? await authenticateInteraction({ ...data, interactionId })
+        ? await authenticateInteraction({
+            ...data,
+            captchaToken: data.captchaToken ?? '',
+            interactionId,
+          })
         : await Auth?.login(data);
 
       if (response?.data.redirect) {
@@ -156,6 +173,15 @@ const Login: FC = () => {
           {loginStage === USERNAME_LOGIN_STAGE && (
             <UsernameInput register={register} errors={errors} />
           )}
+          {loginStage === USERNAME_LOGIN_STAGE && turnstileSiteKey && (
+            <div className="flex justify-center">
+              <Turnstile
+                siteKey={turnstileSiteKey}
+                onVerify={(token) => setValue('captchaToken', token)}
+                onExpire={() => setValue('captchaToken', '')}
+              />
+            </div>
+          )}
           {loginStage === PASSWORD_LOGIN_STAGE && (
             <PasswordInput
               register={register}
@@ -210,7 +236,11 @@ const Login: FC = () => {
             </Button>
           )}
           {showButton && (
-            <Button onClick={onNextStep} className="w-full sm:w-auto">
+            <Button
+              onClick={onNextStep}
+              disabled={!!turnstileSiteKey && !captchaToken}
+              className="w-full sm:w-auto"
+            >
               {buttonText}
             </Button>
           )}

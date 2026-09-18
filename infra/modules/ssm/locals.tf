@@ -11,5 +11,7 @@ locals {
     "COOKIE_SECRETS"        = { value = random_password.cookie_secret.result, secure = true }
     "SUPPORT_EMAIL"         = { value = var.support_email, secure = false }
     "JWKS_PRIVATE_KEY"      = { value = tls_private_key.jwks_signing_key.private_key_pem, secure = true }
+    "TURNSTILE_SITE_KEY"    = { value = var.turnstile_site_key, secure = false }
+    "TURNSTILE_SECRET_KEY"  = { value = var.turnstile_secret_key, secure = true }
   }
 }

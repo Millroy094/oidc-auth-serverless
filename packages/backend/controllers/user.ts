@@ -15,6 +15,7 @@ export interface RegisterBody {
   lastName: string;
   mobile?: string;
   password: string;
+  captchaToken: string;
 }
 
 export interface LoginBody {
@@ -24,6 +25,7 @@ export interface LoginBody {
   loginWithRecoveryCode?: boolean;
   recoveryCode?: string;
   resetMfa?: boolean;
+  captchaToken: string;
 }
 
 export interface SessionIdParams {
@@ -428,6 +430,12 @@ class UserController {
         .status(HTTP_STATUSES.notFound)
         .json({ error: 'Failed to change password' });
     }
+  }
+
+  public static getPublicConfig(_req: Request, res: Response) {
+    res.status(HTTP_STATUSES.ok).json({
+      turnstileSiteKey: config.get('captcha.turnstileSiteKey'),
+    });
   }
 }
 

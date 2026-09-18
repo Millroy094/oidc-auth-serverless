@@ -32,6 +32,17 @@ variable "support_email" {
   description = "Verified SES sender address used for outbound email"
 }
 
+variable "turnstile_site_key" {
+  type        = string
+  description = "Cloudflare Turnstile public site key used to render the captcha widget on the register form"
+}
+
+variable "turnstile_secret_key" {
+  type        = string
+  description = "Cloudflare Turnstile secret key used to verify captcha tokens server-side"
+  sensitive   = true
+}
+
 variable "artifact_sha" {
   type        = string
   description = "SHA-256 content hash of the uploaded Lambda deployment zip; used to build the S3 key lambda/<artifact_sha>/handler.zip. Updated by CI only when the backend build actually changes."

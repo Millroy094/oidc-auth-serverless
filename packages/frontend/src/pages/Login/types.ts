@@ -6,4 +6,5 @@ export interface ILoginFormInput {
   loginWithRecoveryCode: boolean;
   recoveryCode?: string;
   resetMfa?: boolean;
+  captchaToken?: string;
 }

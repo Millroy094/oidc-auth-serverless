@@ -11,6 +11,7 @@ export interface AuthenticateInteractionBody {
   loginWithRecoveryCode?: boolean;
   recoveryCode?: string;
   resetMfa?: boolean;
+  captchaToken: string;
 }
 
 export interface AuthorizeInteractionBody {

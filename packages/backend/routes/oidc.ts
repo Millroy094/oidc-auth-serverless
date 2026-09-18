@@ -3,6 +3,7 @@ import OIDCController, {
   AuthenticateInteractionBody,
   AuthorizeInteractionBody,
 } from '../controllers/oidc.ts';
+import verifyCaptcha from '../middleware/verify-captcha.ts';
 
 const router = Router();
 
@@ -12,6 +13,7 @@ router.get('/interaction/:uid/status', (req, res) =>
 
 router.post<Record<string, string>, unknown, AuthenticateInteractionBody>(
   '/interaction/:uid/authenticate',
+  verifyCaptcha,
   (req, res) => OIDCController.authenticateInteraction(req, res),
 );
 

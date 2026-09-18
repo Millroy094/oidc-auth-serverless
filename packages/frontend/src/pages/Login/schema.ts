@@ -9,6 +9,7 @@ const schema = z
     loginWithRecoveryCode: z.boolean(),
     recoveryCode: z.string().optional(),
     resetMfa: z.boolean().optional(),
+    captchaToken: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (

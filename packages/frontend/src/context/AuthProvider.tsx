@@ -34,6 +34,7 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
     try {
       const response = await authenticateUser({
         ...data,
+        captchaToken: data.captchaToken ?? '',
       });
       setUser(response.data.user);
       await navigate('/account');

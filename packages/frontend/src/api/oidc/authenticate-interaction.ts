@@ -9,6 +9,7 @@ type validateCredentialsArgs = {
   recoveryCode?: string;
   resetMfa?: boolean;
   interactionId: string;
+  captchaToken: string;
 };
 
 interface AuthenticateInteractionResponseData {
@@ -27,6 +28,7 @@ const authenticateInteraction = async (
     recoveryCode,
     resetMfa,
     interactionId,
+    captchaToken,
   } = args;
   const response = await axios.post<AuthenticateInteractionResponseData>(
     `/api/oidc/interaction/${interactionId}/authenticate`,
@@ -37,6 +39,7 @@ const authenticateInteraction = async (
       loginWithRecoveryCode,
       recoveryCode,
       resetMfa,
+      captchaToken,
     },
     { withCredentials: true },
   );

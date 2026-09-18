@@ -1,9 +1,11 @@
 module "ssm" {
   source = "../../modules/ssm"
 
-  environment   = "production"
-  path_prefix   = "/${var.resource_prefix}/production/"
-  support_email = var.support_email
+  environment          = "production"
+  path_prefix          = "/${var.resource_prefix}/production/"
+  support_email        = var.support_email
+  turnstile_site_key   = var.turnstile_site_key
+  turnstile_secret_key = var.turnstile_secret_key
 }
 
 module "dynamodb" {

@@ -7,6 +7,7 @@ type registerUserArgs = {
   firstName: string;
   lastName: string;
   mobile?: string;
+  captchaToken: string;
 };
 
 interface RegisterUserResponseData {
@@ -16,7 +17,7 @@ interface RegisterUserResponseData {
 const registerUser = async (
   args: registerUserArgs,
 ): Promise<AxiosResponse<RegisterUserResponseData>> => {
-  const { email, password, firstName, lastName, mobile } = args;
+  const { email, password, firstName, lastName, mobile, captchaToken } = args;
   const response = await axios.post<RegisterUserResponseData>(
     '/api/user/register',
     {
@@ -25,6 +26,7 @@ const registerUser = async (
       firstName,
       lastName,
       mobile,
+      captchaToken,
     },
     { withCredentials: true },
   );
