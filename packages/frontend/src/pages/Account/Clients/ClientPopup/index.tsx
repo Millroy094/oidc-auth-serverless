@@ -181,7 +181,7 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
         <Card className="border-0">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -278,6 +278,41 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
                     </div>
                   </div>
 
+                  <ResourceScopesField
+                    control={control}
+                    errors={errors}
+                    setValue={setValue}
+                    watch={watch}
+                    resources={resources}
+                  />
+
+                  <div className="flex items-start gap-2">
+                    <Controller
+                      name="requirePkce"
+                      control={control}
+                      render={({ field }) => (
+                        <Checkbox
+                          id="requirePkce"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="mt-0.5"
+                        />
+                      )}
+                    />
+                    <div>
+                      <label
+                        htmlFor="requirePkce"
+                        className="block text-sm font-medium cursor-pointer"
+                      >
+                        Require PKCE
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        Recommended for all clients. Only disable this for
+                        confidential clients that cannot support PKCE.
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="space-y-3">
                     {redirectUriFields.map((field, index) => (
                       <div key={field.id} className="space-y-1">
@@ -331,41 +366,6 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
                         )}
                       </div>
                     ))}
-                  </div>
-
-                  <ResourceScopesField
-                    control={control}
-                    errors={errors}
-                    setValue={setValue}
-                    watch={watch}
-                    resources={resources}
-                  />
-
-                  <div className="flex items-start gap-2">
-                    <Controller
-                      name="requirePkce"
-                      control={control}
-                      render={({ field }) => (
-                        <Checkbox
-                          id="requirePkce"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="mt-0.5"
-                        />
-                      )}
-                    />
-                    <div>
-                      <label
-                        htmlFor="requirePkce"
-                        className="block text-sm font-medium cursor-pointer"
-                      >
-                        Require PKCE
-                      </label>
-                      <p className="text-xs text-muted-foreground">
-                        Recommended for all clients. Only disable this for
-                        confidential clients that cannot support PKCE.
-                      </p>
-                    </div>
                   </div>
                 </div>
               )}
