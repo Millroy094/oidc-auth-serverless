@@ -1,4 +1,4 @@
-import { Plus, Copy, Trash2, Briefcase } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, Briefcase } from 'lucide-react';
 import { FC, useEffect, useState, startTransition } from 'react';
 import ClientPopup from './ClientPopup';
 import deleteClient from '@/api/admin/delete-client';
@@ -19,7 +19,8 @@ const Clients: FC = () => {
   const [open, setOpen] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
-  const { feedbackAxiosError, feedbackAxiosResponse } = useFeedback();
+  const [copiedClientId, setCopiedClientId] = useState<string | null>(null);
+  const { feedbackAxiosError, feedbackAxiosResponse, feedback } = useFeedback();
 
   const fetchClients = async () => {
     try {
@@ -51,6 +52,13 @@ const Clients: FC = () => {
         'There was an issue deleting the client, please try again',
       );
     }
+  };
+
+  const handleCopySecret = (id: string, secret: string): void => {
+    void navigator.clipboard.writeText(secret);
+    feedback('Secret copied to clipboard', 'success');
+    setCopiedClientId(id);
+    setTimeout(() => setCopiedClientId(null), 1500);
   };
 
   useEffect(() => {
@@ -124,12 +132,16 @@ const Clients: FC = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              void navigator.clipboard.writeText(client.secret);
+                              handleCopySecret(client.id, client.secret);
                             }}
                             title="Copy Secret"
-                            className="p-1 hover:bg-muted rounded"
+                            className="rounded p-1 transition-all hover:scale-110 hover:bg-muted active:scale-95"
                           >
-                            <Copy className="w-4 h-4 text-primary" />
+                            {copiedClientId === client.id ? (
+                              <Check className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <Copy className="w-4 h-4 text-primary" />
+                            )}
                           </button>
                         </div>
                       </td>
@@ -193,13 +205,22 @@ const Clients: FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        void navigator.clipboard.writeText(client.secret);
+                        handleCopySecret(client.id, client.secret);
                       }}
                       title="Copy Secret"
-                      className="flex items-center gap-1 rounded p-1 text-xs text-primary hover:bg-muted"
+                      className="flex items-center gap-1 rounded p-1 text-xs text-primary transition-all hover:scale-105 hover:bg-muted active:scale-95"
                     >
-                      <Copy className="w-3.5 h-3.5" />
-                      Copy
+                      {copiedClientId === client.id ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-green-600" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          Copy
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

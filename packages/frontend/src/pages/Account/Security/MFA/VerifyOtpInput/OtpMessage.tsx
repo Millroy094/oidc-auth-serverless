@@ -45,7 +45,7 @@ const OtpMessage: FC<IOtpMessageProps> = (props) => {
                   feedback('Setup key copied to clipboard', 'success');
                 }}
                 title="Copy setup key"
-                className="flex items-center gap-2 rounded border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-mono tracking-wide text-slate-700 hover:bg-slate-100"
+                className="flex items-center gap-2 rounded border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-mono tracking-wide text-slate-700 transition-all hover:scale-[1.02] hover:bg-slate-100 active:scale-95"
               >
                 <span className="break-all">{manualSetupKey}</span>
                 <Copy className="w-3.5 h-3.5 shrink-0 text-primary" />
