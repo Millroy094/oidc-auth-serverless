@@ -59,10 +59,11 @@ module "api_gateway" {
 module "website" {
   source = "../../modules/website"
 
-  bucket_name         = "oidc-auth-website"
-  environment         = "production"
-  distribution_name   = var.resource_prefix
-  api_gateway_domain  = module.api_gateway.api_endpoint
-  aliases             = [var.domain_name]
-  acm_certificate_arn = aws_acm_certificate_validation.website.certificate_arn
+  bucket_name          = "oidc-auth-website"
+  environment          = "production"
+  distribution_name    = var.resource_prefix
+  api_gateway_domain   = module.api_gateway.api_endpoint
+  aliases              = [var.domain_name]
+  acm_certificate_arn  = aws_acm_certificate_validation.website.certificate_arn
+  origin_verify_secret = module.ssm.origin_verify_secret
 }

@@ -126,6 +126,14 @@ const config = convict({
       env: 'SUPPORT_EMAIL',
     },
   },
+  security: {
+    originVerifySecret: {
+      doc: 'Secret CloudFront attaches as an X-Origin-Verify header to every request it forwards to the API Gateway origin. The backend rejects requests missing/mismatching it, so the API can only be reached through CloudFront. Not enforced when deploymentEnvironment is "local".',
+      default: '',
+      format: String,
+      env: 'ORIGIN_VERIFY_SECRET',
+    },
+  },
 });
 
 config.validate({ allowed: 'strict' });

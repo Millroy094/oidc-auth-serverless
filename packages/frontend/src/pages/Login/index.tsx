@@ -175,13 +175,11 @@ const Login: FC = () => {
             <UsernameInput register={register} errors={errors} />
           )}
           {loginStage === USERNAME_LOGIN_STAGE && turnstileSiteKey && (
-            <div className="flex justify-center">
-              <Turnstile
-                siteKey={turnstileSiteKey}
-                onVerify={(token) => setValue('captchaToken', token)}
-                onExpire={() => setValue('captchaToken', '')}
-              />
-            </div>
+            <Turnstile
+              siteKey={turnstileSiteKey}
+              onVerify={(token) => setValue('captchaToken', token)}
+              onExpire={() => setValue('captchaToken', '')}
+            />
           )}
           {loginStage === PASSWORD_LOGIN_STAGE && (
             <PasswordInput

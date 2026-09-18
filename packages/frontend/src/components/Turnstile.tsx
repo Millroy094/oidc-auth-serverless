@@ -9,6 +9,8 @@ declare global {
           sitekey: string;
           callback: (token: string) => void;
           'expired-callback'?: () => void;
+          theme?: 'light' | 'dark' | 'auto';
+          size?: 'normal' | 'compact' | 'flexible';
         },
       ) => string;
       remove: (widgetId: string) => void;
@@ -66,6 +68,8 @@ const Turnstile: FC<TurnstileProps> = ({ siteKey, onVerify, onExpire }) => {
         sitekey: siteKey,
         callback: onVerify,
         'expired-callback': onExpire,
+        theme: 'light',
+        size: 'flexible',
       });
     });
 
@@ -78,7 +82,7 @@ const Turnstile: FC<TurnstileProps> = ({ siteKey, onVerify, onExpire }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteKey]);
 
-  return <div ref={containerRef} />;
+  return <div ref={containerRef} className="min-h-[65px] w-full" />;
 };
 
 export default Turnstile;

@@ -197,13 +197,11 @@ const Register: FC = () => {
             </div>
 
             {turnstileSiteKey && (
-              <div className="flex justify-center">
-                <Turnstile
-                  siteKey={turnstileSiteKey}
-                  onVerify={setCaptchaToken}
-                  onExpire={() => setCaptchaToken('')}
-                />
-              </div>
+              <Turnstile
+                siteKey={turnstileSiteKey}
+                onVerify={setCaptchaToken}
+                onExpire={() => setCaptchaToken('')}
+              />
             )}
 
             <div className="flex justify-end">

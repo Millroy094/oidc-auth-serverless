@@ -93,6 +93,11 @@ resource "aws_cloudfront_distribution" "main" {
     domain_name = replace(var.api_gateway_domain, "https://", "")
     origin_id   = "APIGateway"
 
+    custom_header {
+      name  = "X-Origin-Verify"
+      value = var.origin_verify_secret
+    }
+
     custom_origin_config {
       http_port              = 80
       https_port             = 443

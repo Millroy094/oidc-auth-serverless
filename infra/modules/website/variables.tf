@@ -47,3 +47,9 @@ variable "acm_certificate_arn" {
   default     = ""
   description = "ACM certificate ARN (must be in us-east-1) covering aliases. Leave empty to use the default CloudFront certificate."
 }
+
+variable "origin_verify_secret" {
+  type        = string
+  description = "Secret value sent as a custom header to the API Gateway origin, letting the backend reject requests that bypass CloudFront"
+  sensitive   = true
+}

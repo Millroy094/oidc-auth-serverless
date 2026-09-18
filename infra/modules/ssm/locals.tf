@@ -13,5 +13,6 @@ locals {
     "JWKS_PRIVATE_KEY"      = { value = tls_private_key.jwks_signing_key.private_key_pem, secure = true }
     "TURNSTILE_SITE_KEY"    = { value = var.turnstile_site_key, secure = false }
     "TURNSTILE_SECRET_KEY"  = { value = var.turnstile_secret_key, secure = true }
+    "ORIGIN_VERIFY_SECRET"  = { value = random_password.origin_verify_secret.result, secure = true }
   }
 }

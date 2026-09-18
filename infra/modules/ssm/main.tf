@@ -23,6 +23,11 @@ resource "random_password" "cookie_secret" {
   special = false
 }
 
+resource "random_password" "origin_verify_secret" {
+  length  = 32
+  special = false
+}
+
 # Generated once and persisted in Terraform state - never regenerated, so
 # previously issued OIDC tokens keep validating against the same key.
 resource "tls_private_key" "jwks_signing_key" {

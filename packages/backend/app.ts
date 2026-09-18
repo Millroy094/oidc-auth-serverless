@@ -4,6 +4,7 @@ import express from 'express';
 import Provider from 'oidc-provider';
 import addOIDCProvider from './middleware/add-oidc-provider.ts';
 import errorHandler from './middleware/error-handler.ts';
+import verifyOrigin from './middleware/verify-origin.ts';
 import adminRoutes from './routes/admin.ts';
 import healthCheckRoutes from './routes/health-check.ts';
 import oidcRoutes from './routes/oidc.ts';
@@ -51,10 +52,10 @@ class Application {
   }
 
   private setupRoutes(): void {
-    this.expressApp.use('/api/oidc', oidcRoutes);
-    this.expressApp.use('/api/user', userRoutes);
-    this.expressApp.use('/api/admin', adminRoutes);
     this.expressApp.use('/api/health-check', healthCheckRoutes);
+    this.expressApp.use('/api/oidc', oidcRoutes);
+    this.expressApp.use('/api/user', verifyOrigin, userRoutes);
+    this.expressApp.use('/api/admin', verifyOrigin, adminRoutes);
     this.expressApp.use(errorHandler);
   }
 
