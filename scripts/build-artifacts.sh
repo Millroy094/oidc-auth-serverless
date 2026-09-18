@@ -2,16 +2,9 @@
 set -e
 
 # Builds the backend Lambda zip and the frontend static site into a root
-# artifacts/ folder, then uploads the Lambda zip to S3 so Terraform can
-# create/update the Lambda function from a real deployment package instead
-# of a placeholder. The bucket itself is created here (not by Terraform) and
-# is separate from the (not-yet-provisioned) website hosting bucket.
-#
-# For local, writes infra/environments/local/artifacts.auto.tfvars so
-# `terraform apply` automatically picks up the bucket name. For other
-# environments, the bucket name and artifact_sha are Terraform Cloud
-# workspace variables managed outside this script (the latter updated by CI
-# on each deploy), so no tfvars file is written.
+# artifacts/ folder, then uploads the Lambda zip to S3. Keyed by a SHA-256
+# content hash of the zip so an unchanged backend reuses the same S3 key,
+# letting callers skip redundant uploads/deploys.
 #
 # Usage: ./scripts/build-artifacts.sh
 
@@ -23,7 +16,6 @@ WEBSITE_ARTIFACT_DIR="$ARTIFACTS_DIR/website"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 ENVIRONMENT="${ENVIRONMENT:-local}"
 ARTIFACTS_BUCKET_NAME="${ARTIFACTS_BUCKET_NAME:-oidc-auth-lambda-artifacts-local}"
-ARTIFACT_SHA="${ARTIFACT_SHA:-local}"
 
 if [ "$ENVIRONMENT" = "local" ]; then
   AWS_ENDPOINT="--endpoint-url http://localhost:4566"
@@ -68,16 +60,28 @@ else
   echo "✓ Bucket $ARTIFACTS_BUCKET_NAME already exists"
 fi
 
+ARTIFACT_SHA=$(sha256sum "$LAMBDA_ARTIFACT_DIR/handler.zip" | awk '{print $1}')
+echo "🔑 Lambda artifact content hash: $ARTIFACT_SHA"
+
 LAMBDA_S3_KEY="lambda/$ARTIFACT_SHA/handler.zip"
-echo "📦 Uploading Lambda artifact to s3://$ARTIFACTS_BUCKET_NAME/$LAMBDA_S3_KEY..."
-aws $AWS_ENDPOINT s3 cp "$LAMBDA_ARTIFACT_DIR/handler.zip" "s3://$ARTIFACTS_BUCKET_NAME/$LAMBDA_S3_KEY" --region "$AWS_REGION" --checksum-algorithm SHA256 > /dev/null
+if aws $AWS_ENDPOINT s3api head-object --bucket "$ARTIFACTS_BUCKET_NAME" --key "$LAMBDA_S3_KEY" --region "$AWS_REGION" > /dev/null 2>&1; then
+  echo "✓ Identical Lambda artifact already uploaded at s3://$ARTIFACTS_BUCKET_NAME/$LAMBDA_S3_KEY - skipping upload"
+else
+  echo "📦 Uploading Lambda artifact to s3://$ARTIFACTS_BUCKET_NAME/$LAMBDA_S3_KEY..."
+  aws $AWS_ENDPOINT s3 cp "$LAMBDA_ARTIFACT_DIR/handler.zip" "s3://$ARTIFACTS_BUCKET_NAME/$LAMBDA_S3_KEY" --region "$AWS_REGION" --checksum-algorithm SHA256 > /dev/null
+fi
 
 if [ "$ENVIRONMENT" = "local" ]; then
   TFVARS_FILE="$ROOT_DIR/infra/environments/local/artifacts.auto.tfvars"
   cat > "$TFVARS_FILE" << EOF
 artifacts_bucket_name = "$ARTIFACTS_BUCKET_NAME"
+artifact_sha          = "$ARTIFACT_SHA"
 EOF
   echo "✓ Wrote $TFVARS_FILE"
 fi
 
-echo "✅ Artifacts built and uploaded (Lambda key: $LAMBDA_S3_KEY)"
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  echo "artifact_sha=$ARTIFACT_SHA" >> "$GITHUB_OUTPUT"
+fi
+
+echo "✅ Artifacts built (Lambda key: $LAMBDA_S3_KEY)"

@@ -54,7 +54,7 @@ variable "artifacts_bucket_name" {
 
 variable "artifact_sha" {
   type        = string
-  description = "Identifier (git SHA, or \"local\") for the uploaded Lambda deployment zip; used to build the S3 key lambda/<artifact_sha>/handler.zip"
+  description = "SHA-256 content hash (or \"local\") of the uploaded Lambda deployment zip; used to build the S3 key lambda/<artifact_sha>/handler.zip"
 }
 
 variable "log_retention_in_days" {

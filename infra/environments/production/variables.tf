@@ -34,7 +34,7 @@ variable "support_email" {
 
 variable "artifact_sha" {
   type        = string
-  description = "Identifier (git SHA) for the uploaded Lambda deployment zip; used to build the S3 key lambda/<artifact_sha>/handler.zip. Updated by CI on each deploy."
+  description = "SHA-256 content hash of the uploaded Lambda deployment zip; used to build the S3 key lambda/<artifact_sha>/handler.zip. Updated by CI only when the backend build actually changes."
 }
 
 variable "domain_name" {

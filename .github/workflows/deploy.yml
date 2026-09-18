@@ -39,14 +39,16 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Build and upload artifacts
+        id: build
         env:
           ENVIRONMENT: production
           AWS_REGION: ${{ vars.AWS_REGION }}
           ARTIFACTS_BUCKET_NAME: oidc-auth-artifacts
-          ARTIFACT_SHA: ${{ github.sha }}
         run: ./scripts/build-artifacts.sh
 
-      - name: Update Terraform Cloud workspace variable
+      - name: Update Terraform Cloud workspace variable (if changed)
+        env:
+          NEW_ARTIFACT_SHA: ${{ steps.build.outputs.artifact_sha }}
         run: |
           set -euo pipefail
           AUTH_HEADER="Authorization: Bearer $TF_API_TOKEN"
@@ -56,17 +58,25 @@ jobs:
             "https://app.terraform.io/api/v2/organizations/${TF_ORG}/workspaces/${TF_WORKSPACE}" \
             | jq -r '.data.id')
 
-          VAR_ID=$(curl -s \
+          VAR_JSON=$(curl -s \
             --header "$AUTH_HEADER" \
             --header "Content-Type: application/vnd.api+json" \
             "https://app.terraform.io/api/v2/workspaces/${WORKSPACE_ID}/vars" \
-            | jq -r '.data[] | select(.attributes.key == "artifact_sha") | .id')
+            | jq -r '.data[] | select(.attributes.key == "artifact_sha")')
 
-          curl -s -X PATCH \
-            --header "$AUTH_HEADER" \
-            --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/workspaces/${WORKSPACE_ID}/vars/${VAR_ID}" \
-            -d '{"data":{"type":"vars","id":"'"$VAR_ID"'","attributes":{"key":"artifact_sha","category":"terraform","value":"'"${{ github.sha }}"'","hcl":false,"sensitive":false}}}'
+          VAR_ID=$(echo "$VAR_JSON" | jq -r '.id')
+          CURRENT_ARTIFACT_SHA=$(echo "$VAR_JSON" | jq -r '.attributes.value')
+
+          if [ "$CURRENT_ARTIFACT_SHA" = "$NEW_ARTIFACT_SHA" ]; then
+            echo "✓ Backend artifact unchanged ($NEW_ARTIFACT_SHA) - skipping Terraform Cloud variable update"
+          else
+            echo "📝 Backend artifact changed ($CURRENT_ARTIFACT_SHA -> $NEW_ARTIFACT_SHA) - updating Terraform Cloud variable"
+            curl -s -X PATCH \
+              --header "$AUTH_HEADER" \
+              --header "Content-Type: application/vnd.api+json" \
+              "https://app.terraform.io/api/v2/workspaces/${WORKSPACE_ID}/vars/${VAR_ID}" \
+              -d '{"data":{"type":"vars","id":"'"$VAR_ID"'","attributes":{"key":"artifact_sha","category":"terraform","value":"'"$NEW_ARTIFACT_SHA"'","hcl":false,"sensitive":false}}}'
+          fi
 
       - name: Upload Terraform configuration
         id: upload
