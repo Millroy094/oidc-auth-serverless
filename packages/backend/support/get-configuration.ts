@@ -105,14 +105,17 @@ const getConfiguration = async (): Promise<Configuration> => {
               sub: id,
               ...(scope.includes('email') && {
                 email: account.email,
-                emailVerified: account.emailVerified,
+                email_verified: account.emailVerified,
               }),
               ...(scope.includes('phone') && {
-                mobile: account.mobile,
+                phone_number: account.mobile,
               }),
               ...(scope.includes('profile') && {
-                firstName: account.firstName,
-                lastName: account.lastName,
+                given_name: account.firstName,
+                family_name: account.lastName,
+                name: [account.firstName, account.lastName]
+                  .filter(Boolean)
+                  .join(' '),
               }),
             };
           },
@@ -133,9 +136,9 @@ const getConfiguration = async (): Promise<Configuration> => {
     pkce: { required: () => true },
     claims: {
       openid: ['sub'],
-      email: ['email', 'emailVerified'],
-      phone: ['mobile'],
-      profile: ['firstName', 'lastName'],
+      email: ['email', 'email_verified'],
+      phone: ['phone_number'],
+      profile: ['given_name', 'family_name', 'name'],
     },
     interactions: {
       // In production, CloudFront serves the frontend and proxies /api/* to
