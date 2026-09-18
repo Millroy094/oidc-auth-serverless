@@ -35,6 +35,13 @@ const config = convict({
       format: String,
       env: 'JWKS_PRIVATE_KEY',
     },
+    issuerUrl: {
+      doc: 'Public-facing origin (scheme + host) the OIDC issuer/endpoints are advertised under, e.g. "https://auth.example.com". Must match the domain the browser sees, NOT the API Gateway/Lambda hostname - CloudFront overwrites the Host header before proxying to the origin, so it cannot be reliably derived from the incoming request in production. Leave empty to derive it from the request (used locally, where there is no CloudFront in front of the backend).',
+      default: '',
+      nullable: false,
+      format: String,
+      env: 'ISSUER_URL',
+    },
   },
   captcha: {
     turnstileSiteKey: {

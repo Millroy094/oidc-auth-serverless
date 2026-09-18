@@ -60,7 +60,7 @@ const RecoveryCodeModal: FC<RecoveryCodeModalProps> = (props) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden">
+      <DialogContent className="max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
         <Card className="border-0">
           <CardHeader>
             <h2 className="font-semibold">Recovery codes</h2>

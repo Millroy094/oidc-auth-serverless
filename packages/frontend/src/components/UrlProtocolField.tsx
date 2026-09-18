@@ -51,7 +51,7 @@ const UrlProtocolField = <TFieldValues extends FieldValues>(
           : value;
 
         return (
-          <div className={`flex ${className ?? ''}`}>
+          <div className={`flex min-w-0 ${className ?? ''}`}>
             {protocols.length > 1 ? (
               <Select
                 value={protocol}
@@ -82,7 +82,7 @@ const UrlProtocolField = <TFieldValues extends FieldValues>(
               onBlur={field.onBlur}
               disabled={disabled}
               placeholder={placeholder}
-              className={`flex-1 rounded-l-none ${invalid ? 'border-destructive' : ''}`}
+              className={`min-w-0 flex-1 rounded-l-none ${invalid ? 'border-destructive' : ''}`}
             />
           </div>
         );

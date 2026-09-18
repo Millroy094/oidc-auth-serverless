@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import Provider from 'oidc-provider';
+import config from '../support/env-config.ts';
 import getConfiguration from '../support/get-configuration.ts';
 
 const addOIDCProvider = async (
@@ -8,12 +9,13 @@ const addOIDCProvider = async (
   next: NextFunction,
 ) => {
   const configuration = await getConfiguration();
-  // Derive the issuer from the incoming request rather than hardcoding a
-  // host, since the backend runs behind different origins per environment
-  // (Ministack API Gateway locally, CloudFront/API Gateway in production).
-  // `trust proxy` is enabled in app.ts so req.protocol/req.get('host')
-  // correctly reflect the original client-facing scheme/host.
-  const issuer = `${req.protocol}://${req.get('host')}`;
+  // `trust proxy` is enabled in app.ts so req.protocol/req.get('host') reflect
+  // the client-facing scheme/host when there's no host-rewriting proxy in
+  // front of the backend (e.g. Ministack locally). In production, CloudFront
+  // overwrites the Host header before proxying to API Gateway, so the issuer
+  // must come from ISSUER_URL instead - same reasoning as RP_ID for WebAuthn.
+  const issuer =
+    config.get('oidc.issuerUrl') || `${req.protocol}://${req.get('host')}`;
   const provider = new Provider(issuer, configuration);
   req.oidcProvider = provider;
   next();

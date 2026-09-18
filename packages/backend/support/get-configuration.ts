@@ -135,7 +135,7 @@ const getConfiguration = async (): Promise<Configuration> => {
       properties: ['resources', 'require_pkce'],
     },
     pkce: {
-      required: (_ctx, client) => client.require_pkce,
+      required: (_ctx, client) => client.require_pkce as boolean,
     },
     claims: {
       openid: ['sub'],

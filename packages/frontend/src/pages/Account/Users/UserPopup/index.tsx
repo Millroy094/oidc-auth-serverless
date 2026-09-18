@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthProvider';
 import useFeedback from '@/hooks/useFeedback';
 
@@ -48,6 +49,7 @@ const UserPopup: FC<UserPopupProps> = (props) => {
   const { userIdentifier, open, onClose } = props;
   const [user, setUser] = useState<IUserPopupInput>(defaultValues);
   const [resources, setResources] = useState<IAdminResourceListItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
   const Auth = useAuth();
   const isSelf = !!userIdentifier && userIdentifier === Auth?.user?.userId;
@@ -83,6 +85,7 @@ const UserPopup: FC<UserPopupProps> = (props) => {
 
   const fetchUser = async (id: string): Promise<void> => {
     try {
+      setIsLoading(true);
       const response = await getUser(id);
       setUser({
         firstName: response.data.user.firstName,
@@ -101,6 +104,8 @@ const UserPopup: FC<UserPopupProps> = (props) => {
         'There was an issue retrieving the user, please try again',
       );
       handleClose();
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -166,141 +171,161 @@ const UserPopup: FC<UserPopupProps> = (props) => {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent>
-              <div className="space-y-5">
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Email Address
-                  </label>
-                  <Input {...register('email')} id="email" disabled />
-                  <p className="text-xs text-slate-500 mt-1">
-                    Last login: {lastLoggedInAsDate}
-                  </p>
+              {isLoading ? (
+                <div className="space-y-5">
+                  <Skeleton className="h-9 w-full" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                  </div>
+                  <Skeleton className="h-9 w-full" />
+                  <Skeleton className="h-9 w-full" />
+                  <Skeleton className="h-20 w-full" />
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              ) : (
+                <div className="space-y-5">
                   <div>
                     <label
-                      htmlFor="firstName"
+                      htmlFor="email"
                       className="block text-sm font-medium mb-1"
                     >
-                      First Name
+                      Email Address
                     </label>
-                    <Input {...register('firstName')} id="firstName" />
-                    {errors.firstName && (
-                      <p className="text-sm text-red-500 mt-1">
-                        {errors.firstName.message}
-                      </p>
-                    )}
+                    <Input {...register('email')} id="email" disabled />
+                    <p className="text-xs text-slate-500 mt-1">
+                      Last login: {lastLoggedInAsDate}
+                    </p>
                   </div>
-                  <div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="firstName"
+                        className="block text-sm font-medium mb-1"
+                      >
+                        First Name
+                      </label>
+                      <Input {...register('firstName')} id="firstName" />
+                      {errors.firstName && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.firstName.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="lastName"
+                        className="block text-sm font-medium mb-1"
+                      >
+                        Last Name
+                      </label>
+                      <Input {...register('lastName')} id="lastName" />
+                      {errors.lastName && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.lastName.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-4 sm:gap-6">
                     <label
-                      htmlFor="lastName"
-                      className="block text-sm font-medium mb-1"
+                      htmlFor="emailVerified"
+                      className="flex items-center gap-2 cursor-pointer"
                     >
-                      Last Name
+                      <Controller
+                        name="emailVerified"
+                        control={control}
+                        render={({ field: { onChange, value } }) => (
+                          <input
+                            id="emailVerified"
+                            type="checkbox"
+                            checked={value}
+                            onChange={onChange}
+                            className="w-4 h-4"
+                          />
+                        )}
+                      />
+                      <span className="text-sm">Email verified?</span>
                     </label>
-                    <Input {...register('lastName')} id="lastName" />
-                    {errors.lastName && (
-                      <p className="text-sm text-red-500 mt-1">
-                        {errors.lastName.message}
-                      </p>
-                    )}
+                    <label
+                      htmlFor="suspended"
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <Controller
+                        name="suspended"
+                        control={control}
+                        render={({ field: { onChange, value } }) => (
+                          <input
+                            id="suspended"
+                            type="checkbox"
+                            checked={value}
+                            onChange={onChange}
+                            className="w-4 h-4"
+                          />
+                        )}
+                      />
+                      <span className="text-sm">Suspended?</span>
+                    </label>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap gap-4 sm:gap-6">
-                  <label
-                    htmlFor="emailVerified"
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <Controller
-                      name="emailVerified"
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <input
-                          id="emailVerified"
-                          type="checkbox"
-                          checked={value}
-                          onChange={onChange}
-                          className="w-4 h-4"
-                        />
-                      )}
-                    />
-                    <span className="text-sm">Email verified?</span>
-                  </label>
-                  <label
-                    htmlFor="suspended"
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <Controller
-                      name="suspended"
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <input
-                          id="suspended"
-                          type="checkbox"
-                          checked={value}
-                          onChange={onChange}
-                          className="w-4 h-4"
-                        />
-                      )}
-                    />
-                    <span className="text-sm">Suspended?</span>
-                  </label>
-                </div>
-
-                <ControlledSelect
-                  control={control}
-                  name="roles"
-                  label="Roles"
-                  multiple
-                  disabled={isSelf}
-                  options={[
-                    {
-                      label: 'Admin',
-                      value: 'admin',
-                    },
-                  ]}
-                  errors={errors}
-                />
-                {isSelf && (
-                  <p className="text-xs text-muted-foreground -mt-3">
-                    You cannot change your own role.
-                  </p>
-                )}
-
-                <Controller
-                  name="mobile"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <MobileNumberInput
-                      label="Mobile Number"
-                      onChange={onChange}
-                      value={value ?? ''}
-                      error={!!errors.mobile}
-                      helperText={errors.mobile ? errors.mobile.message : ''}
-                    />
+                  <ControlledSelect
+                    control={control}
+                    name="roles"
+                    label="Roles"
+                    multiple
+                    disabled={isSelf}
+                    options={[
+                      {
+                        label: 'Admin',
+                        value: 'admin',
+                      },
+                    ]}
+                    errors={errors}
+                  />
+                  {isSelf && (
+                    <p className="text-xs text-muted-foreground -mt-3">
+                      You cannot change your own role.
+                    </p>
                   )}
-                />
 
-                <ResourceScopesField
-                  control={control}
-                  errors={errors}
-                  setValue={setValue}
-                  watch={watch}
-                  resources={resources}
-                />
-              </div>
+                  <Controller
+                    name="mobile"
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <MobileNumberInput
+                        label="Mobile Number"
+                        onChange={onChange}
+                        value={value ?? ''}
+                        error={!!errors.mobile}
+                        helperText={errors.mobile ? errors.mobile.message : ''}
+                      />
+                    )}
+                  />
+
+                  <ResourceScopesField
+                    control={control}
+                    errors={errors}
+                    setValue={setValue}
+                    watch={watch}
+                    resources={resources}
+                  />
+                </div>
+              )}
             </CardContent>
 
             <CardFooter className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onResetMFA}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onResetMFA}
+                disabled={isLoading}
+              >
                 Reset MFA
               </Button>
-              <Button type="submit">Update User</Button>
+              <Button type="submit" disabled={isLoading}>
+                Update User
+              </Button>
             </CardFooter>
           </form>
         </Card>

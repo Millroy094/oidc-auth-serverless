@@ -25,6 +25,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import UrlProtocolField from '@/components/UrlProtocolField';
 import useFeedback from '@/hooks/useFeedback';
 
@@ -48,6 +49,7 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
   const { clientIdentifier, open, onClose } = props;
   const [client, setClient] = useState<IClientPopupInput>(defaultValues);
   const [resources, setResources] = useState<IAdminResourceListItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
   const {
     control,
@@ -71,6 +73,7 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
 
   const fetchClient = async (id: string): Promise<void> => {
     try {
+      setIsLoading(true);
       const response = await getClient(id);
       setClient({
         clientId: response.data.client.clientId,
@@ -90,6 +93,8 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
         'There was an issue retrieving the client, please try again',
       );
       handleClose();
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -189,172 +194,185 @@ const ClientPopup: FC<ClientPopupProps> = (props) => {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="clientId"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Client Id
-                  </label>
-                  <Input {...register('clientId')} id="clientId" disabled />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="clientName"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Client Name
-                  </label>
-                  <Input
-                    {...register('clientName')}
-                    id="clientName"
-                    disabled={!!clientIdentifier}
-                  />
-                  {errors.clientName && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.clientName.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <ControlledSelect
-                      control={control}
-                      name="grants"
-                      label="Grants"
-                      multiple
-                      options={[
-                        {
-                          label: 'Authorization Code Flow',
-                          value: 'authorization_code',
-                        },
-                        {
-                          label: 'Refresh Token',
-                          value: 'refresh_token',
-                        },
-                        {
-                          label: 'Client Credentials',
-                          value: 'client_credentials',
-                        },
-                      ]}
-                      errors={errors}
-                    />
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-9 w-full" />
+                  <Skeleton className="h-9 w-full" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
                   </div>
-                  <div>
-                    <ControlledSelect
-                      control={control}
-                      name="scopes"
-                      label="Scopes"
-                      multiple
-                      options={[
-                        { label: 'Open ID', value: 'openid' },
-                        { label: 'Email', value: 'email' },
-                        { label: 'Phone', value: 'phone' },
-                        { label: 'Profile', value: 'profile' },
-                        { label: 'Offline Access', value: 'offline_access' },
-                      ]}
-                      errors={errors}
-                    />
-                  </div>
+                  <Skeleton className="h-9 w-full" />
+                  <Skeleton className="h-20 w-full" />
                 </div>
-
-                <div className="space-y-3">
-                  {redirectUriFields.map((field, index) => (
-                    <div key={field.id} className="space-y-1">
-                      <label
-                        htmlFor={`redirectUri-${index}`}
-                        className="block text-sm font-medium"
-                      >
-                        Redirect URI {index + 1}
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <UrlProtocolField
-                          control={control}
-                          name={`redirectUris.${index}.value`}
-                          protocols={['https://', 'http://']}
-                          invalid={has(errors, `redirectUris.${index}.value`)}
-                          className="flex-1"
-                        />
-                        <div className="flex shrink-0 items-center gap-1">
-                          {isLastRedirectUri(index) && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                addRedirectUri({ id: uniqueId(), value: '' })
-                              }
-                              className="p-2 text-green-600 hover:bg-green-100 rounded"
-                              title="Add"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                          )}
-                          {canDeleteRedirectUris && (
-                            <button
-                              type="button"
-                              onClick={() => removeRedirectUri(index)}
-                              className="p-2 text-red-600 hover:bg-red-100 rounded"
-                              title="Remove"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      {has(errors, `redirectUris.${index}.value`) && (
-                        <p className="text-sm text-red-500">
-                          {get(
-                            errors,
-                            `redirectUris.${index}.value.message`,
-                            '',
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <ResourceScopesField
-                  control={control}
-                  errors={errors}
-                  setValue={setValue}
-                  watch={watch}
-                  resources={resources}
-                />
-
-                <div className="flex items-start gap-2">
-                  <Controller
-                    name="requirePkce"
-                    control={control}
-                    render={({ field }) => (
-                      <Checkbox
-                        id="requirePkce"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        className="mt-0.5"
-                      />
-                    )}
-                  />
+              ) : (
+                <div className="space-y-4">
                   <div>
                     <label
-                      htmlFor="requirePkce"
-                      className="block text-sm font-medium cursor-pointer"
+                      htmlFor="clientId"
+                      className="block text-sm font-medium mb-1"
                     >
-                      Require PKCE
+                      Client Id
                     </label>
-                    <p className="text-xs text-muted-foreground">
-                      Recommended for all clients. Only disable this for
-                      confidential clients that cannot support PKCE.
-                    </p>
+                    <Input {...register('clientId')} id="clientId" disabled />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="clientName"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Client Name
+                    </label>
+                    <Input
+                      {...register('clientName')}
+                      id="clientName"
+                      disabled={!!clientIdentifier}
+                    />
+                    {errors.clientName && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.clientName.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <ControlledSelect
+                        control={control}
+                        name="grants"
+                        label="Grants"
+                        multiple
+                        options={[
+                          {
+                            label: 'Authorization Code Flow',
+                            value: 'authorization_code',
+                          },
+                          {
+                            label: 'Refresh Token',
+                            value: 'refresh_token',
+                          },
+                          {
+                            label: 'Client Credentials',
+                            value: 'client_credentials',
+                          },
+                        ]}
+                        errors={errors}
+                      />
+                    </div>
+                    <div>
+                      <ControlledSelect
+                        control={control}
+                        name="scopes"
+                        label="Scopes"
+                        multiple
+                        options={[
+                          { label: 'Open ID', value: 'openid' },
+                          { label: 'Email', value: 'email' },
+                          { label: 'Phone', value: 'phone' },
+                          { label: 'Profile', value: 'profile' },
+                          { label: 'Offline Access', value: 'offline_access' },
+                        ]}
+                        errors={errors}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {redirectUriFields.map((field, index) => (
+                      <div key={field.id} className="space-y-1">
+                        <label
+                          htmlFor={`redirectUri-${index}`}
+                          className="block text-sm font-medium"
+                        >
+                          Redirect URI {index + 1}
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <UrlProtocolField
+                            control={control}
+                            name={`redirectUris.${index}.value`}
+                            protocols={['https://', 'http://']}
+                            invalid={has(errors, `redirectUris.${index}.value`)}
+                            className="flex-1"
+                          />
+                          <div className="flex shrink-0 items-center gap-1">
+                            {isLastRedirectUri(index) && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  addRedirectUri({ id: uniqueId(), value: '' })
+                                }
+                                className="p-2 text-green-600 hover:bg-green-100 rounded"
+                                title="Add"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                            )}
+                            {canDeleteRedirectUris && (
+                              <button
+                                type="button"
+                                onClick={() => removeRedirectUri(index)}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded"
+                                title="Remove"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {has(errors, `redirectUris.${index}.value`) && (
+                          <p className="text-sm text-red-500">
+                            {get(
+                              errors,
+                              `redirectUris.${index}.value.message`,
+                              '',
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <ResourceScopesField
+                    control={control}
+                    errors={errors}
+                    setValue={setValue}
+                    watch={watch}
+                    resources={resources}
+                  />
+
+                  <div className="flex items-start gap-2">
+                    <Controller
+                      name="requirePkce"
+                      control={control}
+                      render={({ field }) => (
+                        <Checkbox
+                          id="requirePkce"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="mt-0.5"
+                        />
+                      )}
+                    />
+                    <div>
+                      <label
+                        htmlFor="requirePkce"
+                        className="block text-sm font-medium cursor-pointer"
+                      >
+                        Require PKCE
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        Recommended for all clients. Only disable this for
+                        confidential clients that cannot support PKCE.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </CardContent>
 
             <CardFooter className="flex justify-end">
-              <Button type="submit">
+              <Button type="submit" disabled={isLoading}>
                 {`${!clientIdentifier ? 'Create' : 'Update'} Client`}
               </Button>
             </CardFooter>

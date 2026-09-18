@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import UrlProtocolField from '@/components/UrlProtocolField';
 import useFeedback from '@/hooks/useFeedback';
 
@@ -37,6 +38,7 @@ const defaultValues: IResourcePopupInput = {
 const ResourcePopup: FC<ResourcePopupProps> = (props) => {
   const { resourceIdentifier, open, onClose } = props;
   const [resource, setResource] = useState<IResourcePopupInput>(defaultValues);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
   const {
     control,
@@ -58,6 +60,7 @@ const ResourcePopup: FC<ResourcePopupProps> = (props) => {
 
   const fetchResource = async (id: string): Promise<void> => {
     try {
+      setIsLoading(true);
       const response = await getResource(id);
       setResource({
         id: response.data.resource.id,
@@ -73,6 +76,8 @@ const ResourcePopup: FC<ResourcePopupProps> = (props) => {
         'There was an issue retrieving the resource, please try again',
       );
       handleClose();
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -141,98 +146,106 @@ const ResourcePopup: FC<ResourcePopupProps> = (props) => {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="id"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Identifier (https URL)
-                  </label>
-                  <UrlProtocolField
-                    control={control}
-                    name="id"
-                    protocols={['https://']}
-                    disabled={!!resourceIdentifier}
-                    invalid={!!errors.id}
-                    placeholder="api.example.com"
-                  />
-                  {errors.id && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.id.message}
-                    </p>
-                  )}
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-9 w-full" />
+                  <Skeleton className="h-9 w-full" />
+                  <Skeleton className="h-9 w-full" />
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="id"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Identifier (https URL)
+                    </label>
+                    <UrlProtocolField
+                      control={control}
+                      name="id"
+                      protocols={['https://']}
+                      disabled={!!resourceIdentifier}
+                      invalid={!!errors.id}
+                      placeholder="api.example.com"
+                    />
+                    {errors.id && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.id.message}
+                      </p>
+                    )}
+                  </div>
 
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Name
-                  </label>
-                  <Input {...register('name')} id="name" />
-                  {errors.name && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.name.message}
-                    </p>
-                  )}
-                </div>
+                  <div>
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Name
+                    </label>
+                    <Input {...register('name')} id="name" />
+                    {errors.name && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.name.message}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="space-y-3">
-                  {scopeFields.map((field, index) => (
-                    <div key={field.id} className="space-y-1">
-                      <label
-                        htmlFor={`scope-${index}`}
-                        className="block text-sm font-medium"
-                      >
-                        Scope {index + 1}
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          {...register(`scopes.${index}.value`)}
-                          id={`scope-${index}`}
-                          placeholder="orders:read"
-                          className="flex-1"
-                        />
-                        <div className="flex shrink-0 items-center gap-1">
-                          {isLastScope(index) && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                addScope({ id: uniqueId(), value: '' })
-                              }
-                              className="p-2 text-green-600 hover:bg-green-100 rounded"
-                              title="Add"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                          )}
-                          {canDeleteScopes && (
-                            <button
-                              type="button"
-                              onClick={() => removeScope(index)}
-                              className="p-2 text-red-600 hover:bg-red-100 rounded"
-                              title="Remove"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
+                  <div className="space-y-3">
+                    {scopeFields.map((field, index) => (
+                      <div key={field.id} className="space-y-1">
+                        <label
+                          htmlFor={`scope-${index}`}
+                          className="block text-sm font-medium"
+                        >
+                          Scope {index + 1}
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            {...register(`scopes.${index}.value`)}
+                            id={`scope-${index}`}
+                            placeholder="orders:read"
+                            className="flex-1"
+                          />
+                          <div className="flex shrink-0 items-center gap-1">
+                            {isLastScope(index) && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  addScope({ id: uniqueId(), value: '' })
+                                }
+                                className="p-2 text-green-600 hover:bg-green-100 rounded"
+                                title="Add"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                            )}
+                            {canDeleteScopes && (
+                              <button
+                                type="button"
+                                onClick={() => removeScope(index)}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded"
+                                title="Remove"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
+                        {has(errors, `scopes.${index}.value`) && (
+                          <p className="text-sm text-red-500">
+                            {get(errors, `scopes.${index}.value.message`, '')}
+                          </p>
+                        )}
                       </div>
-                      {has(errors, `scopes.${index}.value`) && (
-                        <p className="text-sm text-red-500">
-                          {get(errors, `scopes.${index}.value.message`, '')}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
 
             <CardFooter className="flex justify-end">
-              <Button type="submit">
+              <Button type="submit" disabled={isLoading}>
                 {`${!resourceIdentifier ? 'Create' : 'Update'} Resource`}
               </Button>
             </CardFooter>
