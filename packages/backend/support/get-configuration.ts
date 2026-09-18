@@ -1,6 +1,4 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import jose from 'node-jose';
 import { Configuration, JWKS, errors } from 'oidc-provider';
 import DynamoDBAdapter from '../adapter/DynamoDbAdapter.ts';
 import { ClientItem } from '../models/Client.ts';
@@ -9,13 +7,29 @@ import User from '../models/User.ts';
 import ClientService from '../services/client.ts';
 import config from './env-config.ts';
 
-const keysPath = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  'keys.json',
-);
-
-const jwks = JSON.parse(fs.readFileSync(keysPath, 'utf-8')) as JWKS;
 const cookieSecrets = config.get('oidc.cookieSecrets');
+
+let jwksCache: JWKS | null = null;
+
+// The JWKS signing key is generated once by Terraform and stored (as a PEM)
+// in SSM Parameter Store - it must never be regenerated at build/deploy
+// time, or every previously issued token would be invalidated. Derive the
+// JWK keystore from the PEM once per cold start and cache it.
+const getJwks = async (): Promise<JWKS> => {
+  if (jwksCache) {
+    return jwksCache;
+  }
+
+  const key = await jose.JWK.asKey(config.get('oidc.jwksPrivateKey'), 'pem', {
+    alg: 'RS256',
+    use: 'sig',
+  });
+  const keyStore = jose.JWK.createKeyStore();
+  await keyStore.add(key);
+
+  jwksCache = keyStore.toJSON(true) as JWKS;
+  return jwksCache;
+};
 
 const CLIENTS_CACHE_TTL_MS = 30_000;
 let clientsCache: { data: ClientItem[]; expiresAt: number } | null = null;
@@ -36,6 +50,7 @@ const getCachedClients = async (): Promise<ClientItem[]> => {
 
 const getConfiguration = async (): Promise<Configuration> => {
   const clients = await getCachedClients();
+  const jwks = await getJwks();
 
   return {
     adapter: DynamoDBAdapter,

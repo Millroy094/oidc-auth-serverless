@@ -1,7 +1,6 @@
 build
 node_modules
 .env
-keys.json
 docker
 public
 coverage

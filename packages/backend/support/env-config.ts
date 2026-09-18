@@ -28,6 +28,13 @@ const config = convict({
       default: [],
       env: 'COOKIE_SECRETS',
     },
+    jwksPrivateKey: {
+      doc: 'PEM-encoded RSA private key used to sign OIDC tokens, generated once by Terraform (tls_private_key) and stored in SSM Parameter Store - never regenerated on deploy.',
+      default: '',
+      nullable: false,
+      format: String,
+      env: 'JWKS_PRIVATE_KEY',
+    },
   },
   authentication: {
     accessTokenSecret: {

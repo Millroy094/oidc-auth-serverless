@@ -10,7 +10,6 @@ node_modules
 build/
 dist/
 artifacts/
-keys.json
 
 # Terraform
 .terraform/

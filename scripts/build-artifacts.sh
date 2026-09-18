@@ -3,8 +3,9 @@ set -e
 
 # Builds the backend Lambda zip and the frontend static site into a root
 # artifacts/ folder, then uploads the Lambda zip to S3. Keyed by a SHA-256
-# content hash of the zip so an unchanged backend reuses the same S3 key,
-# letting callers skip redundant uploads/deploys.
+# hash of the built file contents (not the zip itself - see below) so an
+# unchanged backend reuses the same S3 key, letting callers skip redundant
+# uploads/deploys.
 #
 # Usage: ./scripts/build-artifacts.sh
 
@@ -29,13 +30,15 @@ pnpm run build
 cd "$ROOT_DIR"
 
 cp packages/backend/build/handler.mjs "$LAMBDA_ARTIFACT_DIR/handler.mjs"
-# JWKS keys are read from disk at runtime (see support/get-configuration.ts),
-# so they must sit alongside handler.mjs in the deployed zip.
-cp packages/backend/keys.json "$LAMBDA_ARTIFACT_DIR/keys.json"
+
+# Hash the file contents themselves, not the zip - `zip` embeds file
+# modification timestamps, so the archive's bytes (and its hash) would
+# differ on every build even when the underlying files are unchanged.
+ARTIFACT_SHA=$(sha256sum "$LAMBDA_ARTIFACT_DIR/handler.mjs" | awk '{print $1}')
 
 cd "$LAMBDA_ARTIFACT_DIR"
 rm -f handler.zip
-zip -q handler.zip handler.mjs keys.json
+zip -q -X handler.zip handler.mjs
 cd "$ROOT_DIR"
 
 echo "🔨 Building frontend..."
@@ -60,10 +63,8 @@ else
   echo "✓ Bucket $ARTIFACTS_BUCKET_NAME already exists"
 fi
 
-ARTIFACT_SHA=$(sha256sum "$LAMBDA_ARTIFACT_DIR/handler.zip" | awk '{print $1}')
-echo "🔑 Lambda artifact content hash: $ARTIFACT_SHA"
-
 LAMBDA_S3_KEY="lambda/$ARTIFACT_SHA/handler.zip"
+echo "🔑 Lambda artifact content hash: $ARTIFACT_SHA"
 if aws $AWS_ENDPOINT s3api head-object --bucket "$ARTIFACTS_BUCKET_NAME" --key "$LAMBDA_S3_KEY" --region "$AWS_REGION" > /dev/null 2>&1; then
   echo "✓ Identical Lambda artifact already uploaded at s3://$ARTIFACTS_BUCKET_NAME/$LAMBDA_S3_KEY - skipping upload"
 else

@@ -40,13 +40,9 @@ deploy_backend() {
     exit 1
   fi
 
-  # JWKS keys are read from disk at runtime (see support/get-configuration.ts),
-  # so they must sit alongside handler.mjs in the deployed zip.
-  cp "$BACKEND_DIR/keys.json" "$BUILD_DIR/keys.json"
-
   cd "$BUILD_DIR"
   rm -f handler.zip
-  zip -q handler.zip handler.mjs keys.json
+  zip -q handler.zip handler.mjs
   cd - > /dev/null
 
   echo "📦 Deploying to Lambda ($LAMBDA_FUNCTION_NAME)..."

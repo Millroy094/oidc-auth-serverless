@@ -5,8 +5,7 @@
   "main": "handler.ts",
   "type": "module",
   "scripts": {
-    "build": "pnpm generateJwks && esbuild handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=build/handler.mjs --external:aws-sdk --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
-    "generateJwks": "tsx ./scripts/generate-jwk.ts"
+    "build": "esbuild handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=build/handler.mjs --external:aws-sdk --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\""
   },
   "author": "",
   "license": "ISC",
