@@ -13,6 +13,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ADMIN_EMAIL } from '@/constants';
 import useFeedback from '@/hooks/useFeedback';
 
@@ -30,6 +31,7 @@ const Users: FC = () => {
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { feedbackAxiosError, feedbackAxiosResponse } = useFeedback();
 
   const fetchUsers = async () => {
@@ -41,6 +43,8 @@ const Users: FC = () => {
         err,
         'There was an issue retreiving users, please try again',
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -122,7 +126,69 @@ const Users: FC = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        {users.length === 0 ? (
+        {isLoading ? (
+          <>
+            <div className="hidden overflow-x-auto rounded-lg border md:block">
+              <table className="w-full min-w-190 text-sm">
+                <thead className="border-b bg-muted/50">
+                  <tr>
+                    <th className="text-left py-3 px-4 font-medium">
+                      First Name
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium">
+                      Last Name
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium">Email</th>
+                    <th className="text-left py-3 px-4 font-medium">Mobile</th>
+                    <th className="text-center py-3 px-4 font-medium">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <tr key={i} className="last:border-b-0">
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-20" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-20" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-40" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-24" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex justify-center gap-2">
+                          <Skeleton className="h-4 w-4" />
+                          <Skeleton className="h-4 w-4" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="space-y-3 md:hidden">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-lg border p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-40" />
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      <Skeleton className="h-4 w-4" />
+                      <Skeleton className="h-4 w-4" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : users.length === 0 ? (
           <div className="rounded-lg border py-10 px-4 text-center text-muted-foreground">
             No users found.
           </div>

@@ -15,6 +15,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthProvider';
 import useFeedback from '@/hooks/useFeedback';
 
@@ -74,6 +75,7 @@ const Passkeys: FC<PasskeysProps> = (props) => {
     onChangePreference,
   } = props;
   const [devices, setDevices] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const auth = useAuth();
   const { feedbackAxiosError, feedbackAxiosResponse, feedback } = useFeedback();
@@ -87,6 +89,8 @@ const Passkeys: FC<PasskeysProps> = (props) => {
         err,
         'There was an issue retrieving passkeys, please try again',
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -185,28 +189,37 @@ const Passkeys: FC<PasskeysProps> = (props) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {devices.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No passkeys registered yet.
-            </p>
+          {isLoading ? (
+            <>
+              <Skeleton className="h-11 w-full" />
+              <Skeleton className="h-11 w-full" />
+            </>
+          ) : (
+            <>
+              {devices.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No passkeys registered yet.
+                </p>
+              )}
+              {devices.map((device) => (
+                <div
+                  key={device}
+                  className="flex items-center justify-between p-2.5 border rounded-lg bg-muted/30"
+                >
+                  <p className="text-sm">{device}</p>
+                  <button
+                    onClick={() =>
+                      handleDeletePasskey(auth?.user?.userId ?? '', device)
+                    }
+                    className="p-1 text-destructive hover:bg-destructive/10 rounded"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </>
           )}
-          {devices.map((device) => (
-            <div
-              key={device}
-              className="flex items-center justify-between p-2.5 border rounded-lg bg-muted/30"
-            >
-              <p className="text-sm">{device}</p>
-              <button
-                onClick={() =>
-                  handleDeletePasskey(auth?.user?.userId ?? '', device)
-                }
-                className="p-1 text-destructive hover:bg-destructive/10 rounded"
-                title="Delete"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
         </div>
       </CardContent>
       <CardFooter className="flex justify-end">

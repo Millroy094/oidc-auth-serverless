@@ -19,6 +19,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
@@ -155,99 +156,104 @@ const MFA: FC = () => {
         </CardHeader>
         <CardFooter>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-            {mfaTypes.map((mfaType) => (
-              <div
-                key={mfaType.type}
-                className="border rounded-lg p-3 flex flex-col justify-between h-32 bg-card shadow-sm transition-shadow hover:shadow-md"
-              >
-                <div className="flex justify-between items-start">
-                  <h3 className="font-medium text-sm">
-                    {mfaType.type.toUpperCase()} MFA
-                  </h3>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      disabled={!mfaType.verified}
-                      value={mfaType.type}
-                      checked={mfaPreference === mfaType.type}
-                      onChange={onChange}
-                      className="w-4 h-4"
-                    />
-                    <span className="sr-only">
-                      Use {mfaType.type.toUpperCase()} as MFA preference
-                    </span>
-                  </label>
-                </div>
-
-                <div className="py-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Subscriber
-                    </p>
-                    {mfaType.subscriber && mfaType.verified && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span>
-                            <CheckCircle
-                              className="w-3 h-3 text-emerald-600"
-                              aria-label="Verified"
-                            />
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>Verified</TooltipContent>
-                      </Tooltip>
-                    )}
-                    {mfaType.subscriber && !mfaType.verified && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span>
-                            <AlertCircle
-                              className="w-3 h-3 text-amber-600"
-                              aria-label="Not Verified"
-                            />
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Not verified — finish MFA setup to enable this method
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-                  <p
-                    className="text-xs text-muted-foreground truncate"
-                    title={mfaType.subscriber || 'None'}
+            {isLoading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-32 rounded-lg" />
+                ))
+              : mfaTypes.map((mfaType) => (
+                  <div
+                    key={mfaType.type}
+                    className="border rounded-lg p-3 flex flex-col justify-between h-32 bg-card shadow-sm transition-shadow hover:shadow-md"
                   >
-                    {mfaType.subscriber || 'None'}
-                  </p>
-                </div>
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-medium text-sm">
+                        {mfaType.type.toUpperCase()} MFA
+                      </h3>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          disabled={!mfaType.verified}
+                          value={mfaType.type}
+                          checked={mfaPreference === mfaType.type}
+                          onChange={onChange}
+                          className="w-4 h-4"
+                        />
+                        <span className="sr-only">
+                          Use {mfaType.type.toUpperCase()} as MFA preference
+                        </span>
+                      </label>
+                    </div>
 
-                <div className="flex justify-end">
-                  {!mfaType.verified ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setSetupModal({
-                          open: true,
-                          type: mfaType.type,
-                          defaultValue: mfaType.subscriber || '',
-                        })
-                      }
-                    >
-                      Setup MFA
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onReset(mfaType.type)}
-                    >
-                      Reset MFA
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
+                    <div className="py-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Subscriber
+                        </p>
+                        {mfaType.subscriber && mfaType.verified && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span>
+                                <CheckCircle
+                                  className="w-3 h-3 text-emerald-600"
+                                  aria-label="Verified"
+                                />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>Verified</TooltipContent>
+                          </Tooltip>
+                        )}
+                        {mfaType.subscriber && !mfaType.verified && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span>
+                                <AlertCircle
+                                  className="w-3 h-3 text-amber-600"
+                                  aria-label="Not Verified"
+                                />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Not verified — finish MFA setup to enable this
+                              method
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                      <p
+                        className="text-xs text-muted-foreground truncate"
+                        title={mfaType.subscriber || 'None'}
+                      >
+                        {mfaType.subscriber || 'None'}
+                      </p>
+                    </div>
+
+                    <div className="flex justify-end">
+                      {!mfaType.verified ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setSetupModal({
+                              open: true,
+                              type: mfaType.type,
+                              defaultValue: mfaType.subscriber || '',
+                            })
+                          }
+                        >
+                          Setup MFA
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onReset(mfaType.type)}
+                        >
+                          Reset MFA
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
           </div>
         </CardFooter>
       </Card>

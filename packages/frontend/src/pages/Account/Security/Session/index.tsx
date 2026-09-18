@@ -14,6 +14,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import useFeedback from '@/hooks/useFeedback';
 
 interface Session {
@@ -26,6 +27,7 @@ interface Session {
 
 const Sessions: FC = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
 
   const fetchSessions = async () => {
@@ -37,6 +39,8 @@ const Sessions: FC = () => {
         err,
         'There was an issue retreiving user sessions, please try again',
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -94,7 +98,67 @@ const Sessions: FC = () => {
         </div>
       </CardHeader>
       <CardContent>
-        {sessions.length === 0 ? (
+        {isLoading ? (
+          <>
+            <div className="hidden overflow-x-auto rounded-lg border md:block">
+              <table className="w-full min-w-[860px] text-sm">
+                <thead className="border-b bg-muted/50">
+                  <tr>
+                    <th className="text-left py-3 px-4 font-medium">Clients</th>
+                    <th className="text-left py-3 px-4 font-medium">
+                      Logged in at
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium">
+                      Started at
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium">
+                      Expires at
+                    </th>
+                    <th className="text-center py-3 px-4 font-medium">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <tr key={i} className="border-b last:border-b-0">
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-24" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-32" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-32" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-32" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <Skeleton className="mx-auto h-4 w-4" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="space-y-3 md:hidden">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="rounded-lg border p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-4 shrink-0" />
+                  </div>
+                  <div className="mt-3 space-y-2 border-t pt-3">
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : sessions.length === 0 ? (
           <div className="rounded-lg border py-10 px-4 text-center text-muted-foreground">
             No active sessions.
           </div>

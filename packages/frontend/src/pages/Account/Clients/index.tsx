@@ -11,6 +11,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import useFeedback from '@/hooks/useFeedback';
 
 type Client = IAdminClientListItem;
@@ -20,6 +21,7 @@ const Clients: FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [copiedClientId, setCopiedClientId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { feedbackAxiosError, feedbackAxiosResponse, feedback } = useFeedback();
 
   const fetchClients = async () => {
@@ -31,6 +33,8 @@ const Clients: FC = () => {
         err,
         'There was an issue retreiving clients, please try again',
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -95,7 +99,60 @@ const Clients: FC = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        {clients.length === 0 ? (
+        {isLoading ? (
+          <>
+            <div className="hidden overflow-x-auto rounded-lg border md:block">
+              <table className="w-full min-w-160 text-sm">
+                <thead className="border-b bg-muted/50">
+                  <tr>
+                    <th className="text-left py-3 px-4 font-medium">
+                      Client ID
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium">Name</th>
+                    <th className="text-left py-3 px-4 font-medium">Secret</th>
+                    <th className="text-center py-3 px-4 font-medium">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <tr key={i} className="last:border-b-0">
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-32" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-24" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <Skeleton className="h-4 w-16" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <Skeleton className="mx-auto h-4 w-4" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="space-y-3 md:hidden">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-lg border p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-4 w-4 shrink-0" />
+                  </div>
+                  <div className="mt-3 border-t pt-3">
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : clients.length === 0 ? (
           <div className="rounded-lg border py-10 px-4 text-center text-muted-foreground">
             No clients yet. Create one to get started.
           </div>
