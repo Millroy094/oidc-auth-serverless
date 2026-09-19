@@ -35,7 +35,7 @@ const config = convict({
       env: 'JWKS_PRIVATE_KEY',
     },
     issuerUrl: {
-      doc: 'Public-facing URL (scheme + host + mount path) the OIDC issuer/endpoints are advertised under, e.g. "https://auth.example.com/api/oidc". Must match both the domain the browser sees (NOT the API Gateway/Lambda hostname - CloudFront overwrites the Host header before proxying to the origin, so it cannot be reliably derived from the incoming request in production) and the path oidc-provider is mounted at in app.ts, since the issuer must equal the discovery document location and the tokens\' `iss` claim. Leave empty to derive it from the request (used locally, where there is no CloudFront in front of the backend).',
+      doc: 'Public-facing URL (scheme + host + /api/oidc mount path) the OIDC issuer/endpoints are advertised under, e.g. "https://auth.example.com/api/oidc". Must match the domain the browser sees (not the API Gateway/Lambda hostname) and the oidc-provider mount path in app.ts, so the issuer matches both the discovery document location and tokens\' `iss` claim. Leave empty to derive it from the request (used locally).',
       default: '',
       nullable: false,
       format: String,
