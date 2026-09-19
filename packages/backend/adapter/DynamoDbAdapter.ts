@@ -1,6 +1,5 @@
 import { Adapter, AdapterPayload } from 'oidc-provider';
 import OIDCStore from '../models/OIDCStore.ts';
-import batchDeleteChunked from '../utils/batch-delete.ts';
 import logger from '../utils/logger.ts';
 
 class DynamoDBAdapter implements Adapter {
@@ -142,7 +141,7 @@ class DynamoDBAdapter implements Adapter {
         return ids;
       }, []);
 
-      await batchDeleteChunked(modelIds);
+      await OIDCStore.batchDeleteAll(modelIds);
     } catch (error) {
       logger.error((error as Error).message);
       throw new Error(`There was an error revoking by ${grantId}`);

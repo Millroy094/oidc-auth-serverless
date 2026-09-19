@@ -35,7 +35,9 @@ resource "aws_iam_role_policy" "lambda_dynamodb" {
           "dynamodb:DeleteItem",
           "dynamodb:Query",
           "dynamodb:Scan",
-          "dynamodb:DescribeTable"
+          "dynamodb:DescribeTable",
+          "dynamodb:BatchGetItem",
+          "dynamodb:BatchWriteItem"
         ]
         Effect = "Allow"
         Resource = concat(

@@ -2,6 +2,7 @@ import dynamoose from 'dynamoose';
 import { Item } from 'dynamoose/dist/Item';
 import { AdapterPayload } from 'oidc-provider';
 import tableOptions from '../support/dynamoose-table-options.ts';
+import logger from '../utils/logger.ts';
 
 const { Schema, model } = dynamoose;
 
@@ -78,6 +79,21 @@ const OIDCStore = model<OIDCStoreItem>('OIDCStore', OIDCStoreSchema, {
       returnExpired: false,
     },
   },
+}) as ReturnType<typeof model<OIDCStoreItem>> & {
+  batchDeleteAll(ids: string[]): Promise<void>;
+};
+
+// DynamoDB's BatchWriteItem rejects requests over 25 items.
+const DYNAMODB_BATCH_LIMIT = 25;
+
+OIDCStore.methods.set('batchDeleteAll', async (ids: string[]) => {
+  for (let i = 0; i < ids.length; i += DYNAMODB_BATCH_LIMIT) {
+    const chunk = ids.slice(i, i + DYNAMODB_BATCH_LIMIT);
+    const response = await OIDCStore.batchDelete(chunk);
+    logger.info(
+      `Successfully deleted items. ${response.unprocessedItems.length} of unprocessed items.`,
+    );
+  }
 });
 
 export default OIDCStore;

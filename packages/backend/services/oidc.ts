@@ -1,7 +1,5 @@
-import { QueryResponse, ScanResponse } from 'dynamoose/dist/ItemRetriever';
 import DynamoDbAdapter from '../adapter/DynamoDbAdapter.ts';
-import OIDCStore, { OIDCStoreItem } from '../models/OIDCStore.ts';
-import batchDeleteChunked from '../utils/batch-delete.ts';
+import OIDCStore from '../models/OIDCStore.ts';
 
 const grantAdapter = new DynamoDbAdapter('Grant');
 
@@ -38,7 +36,14 @@ class OIDCService {
       .eq(userId)
       .exec();
 
-    await OIDCService.deleteAllResults(results);
+    if (results.count > 0) {
+      const modelIds = results.reduce((ids: string[], result) => {
+        ids.push(result.id);
+        return ids;
+      }, []);
+
+      await OIDCStore.batchDeleteAll(modelIds);
+    }
 
     return true;
   }
@@ -74,19 +79,6 @@ class OIDCService {
     }
 
     return true;
-  }
-
-  public static async deleteAllResults(
-    results: QueryResponse<OIDCStoreItem> | ScanResponse<OIDCStoreItem>,
-  ): Promise<void> {
-    if (results.count > 0) {
-      const modelIds = results.reduce((ids: string[], result) => {
-        ids.push(result.id);
-        return ids;
-      }, []);
-
-      await batchDeleteChunked(modelIds);
-    }
   }
 }
 
