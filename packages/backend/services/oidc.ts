@@ -1,7 +1,7 @@
 import { QueryResponse, ScanResponse } from 'dynamoose/dist/ItemRetriever';
 import DynamoDbAdapter from '../adapter/DynamoDbAdapter.ts';
 import OIDCStore, { OIDCStoreItem } from '../models/OIDCStore.ts';
-import logger from '../utils/logger.ts';
+import batchDeleteChunked from '../utils/batch-delete.ts';
 
 const grantAdapter = new DynamoDbAdapter('Grant');
 
@@ -85,10 +85,7 @@ class OIDCService {
         return ids;
       }, []);
 
-      const response = await OIDCStore.batchDelete(modelIds);
-      logger.info(
-        `Successfully deleted items. ${response.unprocessedItems.length} of unprocessed items.`,
-      );
+      await batchDeleteChunked(modelIds);
     }
   }
 }
