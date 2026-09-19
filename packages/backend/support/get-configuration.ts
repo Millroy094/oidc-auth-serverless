@@ -144,12 +144,17 @@ const getConfiguration = async (): Promise<Configuration> => {
       profile: ['given_name', 'family_name', 'name'],
     },
     interactions: {
-      // Absolute URL so the redirect always lands on the intended domain,
-      // even if a request reaches the backend directly (bypassing
-      // CloudFront). FRONTEND_URL covers local dev where the frontend and
-      // backend run on different origins.
-      url: (_ctx, interaction) =>
-        `${process.env.FRONTEND_URL ?? config.get('oidc.issuerUrl') ?? ''}/?interactionId=${interaction.jti}`,
+      // FRONTEND_URL covers local dev; otherwise fall back to issuerUrl's
+      // origin, since the frontend is served from the same domain root
+      // while issuerUrl includes the /api/oidc mount path.
+      url: (_ctx, interaction) => {
+        const issuerUrl = config.get('oidc.issuerUrl');
+        const frontendOrigin =
+          process.env.FRONTEND_URL ??
+          (issuerUrl && new URL(issuerUrl).origin) ??
+          '';
+        return `${frontendOrigin}/?interactionId=${interaction.jti}`;
+      },
     },
   };
 };

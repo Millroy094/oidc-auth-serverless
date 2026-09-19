@@ -42,7 +42,7 @@ module "lambda" {
     DEPLOYMENT_ENVIRONMENT = "production"
     SSM_PARAMETER_PREFIX   = module.ssm.path_prefix
     RP_ID                  = var.domain_name
-    ISSUER_URL             = "https://${var.domain_name}"
+    ISSUER_URL             = "https://${var.domain_name}/api/oidc"
   }
 }
 
