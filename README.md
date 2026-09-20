@@ -9,7 +9,7 @@ A self-hosted OpenID Connect (OIDC) identity provider and authentication server,
 - **Passkeys / WebAuthn** — register and use device passkeys (fingerprint/face/PIN) as an MFA factor.
 - **Sessions** — view and revoke active sessions from your account.
 - **OIDC provider** — standards-compliant authorization code flow, discovery, JWKS, token/userinfo endpoints, for use as a login provider by other applications.
-- **Admin console** — manage users (roles, suspension, MFA reset, sessions), register OIDC clients (relying parties), and register protected resources (APIs) with scopes.
+- **Admin console** — manage users (roles, suspension, MFA reset, sessions), register OIDC clients (relying parties), register protected resources (APIs) with scopes, and configure token/session lifetimes.
 - **Account tab persistence** — the app remembers which Account tab you were last on and resets it on logout.
 
 For a deeper dive into how each of these works, see [Documentation](#documentation) below.
@@ -22,7 +22,7 @@ For a deeper dive into how each of these works, see [Documentation](#documentati
 - **[Infrastructure](./docs/infrastructure.md)** — Terraform modules and environments.
 - **[CI/CD IAM roles](./docs/ci-cd-iam-roles.md)** — permissions required by the GitHub Actions deployment role and Terraform Cloud role.
 - **[Authentication, MFA & passkey flows](./docs/authentication.md)** — how login, MFA, passkeys, and sessions work end to end.
-- **[Admin console](./docs/admin-console.md)** — managing users, OIDC clients, and resources.
+- **[Admin console](./docs/admin-console.md)** — managing users, OIDC clients, resources, and token/session lifetime settings.
 
 ## Local development
 

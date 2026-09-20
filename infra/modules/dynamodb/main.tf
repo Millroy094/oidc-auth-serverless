@@ -198,3 +198,14 @@ resource "aws_dynamodb_table" "challenge" {
     enabled        = true
   }
 }
+
+resource "aws_dynamodb_table" "settings" {
+  name         = "Settings"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+}

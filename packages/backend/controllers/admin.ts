@@ -5,6 +5,7 @@ import ClientService from '../services/client.ts';
 import MFAService from '../services/mfa/index.ts';
 import OIDCService from '../services/oidc.ts';
 import ResourceService, { ResourceInUseError } from '../services/resource.ts';
+import SettingsService, { TtlSettings } from '../services/settings.ts';
 import UserService from '../services/user.ts';
 import logger from '../utils/logger.ts';
 import decodePathParam from '../utils/path-param.ts';
@@ -65,6 +66,8 @@ export interface UpdateResourceBody {
   scopes?: string[];
   [key: string]: unknown;
 }
+
+export type UpdateSettingsBody = Partial<TtlSettings>;
 
 class AdminController {
   public static async createClient(
@@ -404,6 +407,37 @@ class AdminController {
       res
         .status(HTTP_STATUSES.notFound)
         .json({ error: 'There was an issue deleting resource' });
+    }
+  }
+
+  public static async getSettings(_req: Request, res: Response) {
+    try {
+      const settings = await SettingsService.getTtlSettings();
+      res
+        .status(HTTP_STATUSES.ok)
+        .json({ settings, message: 'Successfully retrieved settings!' });
+    } catch (err) {
+      logger.error((err as Error).message);
+      res
+        .status(HTTP_STATUSES.serverError)
+        .json({ error: 'Failed retrieving settings' });
+    }
+  }
+
+  public static async updateSettings(
+    req: Request<Record<string, string>, unknown, UpdateSettingsBody>,
+    res: Response,
+  ) {
+    try {
+      const settings = await SettingsService.updateTtlSettings(req.body);
+      res
+        .status(HTTP_STATUSES.ok)
+        .json({ settings, message: 'Successfully updated settings!' });
+    } catch (err) {
+      logger.error((err as Error).message);
+      res
+        .status(HTTP_STATUSES.badRequest)
+        .json({ error: (err as Error).message });
     }
   }
 }

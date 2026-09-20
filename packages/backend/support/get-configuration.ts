@@ -5,6 +5,7 @@ import { ClientItem } from '../models/Client.ts';
 import Resource, { ResourceScope } from '../models/Resource.ts';
 import User from '../models/User.ts';
 import ClientService from '../services/client.ts';
+import SettingsService, { TtlSettings } from '../services/settings.ts';
 import config from './env-config.ts';
 
 const cookieSecrets = config.get('oidc.cookieSecrets');
@@ -46,13 +47,38 @@ const getCachedClients = async (): Promise<ClientItem[]> => {
   return clients;
 };
 
+const TTL_SETTINGS_CACHE_TTL_MS = 30_000;
+let ttlSettingsCache: { data: TtlSettings; expiresAt: number } | null = null;
+
+const getCachedTtlSettings = async (): Promise<TtlSettings> => {
+  if (ttlSettingsCache && Date.now() < ttlSettingsCache.expiresAt) {
+    return ttlSettingsCache.data;
+  }
+
+  const ttlSettings = await SettingsService.getTtlSettings();
+  ttlSettingsCache = {
+    data: ttlSettings,
+    expiresAt: Date.now() + TTL_SETTINGS_CACHE_TTL_MS,
+  };
+
+  return ttlSettings;
+};
+
 const getConfiguration = async (): Promise<Configuration> => {
   const clients = await getCachedClients();
   const jwks = await getJwks();
+  const ttlSettings = await getCachedTtlSettings();
 
   return {
     adapter: DynamoDBAdapter,
     jwks,
+    ttl: {
+      AccessToken: ttlSettings.accessTokenTtl,
+      IdToken: ttlSettings.idTokenTtl,
+      RefreshToken: ttlSettings.refreshTokenTtl,
+      Session: ttlSettings.sessionTtl,
+      Grant: ttlSettings.grantTtl,
+    },
     cookies: {
       keys: cookieSecrets,
       long: { httpOnly: true, sameSite: 'lax' },

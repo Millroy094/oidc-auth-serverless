@@ -6,6 +6,7 @@ import AdminController, {
   IdParams,
   UpdateClientBody,
   UpdateResourceBody,
+  UpdateSettingsBody,
   UpdateUserBody,
 } from '../controllers/admin.ts';
 import authenticate from '../middleware/authenticate.ts';
@@ -108,6 +109,16 @@ adminRouter.delete<IdParams>(
   authenticate,
   authorize(['admin']),
   (req, res) => AdminController.deleteResource(req, res),
+);
+
+adminRouter.get('/settings', authenticate, authorize(['admin']), (req, res) =>
+  AdminController.getSettings(req, res),
+);
+adminRouter.put<Record<string, string>, unknown, UpdateSettingsBody>(
+  '/settings',
+  authenticate,
+  authorize(['admin']),
+  (req, res) => AdminController.updateSettings(req, res),
 );
 
 export default adminRouter;

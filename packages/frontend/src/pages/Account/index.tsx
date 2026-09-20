@@ -1,4 +1,12 @@
-import { User, Lock, Briefcase, UsersIcon, LogOut, Server } from 'lucide-react';
+import {
+  User,
+  Lock,
+  Briefcase,
+  UsersIcon,
+  LogOut,
+  Server,
+  Clock,
+} from 'lucide-react';
 import * as React from 'react';
 import { Suspense, lazy } from 'react';
 import { MutatingDots } from 'react-loader-spinner';
@@ -14,6 +22,7 @@ const Security = lazy(() => import('./Security'));
 const Clients = lazy(() => import('./Clients'));
 const Users = lazy(() => import('./Users'));
 const Resources = lazy(() => import('./Resources'));
+const Settings = lazy(() => import('./Settings'));
 
 const tabFallback = (
   <div className="flex justify-center items-center min-h-[300px]">
@@ -68,6 +77,13 @@ export default function Account() {
       label: 'Resources',
       icon: Server,
       content: <Resources />,
+      adminOnly: true,
+    },
+    {
+      value: 'settings',
+      label: 'Settings',
+      icon: Clock,
+      content: <Settings />,
       adminOnly: true,
     },
   ].filter((item) => !item.adminOnly || isAdmin);

@@ -1,6 +1,6 @@
 # Managing OIDC clients & resources (admin console)
 
-Users with the `admin` role get an extra `Account` section (`pages/Account/Clients`, `pages/Account/Resources`, `pages/Account/Users`) backed by `/api/admin/*` (all routes gated by `authenticate` + `authorize(['admin'])`).
+Users with the `admin` role get an extra `Account` section (`pages/Account/Clients`, `pages/Account/Resources`, `pages/Account/Users`, `pages/Account/Settings`) backed by `/api/admin/*` (all routes gated by `authenticate` + `authorize(['admin'])`).
 
 ## Registering a new OIDC client (relying party)
 1. In **Account → Clients → Add Client**, provide: `clientId`, `clientName`, `scopes` (e.g. `openid profile email`), `grants` (e.g. `authorization_code`, `refresh_token`, `client_credentials`), and `redirectUris` (must be `https://`, except `localhost`/`127.0.0.1` which may be plain `http://`).
@@ -17,3 +17,8 @@ Users with the `admin` role get an extra `Account` section (`pages/Account/Clien
 ## Managing users
 - **Account → Users** lists all registered users; admins can suspend/unsuspend, edit roles, edit profile fields, force-reset a user's MFA (`resetMFA`), or force-revoke sessions.
 - **Add User** creates an account without setting a password: `UserService.createUser` generates a random unusable password, and `sendAccountCreatedNotification` emails the new user instructions to use "Forgot Password" (with their email) to set their own password and complete registration — deliberately avoiding sending a real OTP (see the "one active OTP per channel" note in [authentication.md](./authentication.md)).
+
+## Token & session lifetimes
+- **Account → Settings** lets admins configure how long access tokens, ID tokens, refresh tokens, sessions, and grants remain valid (entered in minutes, stored in seconds).
+- Backed by a single-item `Settings` DynamoDB table (`SettingsService`); `get-configuration.ts` reads these values through the same 30-second in-memory cache used for clients, so changes take effect on running Lambda instances within 30s (cold starts always read fresh).
+- Values are bounded server-side to between 5 minutes and 30 days; if no settings have been saved yet, defaults are used (1 hour for access/ID tokens, 2 hours for refresh tokens/sessions/grants).
