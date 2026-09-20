@@ -89,6 +89,7 @@ const getConfiguration = async (): Promise<Configuration> => {
       clientCredentials: { enabled: true },
       deviceFlow: { enabled: true },
       revocation: { enabled: true },
+      introspection: { enabled: true },
       resourceIndicators: {
         enabled: true,
         getResourceServerInfo: async (_ctx, resourceIndicator, client) => {
