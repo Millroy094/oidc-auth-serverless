@@ -82,7 +82,7 @@ const config = convict({
     refreshTokenExpiry: {
       doc: 'Refresh Token Expiry Time for Login',
       format: String,
-      default: '1d',
+      default: '8h',
       env: 'REFRESH_JWT_EXPIRY',
     },
     issuer: {

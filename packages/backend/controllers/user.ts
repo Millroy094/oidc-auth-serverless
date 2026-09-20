@@ -6,7 +6,7 @@ import MFAService from '../services/mfa/index.ts';
 import OIDCService from '../services/oidc.ts';
 import UserService from '../services/user.ts';
 import config from '../support/env-config.ts';
-import { signJwt } from '../utils/jwt.ts';
+import { signJwt, getJwtExpiryMs } from '../utils/jwt.ts';
 import logger from '../utils/logger.ts';
 
 export interface RegisterBody {
@@ -138,10 +138,12 @@ class UserController {
         .cookie(ACCESS_TOKEN, accessToken, {
           httpOnly: true,
           secure: config.get('deploymentEnvironment') !== 'local',
+          maxAge: getJwtExpiryMs(accessToken),
         })
         .cookie(REFRESH_TOKEN, refreshToken, {
           httpOnly: true,
           secure: config.get('deploymentEnvironment') !== 'local',
+          maxAge: getJwtExpiryMs(refreshToken),
         })
         .status(200)
         .json({

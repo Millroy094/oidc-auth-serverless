@@ -2,13 +2,18 @@ import { Request, Response, NextFunction } from 'express';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants/authentication.ts';
 import UserService from '../services/user.ts';
 import config from '../support/env-config.ts';
-import { signJwt, verifyJwt, isJwtExpiredError } from '../utils/jwt.ts';
+import {
+  signJwt,
+  verifyJwt,
+  isJwtExpiredError,
+  getJwtExpiryMs,
+} from '../utils/jwt.ts';
 import logger from '../utils/logger.ts';
 
 const accessTokenSecret = config.get('authentication.accessTokenSecret');
 const accessTokenExpiry = config.get('authentication.accessTokenExpiry');
 const refreshTokenSecret = config.get('authentication.refreshTokenSecret');
-const refreshTokenExpiry = config.get('authentication.accessTokenExpiry');
+const refreshTokenExpiry = config.get('authentication.refreshTokenExpiry');
 
 const generateNewTokensFromRefreshToken = async (
   refreshToken: string,
@@ -24,7 +29,7 @@ const generateNewTokensFromRefreshToken = async (
     );
     const newRefreshToken = await signJwt(
       { userId, email },
-      accessTokenSecret,
+      refreshTokenSecret,
       refreshTokenExpiry,
     );
 
@@ -32,10 +37,12 @@ const generateNewTokensFromRefreshToken = async (
       .cookie(ACCESS_TOKEN, newAccessToken, {
         httpOnly: true,
         secure: config.get('deploymentEnvironment') !== 'local',
+        maxAge: getJwtExpiryMs(newAccessToken),
       })
       .cookie(REFRESH_TOKEN, newRefreshToken, {
         httpOnly: true,
         secure: config.get('deploymentEnvironment') !== 'local',
+        maxAge: getJwtExpiryMs(newRefreshToken),
       });
 
     req.user = { userId, email };

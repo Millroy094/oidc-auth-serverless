@@ -1,4 +1,4 @@
-import { jwtVerify, SignJWT, errors } from 'jose';
+import { jwtVerify, decodeJwt, SignJWT, errors } from 'jose';
 
 export interface JwtPayload {
   userId: string;
@@ -29,3 +29,8 @@ export const verifyJwt = async (
 
 export const isJwtExpiredError = (error: unknown): boolean =>
   error instanceof errors.JWTExpired;
+
+export const getJwtExpiryMs = (token: string): number => {
+  const { exp } = decodeJwt(token);
+  return (exp ?? 0) * 1000 - Date.now();
+};
