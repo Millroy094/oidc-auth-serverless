@@ -10,6 +10,18 @@ variable "project_name" {
   description = "Project name, used for tagging (spaces allowed)"
 }
 
+variable "environment" {
+  description = "Deployment environment, used for resource tagging"
+  type        = string
+  default     = "production"
+}
+
+variable "managed_by" {
+  description = "Tool managing the infrastructure, used for resource tagging"
+  type        = string
+  default     = "Terraform"
+}
+
 variable "resource_prefix" {
   type        = string
   default     = "oidc-auth"
