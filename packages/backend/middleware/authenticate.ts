@@ -72,7 +72,9 @@ const validateTokensFromCookies = async (req: Request, res: Response) => {
       await generateNewTokensFromRefreshToken(refreshToken, req, res);
     } else {
       logger.error((error as Error).message);
-      throw new Error('Authentication failed, for an unexpected reason');
+      throw new Error('Authentication failed, for an unexpected reason', {
+        cause: error,
+      });
     }
   }
 };
