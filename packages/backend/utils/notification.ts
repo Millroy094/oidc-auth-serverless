@@ -29,7 +29,7 @@ export const sendSMS = async (
     await client.send(new PublishCommand(params));
   } catch (err) {
     logger.error((err as Error).message);
-    throw new Error('Unable to send SMS');
+    throw new Error('Unable to send SMS', { cause: err });
   }
 };
 
@@ -55,6 +55,6 @@ export const sendEmail = async (
     );
   } catch (err) {
     logger.error((err as Error).message);
-    throw new Error('Unable to send Email');
+    throw new Error('Unable to send Email', { cause: err });
   }
 };

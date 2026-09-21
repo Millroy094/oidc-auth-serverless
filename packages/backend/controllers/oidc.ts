@@ -44,7 +44,7 @@ class OIDCController {
     req: Request<Record<string, string>, unknown, AuthenticateInteractionBody>,
     res: Response,
   ) {
-    let result = {};
+    let result: Record<string, unknown>;
     try {
       const interactionDetails = await req.oidcProvider.interactionDetails(
         req,
@@ -123,7 +123,7 @@ class OIDCController {
     req: Request<Record<string, string>, unknown, AuthorizeInteractionBody>,
     res: Response,
   ) {
-    let result = {};
+    let result: Record<string, unknown>;
     try {
       const { authorize } = req.body;
       const interactionDetails = await req.oidcProvider.interactionDetails(

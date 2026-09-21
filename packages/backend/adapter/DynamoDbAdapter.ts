@@ -34,7 +34,9 @@ class DynamoDBAdapter implements Adapter {
       });
     } catch (error) {
       logger.error((error as Error).message);
-      throw new Error(`There was an error updating ${modelId}`);
+      throw new Error(`There was an error updating ${modelId}`, {
+        cause: error,
+      });
     }
   }
 
@@ -54,7 +56,9 @@ class DynamoDBAdapter implements Adapter {
       return record.payload;
     } catch (error) {
       logger.error((error as Error).message);
-      throw new Error(`There was an error finding ${modelId}`);
+      throw new Error(`There was an error finding ${modelId}`, {
+        cause: error,
+      });
     }
   }
   async findByUserCode(
@@ -79,6 +83,7 @@ class DynamoDBAdapter implements Adapter {
       logger.error((error as Error).message);
       throw new Error(
         `There was an error finding record by user code ${userCode}`,
+        { cause: error },
       );
     }
   }
@@ -99,7 +104,9 @@ class DynamoDBAdapter implements Adapter {
       return record.payload;
     } catch (error) {
       logger.error((error as Error).message);
-      throw new Error(`There was an error finding record by uid ${uid}`);
+      throw new Error(`There was an error finding record by uid ${uid}`, {
+        cause: error,
+      });
     }
   }
   async consume(id: string): Promise<void | undefined> {
@@ -113,7 +120,9 @@ class DynamoDBAdapter implements Adapter {
       await record.save();
     } catch (error) {
       logger.error((error as Error).message);
-      throw new Error(`There was an error marking ${modelId} as consumed`);
+      throw new Error(`There was an error marking ${modelId} as consumed`, {
+        cause: error,
+      });
     }
   }
   async destroy(id: string): Promise<void | undefined> {
@@ -122,7 +131,9 @@ class DynamoDBAdapter implements Adapter {
       await OIDCStore.delete(modelId);
     } catch (error) {
       logger.error((error as Error).message);
-      throw new Error(`There was an error deleting ${modelId}`);
+      throw new Error(`There was an error deleting ${modelId}`, {
+        cause: error,
+      });
     }
   }
   async revokeByGrantId(grantId: string): Promise<void | undefined> {
@@ -144,7 +155,9 @@ class DynamoDBAdapter implements Adapter {
       await OIDCStore.batchDeleteAll(modelIds);
     } catch (error) {
       logger.error((error as Error).message);
-      throw new Error(`There was an error revoking by ${grantId}`);
+      throw new Error(`There was an error revoking by ${grantId}`, {
+        cause: error,
+      });
     }
   }
 }
