@@ -67,7 +67,9 @@ export interface UpdateResourceBody {
   [key: string]: unknown;
 }
 
-export type UpdateSettingsBody = Partial<TtlSettings>;
+export type UpdateSettingsBody = Partial<TtlSettings> & {
+  registrationEnabled?: boolean;
+};
 
 class AdminController {
   public static async createClient(
@@ -412,10 +414,14 @@ class AdminController {
 
   public static async getSettings(_req: Request, res: Response) {
     try {
-      const settings = await SettingsService.getTtlSettings();
-      res
-        .status(HTTP_STATUSES.ok)
-        .json({ settings, message: 'Successfully retrieved settings!' });
+      const [ttlSettings, registrationEnabled] = await Promise.all([
+        SettingsService.getTtlSettings(),
+        SettingsService.getRegistrationEnabled(),
+      ]);
+      res.status(HTTP_STATUSES.ok).json({
+        settings: { ...ttlSettings, registrationEnabled },
+        message: 'Successfully retrieved settings!',
+      });
     } catch (err) {
       logger.error((err as Error).message);
       res
@@ -429,10 +435,22 @@ class AdminController {
     res: Response,
   ) {
     try {
-      const settings = await SettingsService.updateTtlSettings(req.body);
-      res
-        .status(HTTP_STATUSES.ok)
-        .json({ settings, message: 'Successfully updated settings!' });
+      const { registrationEnabled, ...ttlFields } = req.body;
+
+      const [ttlSettings, updatedRegistrationEnabled] = await Promise.all([
+        SettingsService.updateTtlSettings(ttlFields),
+        registrationEnabled === undefined
+          ? SettingsService.getRegistrationEnabled()
+          : SettingsService.updateRegistrationEnabled(registrationEnabled),
+      ]);
+
+      res.status(HTTP_STATUSES.ok).json({
+        settings: {
+          ...ttlSettings,
+          registrationEnabled: updatedRegistrationEnabled,
+        },
+        message: 'Successfully updated settings!',
+      });
     } catch (err) {
       logger.error((err as Error).message);
       res

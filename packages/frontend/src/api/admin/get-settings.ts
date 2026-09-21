@@ -9,8 +9,12 @@ export interface ITtlSettings {
   grantTtl: number;
 }
 
+export interface ISettings extends ITtlSettings {
+  registrationEnabled: boolean;
+}
+
 interface GetSettingsResponseData {
-  settings: ITtlSettings;
+  settings: ISettings;
 }
 
 const getSettings = async (): Promise<

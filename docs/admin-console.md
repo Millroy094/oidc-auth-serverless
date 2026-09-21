@@ -28,3 +28,8 @@ Users with the `admin` role get an extra `Account` section (`pages/Account/Clien
 - **Account → Settings** lets admins configure how long access tokens, ID tokens, refresh tokens, sessions, and grants remain valid (entered in minutes, stored in seconds).
 - Backed by a single-item `Settings` DynamoDB table (`SettingsService`); `get-configuration.ts` reads these values through the same 30-second in-memory cache used for clients, so changes take effect on running Lambda instances within 30s (cold starts always read fresh).
 - Values are bounded server-side to between 5 minutes and 30 days; if no settings have been saved yet, defaults are used (1 hour for access/ID tokens, 2 hours for refresh tokens/sessions/grants).
+
+## Allowing or blocking new user registration
+- The same **Account → Settings** page has an "Allow new user registration" toggle, stored on the same `Settings` item (`registrationEnabled`, defaults to `true`).
+- When disabled, `POST /api/user/register` rejects new sign-ups with a `403`, and the frontend registration page (`/registration`) shows a "registration is closed" message instead of the form; the "Not registered? Create an account" link on the login page is also hidden. Existing users can still log in as normal.
+- The registration form and login page read this flag from the existing public `GET /api/user/public-config` endpoint (no caching — always reads the current value), so it always reflects the latest setting without waiting on the 30-second TTL cache.

@@ -1,10 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Clock } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import schema from './schema';
 import { ISettingsInput } from './type';
-import getSettings, { ITtlSettings } from '@/api/admin/get-settings';
+import getSettings, { ISettings } from '@/api/admin/get-settings';
 import updateSettings from '@/api/admin/update-settings';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,26 +15,29 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import useFeedback from '@/hooks/useFeedback';
 
 const SECONDS_PER_MINUTE = 60;
 
-const toMinutes = (settings: ITtlSettings): ISettingsInput => ({
+const toFormValues = (settings: ISettings): ISettingsInput => ({
   accessTokenTtl: Math.round(settings.accessTokenTtl / SECONDS_PER_MINUTE),
   idTokenTtl: Math.round(settings.idTokenTtl / SECONDS_PER_MINUTE),
   refreshTokenTtl: Math.round(settings.refreshTokenTtl / SECONDS_PER_MINUTE),
   sessionTtl: Math.round(settings.sessionTtl / SECONDS_PER_MINUTE),
   grantTtl: Math.round(settings.grantTtl / SECONDS_PER_MINUTE),
+  registrationEnabled: settings.registrationEnabled,
 });
 
-const toSeconds = (input: ISettingsInput): ITtlSettings => ({
+const toApiValues = (input: ISettingsInput): ISettings => ({
   accessTokenTtl: input.accessTokenTtl * SECONDS_PER_MINUTE,
   idTokenTtl: input.idTokenTtl * SECONDS_PER_MINUTE,
   refreshTokenTtl: input.refreshTokenTtl * SECONDS_PER_MINUTE,
   sessionTtl: input.sessionTtl * SECONDS_PER_MINUTE,
   grantTtl: input.grantTtl * SECONDS_PER_MINUTE,
+  registrationEnabled: input.registrationEnabled,
 });
 
 const fields: { name: keyof ISettingsInput; label: string; help: string }[] = [
@@ -72,6 +75,7 @@ const Settings: FC = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ISettingsInput>({
     resolver: zodResolver(schema),
@@ -84,7 +88,7 @@ const Settings: FC = () => {
     try {
       setIsLoading(true);
       const response = await getSettings();
-      setSettings(toMinutes(response.data.settings));
+      setSettings(toFormValues(response.data.settings));
     } catch (err) {
       feedbackAxiosError(
         err,
@@ -102,13 +106,13 @@ const Settings: FC = () => {
 
   const onSubmit = async (data: ISettingsInput): Promise<void> => {
     try {
-      const response = await updateSettings(toSeconds(data));
+      const response = await updateSettings(toApiValues(data));
       feedbackAxiosResponse(
         response,
         'Successfully updated settings',
         'success',
       );
-      setSettings(toMinutes(response.data.settings));
+      setSettings(toFormValues(response.data.settings));
     } catch (err) {
       feedbackAxiosError(
         err,
@@ -138,7 +142,7 @@ const Settings: FC = () => {
         <CardContent>
           {isLoading ? (
             <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="h-9 w-full" />
               ))}
             </div>
@@ -166,6 +170,32 @@ const Settings: FC = () => {
                   )}
                 </div>
               ))}
+
+              <div className="pt-2 border-t">
+                <Controller
+                  name="registrationEnabled"
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <label
+                      htmlFor="registrationEnabled"
+                      className="flex items-center gap-2 cursor-pointer w-fit mt-4"
+                    >
+                      <Checkbox
+                        id="registrationEnabled"
+                        checked={value}
+                        onCheckedChange={onChange}
+                      />
+                      <span className="text-sm">
+                        Allow new user registration
+                      </span>
+                    </label>
+                  )}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  When disabled, the registration page rejects new sign-ups.
+                  Existing users can still log in.
+                </p>
+              </div>
             </div>
           )}
         </CardContent>

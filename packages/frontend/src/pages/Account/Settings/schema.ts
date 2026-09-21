@@ -16,6 +16,7 @@ const schema = z.object({
   refreshTokenTtl: ttlMinutes('Refresh token lifetime'),
   sessionTtl: ttlMinutes('Session lifetime'),
   grantTtl: ttlMinutes('Grant lifetime'),
+  registrationEnabled: z.boolean(),
 });
 
 export default schema;

@@ -32,6 +32,7 @@ type ILoginStage = 'USERNAME' | 'PASSWORD' | 'MFA' | 'RECOVERY_CODE';
 const Login: FC = () => {
   const [loginStage, setLoginStage] = useState<ILoginStage>('USERNAME');
   const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
+  const [registrationEnabled, setRegistrationEnabled] = useState<boolean>(true);
   const { interactionId } = useParams();
   const navigate = useNavigate();
   const { feedbackAxiosError } = useFeedback();
@@ -69,6 +70,7 @@ const Login: FC = () => {
     const fetchPublicConfig = async () => {
       const response = await getPublicConfig();
       setTurnstileSiteKey(response.data.turnstileSiteKey);
+      setRegistrationEnabled(response.data.registrationEnabled);
     };
     void fetchPublicConfig();
   }, []);
@@ -157,7 +159,7 @@ const Login: FC = () => {
             <h1 className="text-2xl font-semibold tracking-tight">
               Welcome back
             </h1>
-            {!interactionId && (
+            {!interactionId && registrationEnabled && (
               <p className="text-sm text-muted-foreground">
                 Not registered?{' '}
                 <button

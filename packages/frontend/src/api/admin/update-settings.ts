@@ -1,14 +1,14 @@
 import { AxiosResponse } from 'axios';
-import { ITtlSettings } from './get-settings';
+import { ISettings } from './get-settings';
 import axios from '@/utils/axios-instance';
 
 interface UpdateSettingsResponseData {
-  settings: ITtlSettings;
+  settings: ISettings;
   message: string;
 }
 
 const updateSettings = async (
-  args: ITtlSettings,
+  args: Partial<ISettings>,
 ): Promise<AxiosResponse<UpdateSettingsResponseData>> => {
   const response = await axios.put<UpdateSettingsResponseData>(
     '/api/admin/settings',

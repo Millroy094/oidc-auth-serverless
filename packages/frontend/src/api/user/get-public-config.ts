@@ -3,6 +3,7 @@ import axios from '@/utils/axios-instance';
 
 interface GetPublicConfigResponseData {
   turnstileSiteKey: string;
+  registrationEnabled: boolean;
 }
 
 const getPublicConfig = async (): Promise<

@@ -9,7 +9,7 @@ A self-hosted OpenID Connect (OIDC) identity provider and authentication server,
 - **Passkeys / WebAuthn** — register and use device passkeys (fingerprint/face/PIN) as an MFA factor.
 - **Sessions** — view and revoke active sessions from your account.
 - **OIDC provider** — standards-compliant authorization code flow, discovery, JWKS, token/userinfo endpoints, for use as a login provider by other applications.
-- **Admin console** — manage users (roles, suspension, MFA reset, sessions), register OIDC clients (relying parties), register protected resources (APIs) with scopes, and configure token/session lifetimes.
+- **Admin console** — manage users (roles, suspension, MFA reset, sessions), register OIDC clients (relying parties), register protected resources (APIs) with scopes, configure token/session lifetimes, and open/close new user registration.
 - **Account tab persistence** — the app remembers which Account tab you were last on and resets it on logout.
 
 For a deeper dive into how each of these works, see [Documentation](#documentation) below.

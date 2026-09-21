@@ -1,4 +1,4 @@
-import Settings, { SettingsItem, TTL_SETTINGS_ID } from '../models/Settings.ts';
+import Settings, { SettingsItem, SETTINGS_ID } from '../models/Settings.ts';
 
 export interface TtlSettings {
   accessTokenTtl: number;
@@ -16,6 +16,8 @@ export const DEFAULT_TTL_SETTINGS: TtlSettings = {
   grantTtl: 2 * 60 * 60,
 };
 
+export const DEFAULT_REGISTRATION_ENABLED = true;
+
 // Guardrails so an admin can't accidentally set a lifetime that's too short
 // to be usable or long enough to undermine the point of having a limit.
 const MIN_TTL = 5 * 60;
@@ -31,7 +33,7 @@ const TTL_FIELDS = [
 
 class SettingsService {
   public static async getTtlSettings(): Promise<TtlSettings> {
-    const settings = await Settings.get(TTL_SETTINGS_ID);
+    const settings = await Settings.get(SETTINGS_ID);
 
     return {
       ...DEFAULT_TTL_SETTINGS,
@@ -55,9 +57,23 @@ class SettingsService {
       }
     }
 
-    await Settings.update(TTL_SETTINGS_ID, fields);
+    await Settings.update(SETTINGS_ID, fields);
 
     return SettingsService.getTtlSettings();
+  }
+
+  public static async getRegistrationEnabled(): Promise<boolean> {
+    const settings = await Settings.get(SETTINGS_ID);
+
+    return settings?.registrationEnabled ?? DEFAULT_REGISTRATION_ENABLED;
+  }
+
+  public static async updateRegistrationEnabled(
+    registrationEnabled: boolean,
+  ): Promise<boolean> {
+    await Settings.update(SETTINGS_ID, { registrationEnabled });
+
+    return SettingsService.getRegistrationEnabled();
   }
 
   private static toTtlSettings(settings: SettingsItem): Partial<TtlSettings> {

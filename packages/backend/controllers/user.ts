@@ -4,6 +4,7 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants/authentication.ts';
 import HTTP_STATUSES from '../constants/http-status.ts';
 import MFAService from '../services/mfa/index.ts';
 import OIDCService from '../services/oidc.ts';
+import SettingsService from '../services/settings.ts';
 import UserService from '../services/user.ts';
 import config from '../support/env-config.ts';
 import { signJwt, getJwtExpiryMs } from '../utils/jwt.ts';
@@ -73,6 +74,16 @@ class UserController {
     res: Response,
   ) {
     try {
+      const registrationEnabled =
+        await SettingsService.getRegistrationEnabled();
+
+      if (!registrationEnabled) {
+        res
+          .status(HTTP_STATUSES.forbidden)
+          .json({ error: 'Registration is currently disabled' });
+        return;
+      }
+
       await UserService.createUser(req.body);
       res
         .json({ message: 'Successfully registered user!' })
@@ -434,9 +445,12 @@ class UserController {
     }
   }
 
-  public static getPublicConfig(_req: Request, res: Response) {
+  public static async getPublicConfig(_req: Request, res: Response) {
+    const registrationEnabled = await SettingsService.getRegistrationEnabled();
+
     res.status(HTTP_STATUSES.ok).json({
       turnstileSiteKey: config.get('captcha.turnstileSiteKey'),
+      registrationEnabled,
     });
   }
 }

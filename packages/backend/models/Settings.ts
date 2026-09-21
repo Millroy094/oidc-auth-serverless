@@ -5,8 +5,9 @@ import tableOptions from '../support/dynamoose-table-options.ts';
 const { Schema, model } = dynamoose;
 
 // Single-row table: there is only ever one item, keyed by this constant, used
-// to store admin-configurable OIDC token/session lifetimes.
-export const TTL_SETTINGS_ID = 'oidc-ttl';
+// to store admin-configurable app settings (OIDC token/session lifetimes,
+// whether new user registration is open).
+export const SETTINGS_ID = 'oidc-ttl';
 
 export interface SettingsItem extends Item {
   id: string;
@@ -15,6 +16,7 @@ export interface SettingsItem extends Item {
   refreshTokenTtl?: number;
   sessionTtl?: number;
   grantTtl?: number;
+  registrationEnabled?: boolean;
 }
 
 const SettingsSchema = new Schema({
@@ -36,6 +38,9 @@ const SettingsSchema = new Schema({
   },
   grantTtl: {
     type: Number,
+  },
+  registrationEnabled: {
+    type: Boolean,
   },
 });
 

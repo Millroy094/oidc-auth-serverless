@@ -4,4 +4,5 @@ export interface ISettingsInput {
   refreshTokenTtl: number;
   sessionTtl: number;
   grantTtl: number;
+  registrationEnabled: boolean;
 }
