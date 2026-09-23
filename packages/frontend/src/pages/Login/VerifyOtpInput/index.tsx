@@ -13,6 +13,7 @@ interface IVerifyOtpInput {
   email: string;
   type: string;
   control: Control<ILoginFormInput>;
+  onEnter?: () => void;
 }
 
 const OtpResendSection: FC<{ handleResendOtp: () => void; timer: number }> = ({
@@ -33,7 +34,7 @@ const OtpResendSection: FC<{ handleResendOtp: () => void; timer: number }> = ({
 );
 
 const VerifyOtpInput: FC<IVerifyOtpInput> = React.memo(
-  ({ email, type, control }) => {
+  ({ email, type, control, onEnter }) => {
     const { timer, resetTimer } = useTimer();
     const { feedbackAxiosError } = useFeedback();
 
@@ -78,6 +79,13 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = React.memo(
                     renderInput={(props) => (
                       <input
                         {...props}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            onEnter?.();
+                          }
+                          props.onKeyDown?.(e);
+                        }}
                         className="w-12 h-12 text-xl border border-input rounded-md text-center focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     )}

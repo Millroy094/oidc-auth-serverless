@@ -174,7 +174,11 @@ const Login: FC = () => {
         </CardHeader>
         <CardContent className="space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
           {loginStage === USERNAME_LOGIN_STAGE && (
-            <UsernameInput register={register} errors={errors} />
+            <UsernameInput
+              register={register}
+              errors={errors}
+              onEnter={onNextStep}
+            />
           )}
           {loginStage === USERNAME_LOGIN_STAGE && turnstileSiteKey && (
             <Turnstile
@@ -197,6 +201,7 @@ const Login: FC = () => {
               email={email}
               control={control}
               type={mfaType ?? ''}
+              onEnter={onNextStep}
             />
           )}
           {loginStage === MFA_LOGIN_STAGE && mfaType === 'passkey' && (
