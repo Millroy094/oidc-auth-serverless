@@ -150,7 +150,7 @@ const Login: FC = () => {
       : 'Next';
   return (
     <AuthCardLayout>
-      <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60 dark:shadow-none">
+      <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60">
         <CardHeader className="items-center text-center gap-3 p-6 pb-4 sm:p-8 sm:pb-4">
           <div className="h-16 w-16">
             <Logo />
@@ -189,6 +189,7 @@ const Login: FC = () => {
               errors={errors}
               email={email}
               navigateToForgotPassword={navigateToForgotPassword}
+              onEnter={onNextStep}
             />
           )}
           {loginStage === MFA_LOGIN_STAGE && mfaType !== 'passkey' && (
@@ -209,6 +210,7 @@ const Login: FC = () => {
               register={register}
               control={control}
               errors={errors}
+              onEnter={onNextStep}
             />
           )}
         </CardContent>

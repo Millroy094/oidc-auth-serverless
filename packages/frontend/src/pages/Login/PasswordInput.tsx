@@ -9,6 +9,7 @@ interface PasswordInputProps {
   errors: FieldErrors<ILoginFormInput>;
   email: string;
   navigateToForgotPassword: () => void;
+  onEnter?: () => void | Promise<void>;
 }
 
 const PasswordInput: FC<PasswordInputProps> = ({
@@ -16,6 +17,7 @@ const PasswordInput: FC<PasswordInputProps> = ({
   errors,
   email,
   navigateToForgotPassword,
+  onEnter,
 }) => {
   return (
     <div className="space-y-4">
@@ -27,6 +29,7 @@ const PasswordInput: FC<PasswordInputProps> = ({
           register={register}
           error={!!errors.password}
           helperText={errors.password?.message}
+          onEnter={onEnter}
         />
       </div>
       <div className="flex justify-end">

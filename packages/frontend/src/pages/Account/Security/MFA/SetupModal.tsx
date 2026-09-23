@@ -113,6 +113,7 @@ const SetupModal: FC<SetupModalProps> = (props) => {
                 onChange={setSubscriber}
                 error={subscriberError}
                 disabled={stage !== MFA_SETUP}
+                onEnter={stage === MFA_SETUP ? initiateMFA : undefined}
               />
               {stage === MFA_VERIFY && (
                 <>
@@ -125,6 +126,7 @@ const SetupModal: FC<SetupModalProps> = (props) => {
                     uri={uri}
                     type={type}
                     error={otpError}
+                    onEnter={verifyOtp}
                   />
                 </>
               )}

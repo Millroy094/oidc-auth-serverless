@@ -7,16 +7,17 @@ import {
 } from 'react-hook-form';
 import { ILoginFormInput } from './types';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
+import { EnterableInput } from '@/components/ui/enterable-input';
 
 interface IRecoveryCodeInput {
   control: Control<ILoginFormInput>;
   register: UseFormRegister<ILoginFormInput>;
   errors: FieldErrors<ILoginFormInput>;
+  onEnter?: () => void;
 }
 
 const RecoveryCodeInput: FC<IRecoveryCodeInput> = React.memo((props) => {
-  const { register, control, errors } = props;
+  const { register, control, errors, onEnter } = props;
 
   return (
     <div className="space-y-6">
@@ -25,10 +26,11 @@ const RecoveryCodeInput: FC<IRecoveryCodeInput> = React.memo((props) => {
       </div>
       <div className="space-y-4">
         <div>
-          <Input
+          <EnterableInput
             {...register('recoveryCode')}
             placeholder="Recovery Code"
             className={errors.recoveryCode ? 'border-red-500' : ''}
+            onEnter={onEnter}
           />
           {errors.recoveryCode && (
             <p className="text-sm text-red-500 mt-1">

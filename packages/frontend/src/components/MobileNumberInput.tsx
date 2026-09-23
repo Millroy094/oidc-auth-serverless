@@ -24,6 +24,7 @@ export interface MobileNumberInputProps {
   label?: string;
   error?: boolean;
   helperText?: string;
+  onEnter?: () => void;
 }
 
 export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
@@ -33,6 +34,7 @@ export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
   label = 'Phone number',
   error,
   helperText,
+  onEnter,
 }) => {
   const { inputValue, handlePhoneValueChange, inputRef, country, setCountry } =
     usePhoneInput({
@@ -44,6 +46,13 @@ export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
       },
     });
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && onEnter) {
+      e.preventDefault();
+      onEnter();
+    }
+  };
+
   return (
     <div className="w-full space-y-2">
       <Label htmlFor="phone">{label}</Label>
@@ -53,10 +62,10 @@ export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
           onValueChange={(value) => setCountry(value)}
           disabled={disabled}
         >
-          <SelectTrigger className="w-full gap-1 px-2 sm:w-[7.5rem] sm:shrink-0">
+          <SelectTrigger className="w-full gap-1 px-2 sm:w-30 sm:shrink-0">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="min-w-[12rem]">
+          <SelectContent className="min-w-48">
             {defaultCountries.map((c) => {
               const countryData = parseCountry(c);
               return (
@@ -76,6 +85,7 @@ export const MobileNumberInput: React.FC<MobileNumberInputProps> = ({
           placeholder="Phone number"
           value={inputValue}
           onChange={handlePhoneValueChange}
+          onKeyDown={handleKeyDown}
           ref={inputRef}
           disabled={disabled}
           className={error ? 'border-destructive' : ''}

@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import { MobileNumberInput } from '@/components/MobileNumberInput';
-import { Input } from '@/components/ui/input';
+import { EnterableInput } from '@/components/ui/enterable-input';
 import { APP_MFA, EMAIL_MFA, SMS_MFA } from '@/constants';
 
 interface ISubscriberInput {
@@ -9,10 +9,11 @@ interface ISubscriberInput {
   type: string;
   error: boolean;
   disabled: boolean;
+  onEnter?: () => void;
 }
 
 const SubscriberInput: FC<ISubscriberInput> = (props) => {
-  const { value, onChange, type, error, disabled } = props;
+  const { value, onChange, type, error, disabled, onEnter } = props;
   const onChangeTextField = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
   };
@@ -27,13 +28,14 @@ const SubscriberInput: FC<ISubscriberInput> = (props) => {
         <label htmlFor="subscriber" className="block text-sm font-medium mb-1">
           Device Name
         </label>
-        <Input
+        <EnterableInput
           id="subscriber"
           name="subscriber"
           onChange={onChangeTextField}
           value={value}
           disabled={disabled}
           className={error ? 'border-red-500' : ''}
+          onEnter={onEnter}
         />
         {error && <p className="text-sm text-red-500 mt-1">Required</p>}
       </div>
@@ -48,6 +50,7 @@ const SubscriberInput: FC<ISubscriberInput> = (props) => {
           error={error}
           helperText={error ? 'Invalid number' : ''}
           disabled={disabled}
+          onEnter={onEnter}
         />
       </div>
     );
@@ -57,7 +60,7 @@ const SubscriberInput: FC<ISubscriberInput> = (props) => {
         <label htmlFor="subscriber" className="block text-sm font-medium mb-1">
           Email
         </label>
-        <Input
+        <EnterableInput
           id="subscriber"
           name="subscriber"
           onChange={onChangeTextField}
@@ -65,6 +68,7 @@ const SubscriberInput: FC<ISubscriberInput> = (props) => {
           type="email"
           disabled={disabled}
           className={error ? 'border-red-500' : ''}
+          onEnter={onEnter}
         />
         {error && <p className="text-sm text-red-500 mt-1">Invalid Email</p>}
       </div>

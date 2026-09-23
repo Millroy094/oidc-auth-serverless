@@ -14,6 +14,7 @@ interface IVerifyOtpInput {
   type: string;
   uri?: string;
   error: boolean;
+  onEnter?: () => void;
 }
 
 const OtpResendSection: FC<{ handleResend: () => void; timer: number }> = ({
@@ -39,6 +40,7 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = ({
   value,
   uri,
   error,
+  onEnter,
 }) => {
   const { timer, resetTimer } = useTimer();
   const auth = useAuth();
@@ -75,7 +77,14 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = ({
             renderInput={(props) => (
               <input
                 {...props}
-                className="w-12 h-12 text-center text-xl border border-slate-300 rounded focus:outline-none focus:border-slate-500"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && onEnter) {
+                    e.preventDefault();
+                    onEnter();
+                  }
+                  props.onKeyDown?.(e);
+                }}
+                className="w-12 h-12 text-center text-xl border border-slate-300 rounded focus:outline-none"
               />
             )}
             inputType="tel"

@@ -96,7 +96,7 @@ const ForgotPassword = () => {
   return (
     <AuthCardLayout>
       <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm">
-        <Card className="border-t-4 border-t-primary shadow-xl shadow-slate-200/60 dark:shadow-none">
+        <Card className="border-t-4 border-t-primary shadow-xl shadow-slate-200/60">
           <CardHeader className="text-center p-6 pb-4 sm:p-8 sm:pb-4">
             <h1 className="text-2xl font-semibold tracking-tight">
               Forgot Password

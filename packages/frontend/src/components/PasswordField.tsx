@@ -1,24 +1,22 @@
 import { EyeOff, Eye } from 'lucide-react';
-import React, { FC, useState } from 'react';
-import { UseFormRegister } from 'react-hook-form';
+import React, { useState } from 'react';
+import { FieldValues, Path, UseFormRegister } from 'react-hook-form';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { ILoginFormInput } from '@/pages/Login/types';
-import { IRegisterFormInput } from '@/pages/Register/types';
+import { EnterableInput } from './ui/enterable-input';
 
-interface PasswordFieldProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  register: UseFormRegister<any>;
-  name: keyof IRegisterFormInput | keyof ILoginFormInput;
+interface PasswordFieldProps<T extends FieldValues> {
+  register: UseFormRegister<T>;
+  name: Path<T>;
   label?: string;
   required?: boolean;
   error: boolean;
   helperText?: string;
   onFocus?: React.FocusEventHandler;
   onBlur?: React.FocusEventHandler;
+  onEnter?: () => void | Promise<void>;
 }
 
-const PasswordField: FC<PasswordFieldProps> = (props) => {
+const PasswordField = <T extends FieldValues>(props: PasswordFieldProps<T>) => {
   const {
     name,
     label,
@@ -28,6 +26,7 @@ const PasswordField: FC<PasswordFieldProps> = (props) => {
     required,
     onFocus,
     onBlur,
+    onEnter,
   } = props;
   const [showPassword, setShowPassword] = useState(false);
 
@@ -48,13 +47,14 @@ const PasswordField: FC<PasswordFieldProps> = (props) => {
         {required && <span className="text-destructive">*</span>}
       </label>
       <div className="relative flex items-center">
-        <Input
+        <EnterableInput
           {...register(name)}
           id={String(name)}
           type={showPassword ? 'text' : 'password'}
           className={error ? 'border-destructive' : ''}
           onFocus={onFocus}
           onBlur={onBlur}
+          onEnter={onEnter}
         />
         <Button
           type="button"
