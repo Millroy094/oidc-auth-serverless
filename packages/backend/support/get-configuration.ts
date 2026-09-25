@@ -180,6 +180,14 @@ const getConfiguration = async (): Promise<Configuration> => {
           process.env.FRONTEND_URL ??
           (issuerUrl && new URL(issuerUrl).origin) ??
           '';
+
+        if (!frontendOrigin) {
+          throw new Error(
+            'Frontend origin could not be determined. ' +
+              'Set FRONTEND_URL environment variable or ensure oidc.issuerUrl is configured.',
+          );
+        }
+
         return `${frontendOrigin}/?interactionId=${interaction.jti}`;
       },
     },
