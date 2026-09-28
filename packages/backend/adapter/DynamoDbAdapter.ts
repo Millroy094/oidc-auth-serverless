@@ -1,5 +1,6 @@
 import { Adapter, AdapterPayload } from 'oidc-provider';
 import OIDCStore from '../models/OIDCStore.ts';
+import ClientService from '../services/client.ts';
 import logger from '../utils/logger.ts';
 
 class DynamoDBAdapter implements Adapter {
@@ -41,6 +42,14 @@ class DynamoDBAdapter implements Adapter {
   }
 
   async find(id: string): Promise<void | AdapterPayload | undefined> {
+    // Clients are managed via the admin console/Client table rather than
+    // oidc-provider's dynamic client registration, so resolve them straight
+    // from there instead of the generic OIDCStore-backed lookup below.
+    if (this.name === 'Client') {
+      const client = await ClientService.getClientByClientId(id);
+      return client ? ClientService.toClientMetadata(client) : undefined;
+    }
+
     const modelId = `${this.name}:${id}`;
     try {
       const record = await OIDCStore.get(modelId);

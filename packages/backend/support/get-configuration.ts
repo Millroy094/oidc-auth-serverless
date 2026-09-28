@@ -1,10 +1,8 @@
 import jose from 'node-jose';
 import { Configuration, JWKS, errors } from 'oidc-provider';
 import DynamoDBAdapter from '../adapter/DynamoDbAdapter.ts';
-import { ClientItem } from '../models/Client.ts';
 import Resource, { ResourceScope } from '../models/Resource.ts';
 import User from '../models/User.ts';
-import ClientService from '../services/client.ts';
 import SettingsService, { TtlSettings } from '../services/settings.ts';
 import config from './env-config.ts';
 
@@ -30,23 +28,6 @@ const getJwks = async (): Promise<JWKS> => {
   return jwksCache;
 };
 
-const CLIENTS_CACHE_TTL_MS = 30_000;
-let clientsCache: { data: ClientItem[]; expiresAt: number } | null = null;
-
-const getCachedClients = async (): Promise<ClientItem[]> => {
-  if (clientsCache && Date.now() < clientsCache.expiresAt) {
-    return clientsCache.data;
-  }
-
-  const clients = await ClientService.getClients();
-  clientsCache = {
-    data: clients,
-    expiresAt: Date.now() + CLIENTS_CACHE_TTL_MS,
-  };
-
-  return clients;
-};
-
 const TTL_SETTINGS_CACHE_TTL_MS = 30_000;
 let ttlSettingsCache: { data: TtlSettings; expiresAt: number } | null = null;
 
@@ -65,7 +46,6 @@ const getCachedTtlSettings = async (): Promise<TtlSettings> => {
 };
 
 const getConfiguration = async (): Promise<Configuration> => {
-  const clients = await getCachedClients();
   const jwks = await getJwks();
   const ttlSettings = await getCachedTtlSettings();
 
@@ -149,15 +129,6 @@ const getConfiguration = async (): Promise<Configuration> => {
         }
       );
     },
-    clients: clients.map((client) => ({
-      client_id: client.clientId,
-      client_secret: client.secret,
-      redirect_uris: client.redirectUris,
-      grant_types: client.grants,
-      scope: client.scopes.join(' '),
-      resources: client.resources,
-      require_pkce: client.requirePkce,
-    })),
     extraClientMetadata: {
       properties: ['resources', 'require_pkce'],
     },

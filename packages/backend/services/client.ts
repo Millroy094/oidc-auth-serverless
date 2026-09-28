@@ -1,4 +1,5 @@
 import isEmpty from 'lodash/isEmpty.js';
+import { ClientMetadata } from 'oidc-provider';
 import Client, { ClientItem } from '../models/Client.ts';
 
 class ClientService {
@@ -11,7 +12,7 @@ class ClientService {
     requirePkce?: boolean;
   }): Promise<void> {
     const { clientId } = fields;
-    const [clientAccount] = await Client.scan('clientId').eq(clientId).exec();
+    const clientAccount = await this.getClientByClientId(clientId);
 
     if (!isEmpty(clientAccount)) {
       throw new Error('Client already exists');
@@ -32,6 +33,31 @@ class ClientService {
     }
 
     return client;
+  }
+
+  public static async getClientByClientId(
+    clientId: string,
+  ): Promise<ClientItem | undefined> {
+    const [client] = await Client.query('clientId')
+      .using('clientId-index')
+      .eq(clientId)
+      .exec();
+
+    return client;
+  }
+
+  // Maps our persisted Client record onto the shape oidc-provider expects
+  // when resolving a client via the adapter's `find('Client', id)` path.
+  public static toClientMetadata(client: ClientItem): ClientMetadata {
+    return {
+      client_id: client.clientId,
+      client_secret: client.secret,
+      redirect_uris: client.redirectUris,
+      grant_types: client.grants,
+      scope: client.scopes.join(' '),
+      resources: client.resources,
+      require_pkce: client.requirePkce,
+    };
   }
 
   public static async updateClient(

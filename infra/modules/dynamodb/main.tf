@@ -33,6 +33,21 @@ resource "aws_dynamodb_table" "client" {
     name = "id"
     type = "S"
   }
+
+  attribute {
+    name = "clientId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "clientId-index"
+    projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "clientId"
+      key_type       = "HASH"
+    }
+  }
 }
 
 resource "aws_dynamodb_table" "resource" {

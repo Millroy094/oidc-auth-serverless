@@ -31,6 +31,10 @@ const ClientSchema = new Schema(
     clientId: {
       type: String,
       required: true,
+      index: {
+        name: 'clientId-index',
+        type: 'global',
+      },
     },
     clientName: {
       type: String,
