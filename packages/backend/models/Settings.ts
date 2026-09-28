@@ -17,6 +17,7 @@ export interface SettingsItem extends Item {
   sessionTtl?: number;
   grantTtl?: number;
   registrationEnabled?: boolean;
+  rotateRefreshTokenOnUse?: boolean;
 }
 
 const SettingsSchema = new Schema({
@@ -40,6 +41,9 @@ const SettingsSchema = new Schema({
     type: Number,
   },
   registrationEnabled: {
+    type: Boolean,
+  },
+  rotateRefreshTokenOnUse: {
     type: Boolean,
   },
 });

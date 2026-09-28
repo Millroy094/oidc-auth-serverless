@@ -29,6 +29,7 @@ const toFormValues = (settings: ISettings): ISettingsInput => ({
   sessionTtl: Math.round(settings.sessionTtl / SECONDS_PER_MINUTE),
   grantTtl: Math.round(settings.grantTtl / SECONDS_PER_MINUTE),
   registrationEnabled: settings.registrationEnabled,
+  rotateRefreshTokenOnUse: settings.rotateRefreshTokenOnUse,
 });
 
 const toApiValues = (input: ISettingsInput): ISettings => ({
@@ -38,6 +39,7 @@ const toApiValues = (input: ISettingsInput): ISettings => ({
   sessionTtl: input.sessionTtl * SECONDS_PER_MINUTE,
   grantTtl: input.grantTtl * SECONDS_PER_MINUTE,
   registrationEnabled: input.registrationEnabled,
+  rotateRefreshTokenOnUse: input.rotateRefreshTokenOnUse,
 });
 
 const fields: { name: keyof ISettingsInput; label: string; help: string }[] = [
@@ -142,7 +144,7 @@ const Settings: FC = () => {
         <CardContent>
           {isLoading ? (
             <div className="space-y-4">
-              {Array.from({ length: 6 }).map((_, i) => (
+              {Array.from({ length: 7 }).map((_, i) => (
                 <Skeleton key={i} className="h-9 w-full" />
               ))}
             </div>
@@ -194,6 +196,30 @@ const Settings: FC = () => {
                 <p className="text-xs text-muted-foreground mt-1">
                   When disabled, the registration page rejects new sign-ups.
                   Existing users can still log in.
+                </p>
+
+                <Controller
+                  name="rotateRefreshTokenOnUse"
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <label
+                      htmlFor="rotateRefreshTokenOnUse"
+                      className="flex items-center gap-2 cursor-pointer w-fit mt-4"
+                    >
+                      <Checkbox
+                        id="rotateRefreshTokenOnUse"
+                        checked={value}
+                        onCheckedChange={onChange}
+                      />
+                      <span className="text-sm">
+                        Always rotate refresh tokens on use
+                      </span>
+                    </label>
+                  )}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  When disabled, refresh tokens follow the provider&apos;s
+                  adaptive rotation policy instead of rotating on every use.
                 </p>
               </div>
             </div>

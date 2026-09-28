@@ -11,6 +11,7 @@ export interface ITtlSettings {
 
 export interface ISettings extends ITtlSettings {
   registrationEnabled: boolean;
+  rotateRefreshTokenOnUse: boolean;
 }
 
 interface GetSettingsResponseData {

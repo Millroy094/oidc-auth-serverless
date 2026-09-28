@@ -69,6 +69,7 @@ export interface UpdateResourceBody {
 
 export type UpdateSettingsBody = Partial<TtlSettings> & {
   registrationEnabled?: boolean;
+  rotateRefreshTokenOnUse?: boolean;
 };
 
 class AdminController {
@@ -414,12 +415,18 @@ class AdminController {
 
   public static async getSettings(_req: Request, res: Response) {
     try {
-      const [ttlSettings, registrationEnabled] = await Promise.all([
-        SettingsService.getTtlSettings(),
-        SettingsService.getRegistrationEnabled(),
-      ]);
+      const [ttlSettings, registrationEnabled, rotateRefreshTokenOnUse] =
+        await Promise.all([
+          SettingsService.getTtlSettings(),
+          SettingsService.getRegistrationEnabled(),
+          SettingsService.getRotateRefreshTokenOnUse(),
+        ]);
       res.status(HTTP_STATUSES.ok).json({
-        settings: { ...ttlSettings, registrationEnabled },
+        settings: {
+          ...ttlSettings,
+          registrationEnabled,
+          rotateRefreshTokenOnUse,
+        },
         message: 'Successfully retrieved settings!',
       });
     } catch (err) {
@@ -435,19 +442,30 @@ class AdminController {
     res: Response,
   ) {
     try {
-      const { registrationEnabled, ...ttlFields } = req.body;
+      const { registrationEnabled, rotateRefreshTokenOnUse, ...ttlFields } =
+        req.body;
 
-      const [ttlSettings, updatedRegistrationEnabled] = await Promise.all([
+      const [
+        ttlSettings,
+        updatedRegistrationEnabled,
+        updatedRotateRefreshTokenOnUse,
+      ] = await Promise.all([
         SettingsService.updateTtlSettings(ttlFields),
         registrationEnabled === undefined
           ? SettingsService.getRegistrationEnabled()
           : SettingsService.updateRegistrationEnabled(registrationEnabled),
+        rotateRefreshTokenOnUse === undefined
+          ? SettingsService.getRotateRefreshTokenOnUse()
+          : SettingsService.updateRotateRefreshTokenOnUse(
+              rotateRefreshTokenOnUse,
+            ),
       ]);
 
       res.status(HTTP_STATUSES.ok).json({
         settings: {
           ...ttlSettings,
           registrationEnabled: updatedRegistrationEnabled,
+          rotateRefreshTokenOnUse: updatedRotateRefreshTokenOnUse,
         },
         message: 'Successfully updated settings!',
       });

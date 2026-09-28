@@ -45,9 +45,31 @@ const getCachedTtlSettings = async (): Promise<TtlSettings> => {
   return ttlSettings;
 };
 
+const ROTATE_REFRESH_TOKEN_CACHE_TTL_MS = 30_000;
+let rotateRefreshTokenCache: { data: boolean; expiresAt: number } | null = null;
+
+const getCachedRotateRefreshTokenOnUse = async (): Promise<boolean> => {
+  if (
+    rotateRefreshTokenCache &&
+    Date.now() < rotateRefreshTokenCache.expiresAt
+  ) {
+    return rotateRefreshTokenCache.data;
+  }
+
+  const rotateRefreshTokenOnUse =
+    await SettingsService.getRotateRefreshTokenOnUse();
+  rotateRefreshTokenCache = {
+    data: rotateRefreshTokenOnUse,
+    expiresAt: Date.now() + ROTATE_REFRESH_TOKEN_CACHE_TTL_MS,
+  };
+
+  return rotateRefreshTokenOnUse;
+};
+
 const getConfiguration = async (): Promise<Configuration> => {
   const jwks = await getJwks();
   const ttlSettings = await getCachedTtlSettings();
+  const rotateRefreshTokenOnUse = await getCachedRotateRefreshTokenOnUse();
 
   return {
     adapter: DynamoDBAdapter,
@@ -59,7 +81,11 @@ const getConfiguration = async (): Promise<Configuration> => {
       Session: ttlSettings.sessionTtl,
       Grant: ttlSettings.grantTtl,
     },
-    rotateRefreshToken: true,
+    // Only override the library's adaptive rotation policy when the admin
+    // has opted into strict always-rotate; omitting the key entirely (rather
+    // than passing `false`) when they haven't restores oidc-provider's
+    // default adaptive behaviour instead of disabling rotation outright.
+    ...(rotateRefreshTokenOnUse ? { rotateRefreshToken: true } : {}),
     cookies: {
       keys: cookieSecrets,
       long: { httpOnly: true, sameSite: 'lax' },

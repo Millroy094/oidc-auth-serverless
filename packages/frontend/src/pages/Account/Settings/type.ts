@@ -5,4 +5,5 @@ export interface ISettingsInput {
   sessionTtl: number;
   grantTtl: number;
   registrationEnabled: boolean;
+  rotateRefreshTokenOnUse: boolean;
 }

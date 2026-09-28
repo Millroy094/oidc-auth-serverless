@@ -18,6 +18,8 @@ export const DEFAULT_TTL_SETTINGS: TtlSettings = {
 
 export const DEFAULT_REGISTRATION_ENABLED = true;
 
+export const DEFAULT_ROTATE_REFRESH_TOKEN_ON_USE = true;
+
 // Guardrails so an admin can't accidentally set a lifetime that's too short
 // to be usable or long enough to undermine the point of having a limit.
 const MIN_TTL = 5 * 60;
@@ -74,6 +76,22 @@ class SettingsService {
     await Settings.update(SETTINGS_ID, { registrationEnabled });
 
     return SettingsService.getRegistrationEnabled();
+  }
+
+  public static async getRotateRefreshTokenOnUse(): Promise<boolean> {
+    const settings = await Settings.get(SETTINGS_ID);
+
+    return (
+      settings?.rotateRefreshTokenOnUse ?? DEFAULT_ROTATE_REFRESH_TOKEN_ON_USE
+    );
+  }
+
+  public static async updateRotateRefreshTokenOnUse(
+    rotateRefreshTokenOnUse: boolean,
+  ): Promise<boolean> {
+    await Settings.update(SETTINGS_ID, { rotateRefreshTokenOnUse });
+
+    return SettingsService.getRotateRefreshTokenOnUse();
   }
 
   private static toTtlSettings(settings: SettingsItem): Partial<TtlSettings> {
