@@ -59,6 +59,7 @@ const getConfiguration = async (): Promise<Configuration> => {
       Session: ttlSettings.sessionTtl,
       Grant: ttlSettings.grantTtl,
     },
+    rotateRefreshToken: true,
     cookies: {
       keys: cookieSecrets,
       long: { httpOnly: true, sameSite: 'lax' },
@@ -104,30 +105,36 @@ const getConfiguration = async (): Promise<Configuration> => {
     },
     findAccount: async (_, id) => {
       const account = await User.get(id);
-      return (
-        account && {
-          accountId: id,
-          claims: (_, scope) => {
-            return {
-              sub: id,
-              ...(scope.includes('email') && {
-                email: account.email,
-                email_verified: account.emailVerified,
-              }),
-              ...(scope.includes('phone') && {
-                phone_number: account.mobile,
-              }),
-              ...(scope.includes('profile') && {
-                given_name: account.firstName,
-                family_name: account.lastName,
-                name: [account.firstName, account.lastName]
-                  .filter(Boolean)
-                  .join(' '),
-              }),
-            };
-          },
-        }
-      );
+
+      // Blocks not just new logins but also existing refresh token/userinfo
+      // use for an account suspended after it was already issued tokens -
+      // findAccount is re-invoked on every such request, not just at login.
+      if (!account || account.suspended) {
+        return undefined;
+      }
+
+      return {
+        accountId: id,
+        claims: (_, scope) => {
+          return {
+            sub: id,
+            ...(scope.includes('email') && {
+              email: account.email,
+              email_verified: account.emailVerified,
+            }),
+            ...(scope.includes('phone') && {
+              phone_number: account.mobile,
+            }),
+            ...(scope.includes('profile') && {
+              given_name: account.firstName,
+              family_name: account.lastName,
+              name: [account.firstName, account.lastName]
+                .filter(Boolean)
+                .join(' '),
+            }),
+          };
+        },
+      };
     },
     extraClientMetadata: {
       properties: ['resources', 'require_pkce'],
