@@ -132,9 +132,8 @@ const Login: FC = () => {
         err,
         'Failed to authenticate credentials, please try again.',
       );
-    } finally {
-      onReset();
       setIsLoading(false);
+      onReset();
     }
   };
 
