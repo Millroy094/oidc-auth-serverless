@@ -15,27 +15,23 @@ const TransitionOverlay: FC<TransitionOverlayProps> = ({
   }
 
   return (
-    <div
-      className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in"
-      style={{
-        animation: 'fadeIn 0.3s ease-in-out',
-      }}
-    >
+    <>
       <style>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
+        @keyframes fadeInImmediate {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .transition-overlay-visible {
+          animation: fadeInImmediate 0.15s ease-out forwards;
         }
       `}</style>
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm font-medium text-muted-foreground">{message}</p>
+      <div className="transition-overlay-visible fixed inset-0 bg-white/97 backdrop-blur-md flex items-center justify-center z-50">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm font-medium text-foreground">{message}</p>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

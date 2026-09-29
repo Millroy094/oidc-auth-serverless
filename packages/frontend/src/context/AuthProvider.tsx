@@ -73,12 +73,13 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
       setUser(null);
       localStorage.removeItem(ACCOUNT_ACTIVE_TAB_STORAGE_KEY);
       setIsLoggingOut(true);
-      // Delay navigation to show overlay
-      setTimeout(async () => {
-        await navigate('/login');
-      }, 800);
+      // Show transition overlay for 500ms before navigating
+      setTimeout(() => {
+        void navigate('/login');
+      }, 500);
     } catch (err) {
       feedbackAxiosError(err, 'Failed to logout user, please try again.');
+      setIsLoggingOut(false);
     }
   };
 

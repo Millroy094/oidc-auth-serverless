@@ -128,10 +128,10 @@ const Login: FC = () => {
 
       if (response?.data.redirect) {
         setIsAuthenticating(true);
-        // Delay redirect to show overlay
+        // Show overlay for 500ms before redirecting
         setTimeout(() => {
           window.location.href = response.data.redirect;
-        }, 800);
+        }, 500);
       }
     } catch (err) {
       feedbackAxiosError(
