@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -33,6 +34,7 @@ const Login: FC = () => {
   const [loginStage, setLoginStage] = useState<ILoginStage>('USERNAME');
   const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { interactionId } = useParams();
   const navigate = useNavigate();
   const { feedbackAxiosError } = useFeedback();
@@ -112,6 +114,7 @@ const Login: FC = () => {
   };
 
   const onSubmit = async (data: ILoginFormInput) => {
+    setIsLoading(true);
     try {
       const response = interactionId
         ? await authenticateInteraction({
@@ -129,8 +132,10 @@ const Login: FC = () => {
         err,
         'Failed to authenticate credentials, please try again.',
       );
+    } finally {
+      onReset();
+      setIsLoading(false);
     }
-    onReset();
   };
 
   const navigateToForgotPassword = () =>
@@ -229,6 +234,7 @@ const Login: FC = () => {
               <Button
                 variant="outline"
                 onClick={onReset}
+                disabled={isLoading}
                 className="w-full sm:w-auto"
               >
                 Sign in with a different user
@@ -238,6 +244,7 @@ const Login: FC = () => {
             <Button
               variant="outline"
               onClick={loginViaRecoveryCode}
+              disabled={isLoading}
               className="w-full sm:w-auto"
             >
               Having trouble with MFA?
@@ -246,10 +253,22 @@ const Login: FC = () => {
           {showButton && (
             <Button
               onClick={onNextStep}
-              disabled={!!turnstileSiteKey && !captchaToken}
+              disabled={isLoading || (!!turnstileSiteKey && !captchaToken)}
               className="w-full sm:w-auto"
             >
-              {buttonText}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {[MFA_LOGIN_STAGE, RECOVERY_CODE_STAGE].includes(
+                    loginStage,
+                  ) ||
+                  (loginStage === PASSWORD_LOGIN_STAGE && !mfaType)
+                    ? 'Signing in...'
+                    : 'Loading...'}
+                </>
+              ) : (
+                buttonText
+              )}
             </Button>
           )}
         </div>
