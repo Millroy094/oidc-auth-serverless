@@ -26,8 +26,6 @@ interface IAuthContext {
 
 const AuthContext = createContext<IAuthContext | null>(null);
 
-// Minimum time the transition overlay stays visible before navigating, so
-// it's perceptible to the user rather than flashing on and off instantly.
 const TRANSITION_OVERLAY_DELAY_MS = 500;
 
 const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
@@ -39,8 +37,6 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
   const { feedbackAxiosError } = useFeedback();
   const { enqueueSnackbar } = useSnackbar();
 
-  // Shows a transition overlay for a short delay before navigating, then
-  // resets the overlay flag once the navigation has been triggered.
   const showTransitionThenNavigate = (
     setIsTransitioning: (value: boolean) => void,
     path: string,
@@ -53,8 +49,6 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
   };
 
   const login = async (data: ILoginFormInput): Promise<void> => {
-    // Errors are intentionally not caught here so callers (e.g. the login
-    // form) can handle them, show feedback, and reset the form as needed.
     const response = await authenticateUser({
       ...data,
       captchaToken: data.captchaToken ?? '',
