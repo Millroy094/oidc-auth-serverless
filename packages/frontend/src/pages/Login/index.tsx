@@ -254,17 +254,19 @@ const Login: FC = () => {
             <Button
               onClick={onNextStep}
               disabled={isLoading || (!!turnstileSiteKey && !captchaToken)}
-              className="w-full sm:w-auto whitespace-nowrap"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-3"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {[MFA_LOGIN_STAGE, RECOVERY_CODE_STAGE].includes(
-                    loginStage,
-                  ) ||
-                  (loginStage === PASSWORD_LOGIN_STAGE && !mfaType)
-                    ? 'Signing in...'
-                    : 'Loading...'}
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>
+                    {[MFA_LOGIN_STAGE, RECOVERY_CODE_STAGE].includes(
+                      loginStage,
+                    ) ||
+                    (loginStage === PASSWORD_LOGIN_STAGE && !mfaType)
+                      ? 'Signing in...'
+                      : 'Loading...'}
+                  </span>
                 </>
               ) : (
                 buttonText
