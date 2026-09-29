@@ -15,6 +15,7 @@ import getLoginConfiguration from '@/api/user/get-login-configuration';
 import getPublicConfig from '@/api/user/get-public-config';
 import Logo from '@/assets/logo.svg';
 import AuthCardLayout from '@/components/AuthCardLayout';
+import TransitionOverlay from '@/components/TransitionOverlay';
 import Turnstile from '@/components/Turnstile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -35,6 +36,7 @@ const Login: FC = () => {
   const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
   const { interactionId } = useParams();
   const navigate = useNavigate();
   const { feedbackAxiosError } = useFeedback();
@@ -125,7 +127,11 @@ const Login: FC = () => {
         : await Auth?.login(data);
 
       if (response?.data.redirect) {
-        window.location.href = response.data.redirect;
+        setIsAuthenticating(true);
+        // Delay redirect to show overlay
+        setTimeout(() => {
+          window.location.href = response.data.redirect;
+        }, 800);
       }
     } catch (err) {
       feedbackAxiosError(
@@ -154,6 +160,7 @@ const Login: FC = () => {
       : 'Next';
   return (
     <AuthCardLayout>
+      <TransitionOverlay isVisible={isAuthenticating} message="Signing in..." />
       <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60">
         <CardHeader className="items-center text-center gap-3 p-6 pb-4 sm:p-8 sm:pb-4">
           <div className="h-16 w-16">
