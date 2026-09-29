@@ -28,6 +28,7 @@ const AuthContext = createContext<IAuthContext | null>(null);
 const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
   const [user, setUser] = useState<IUser | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
+  const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { feedbackAxiosError } = useFeedback();
@@ -40,7 +41,12 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
         captchaToken: data.captchaToken ?? '',
       });
       setUser(response.data.user);
-      await navigate('/account');
+      setIsSigningIn(true);
+      // Show transition overlay for 500ms before navigating
+      setTimeout(() => {
+        void navigate('/account');
+        setIsSigningIn(false);
+      }, 500);
     } catch (err) {
       feedbackAxiosError(
         err,
@@ -76,6 +82,7 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
       // Show transition overlay for 500ms before navigating
       setTimeout(() => {
         void navigate('/login');
+        setIsLoggingOut(false);
       }, 500);
     } catch (err) {
       feedbackAxiosError(err, 'Failed to logout user, please try again.');
@@ -88,6 +95,7 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
       value={{ login, logout, refreshUser, user, isLoggingOut }}
     >
       <TransitionOverlay isVisible={isLoggingOut} message="Logging out..." />
+      <TransitionOverlay isVisible={isSigningIn} message="Signing in..." />
       {children}
     </AuthContext.Provider>
   );
