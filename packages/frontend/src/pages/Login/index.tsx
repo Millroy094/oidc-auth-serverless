@@ -254,7 +254,7 @@ const Login: FC = () => {
             <Button
               onClick={onNextStep}
               disabled={isLoading || (!!turnstileSiteKey && !captchaToken)}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto whitespace-nowrap"
             >
               {isLoading ? (
                 <>
