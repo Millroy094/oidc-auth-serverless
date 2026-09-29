@@ -53,19 +53,14 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
   };
 
   const login = async (data: ILoginFormInput): Promise<void> => {
-    try {
-      const response = await authenticateUser({
-        ...data,
-        captchaToken: data.captchaToken ?? '',
-      });
-      setUser(response.data.user);
-      showTransitionThenNavigate(setIsSigningIn, '/account');
-    } catch (err) {
-      feedbackAxiosError(
-        err,
-        'Failed to authenticate credentials, please try again.',
-      );
-    }
+    // Errors are intentionally not caught here so callers (e.g. the login
+    // form) can handle them, show feedback, and reset the form as needed.
+    const response = await authenticateUser({
+      ...data,
+      captchaToken: data.captchaToken ?? '',
+    });
+    setUser(response.data.user);
+    showTransitionThenNavigate(setIsSigningIn, '/account');
   };
 
   const refreshUser = async (): Promise<void> => {
