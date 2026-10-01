@@ -22,7 +22,7 @@
     "esbuild": "^0.28.2",
     "node-jose": "^2.2.0",
     "tsx": "^4.23.13",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1131.0",
