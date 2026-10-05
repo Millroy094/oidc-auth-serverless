@@ -192,7 +192,7 @@ const getConfiguration = async (): Promise<Configuration> => {
           );
         }
 
-        return `${frontendOrigin}/?interactionId=${interaction.jti}`;
+        return `${frontendOrigin}/${interaction.jti}`;
       },
     },
   };

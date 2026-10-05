@@ -129,12 +129,9 @@ router.post<Record<string, string>, unknown, RegisterPasskeyBody>(
   (req, res) => PasskeyController.initiatePasskeyRegistration(req, res),
 );
 
-router.post<
-  Record<string, string>,
-  unknown,
-  RegisterPasskeyBody & { sessionId: string }
->('/register-passkey-with-session', (req, res) =>
-  PasskeyController.registerPasskeyWithSession(req, res),
+router.post<Record<string, string>, unknown, { sessionId: string }>(
+  '/register-passkey-with-session',
+  (req, res) => PasskeyController.registerPasskeyWithSession(req, res),
 );
 
 router.post<

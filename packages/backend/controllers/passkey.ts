@@ -416,25 +416,21 @@ class PasskeyController {
   }
 
   public static async registerPasskeyWithSession(
-    req: Request<
-      Record<string, string>,
-      unknown,
-      RegisterPasskeyBody & { sessionId: string }
-    >,
+    req: Request<Record<string, string>, unknown, { sessionId: string }>,
     res: Response,
   ) {
     try {
-      const { userId, sessionId } = req.body;
+      const { sessionId } = req.body;
 
       const session = await PasskeySession.get(sessionId);
-      if (!session || session.userId !== userId) {
+      if (!session) {
         res
           .status(HTTP_STATUSES.unauthorised)
           .send({ error: 'Invalid session' });
         return;
       }
 
-      const user = await User.get(userId);
+      const user = await User.get(session.userId);
 
       const options = await generateRegistrationOptions({
         rpID: config.get('authentication.rpId'),
