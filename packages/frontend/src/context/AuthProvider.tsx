@@ -39,8 +39,13 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
         ...data,
         captchaToken: data.captchaToken ?? '',
       });
-      setUser(response.data.user);
-      await navigate('/account');
+      // Only set user and navigate if we got LOGIN_SUCCESS
+      if (response.data.challengeName === 'LOGIN_SUCCESS') {
+        setUser(response.data.user);
+        await navigate('/account');
+      }
+      // For MFA_REQUIRED or EMAIL_VERIFICATION_REQUIRED challenges,
+      // the Login component handles the stage transitions
     } catch (err) {
       feedbackAxiosError(
         err,
@@ -73,8 +78,8 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
       setUser(null);
       localStorage.removeItem(ACCOUNT_ACTIVE_TAB_STORAGE_KEY);
       setIsLoggingOut(true);
-      // Show transition overlay for 500ms before navigating
       setTimeout(() => {
+        setIsLoggingOut(false);
         void navigate('/login');
       }, 500);
     } catch (err) {

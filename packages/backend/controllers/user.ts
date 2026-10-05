@@ -7,6 +7,13 @@ import OIDCService from '../services/oidc.ts';
 import SettingsService from '../services/settings.ts';
 import UserService from '../services/user.ts';
 import config from '../support/env-config.ts';
+import {
+  ChallengeResponseUser,
+  requiresEmailVerification,
+  requiresMfa,
+  respondEmailVerificationRequired,
+  respondMfaRequired,
+} from '../utils/auth-helper.ts';
 import { signJwt, getJwtExpiryMs } from '../utils/jwt.ts';
 import logger from '../utils/logger.ts';
 
@@ -107,66 +114,87 @@ class UserController {
         req.body.password,
       );
 
-      if (!user.emailVerified && req.body.otp) {
+      if (requiresEmailVerification(user, req.body.otp)) {
+        return respondEmailVerificationRequired(res, user);
+      }
+
+      if (req.body.otp && !user.emailVerified) {
         await UserService.verifyEmail(user.userId, req.body.otp);
-      } else if (req.body.loginWithRecoveryCode && req.body.recoveryCode) {
+      }
+
+      if (req.body.loginWithRecoveryCode && req.body.recoveryCode) {
         await MFAService.validateRecoveryCode(
           user.userId,
           req.body.recoveryCode,
           req.body.resetMfa ?? false,
         );
-      } else if (
-        user.mfa.preference &&
-        user.mfa.preference === 'passkey' &&
-        req.body.otp
-      ) {
+      }
+
+      if (user.mfa.preference && req.body.otp) {
         await MFAService.verifyMFA(
           user.userId,
-          user.mfa.preference as 'app' | 'sms' | 'email',
+          user.mfa.preference as 'app' | 'sms' | 'email' | 'passkey',
           req.body.otp,
         );
       }
 
-      const payload = {
-        userId: user.userId,
-        email: user.email,
-        roles: user.roles,
-      };
+      if (requiresMfa(user, req.body.otp, req.body.loginWithRecoveryCode)) {
+        return respondMfaRequired(res, user);
+      }
 
-      const accessToken = await signJwt(
-        payload,
-        config.get('authentication.accessTokenSecret'),
-        config.get('authentication.accessTokenExpiry'),
-      );
-
-      const refreshToken = await signJwt(
-        payload,
-        config.get('authentication.refreshTokenSecret'),
-        config.get('authentication.refreshTokenExpiry'),
-      );
-
-      res
-        .cookie(ACCESS_TOKEN, accessToken, {
-          httpOnly: true,
-          secure: config.get('deploymentEnvironment') !== 'local',
-          maxAge: getJwtExpiryMs(accessToken),
-        })
-        .cookie(REFRESH_TOKEN, refreshToken, {
-          httpOnly: true,
-          secure: config.get('deploymentEnvironment') !== 'local',
-          maxAge: getJwtExpiryMs(refreshToken),
-        })
-        .status(200)
-        .json({
-          user: payload,
-          message: 'Login Successful',
-        });
+      return this.respondLoginSuccess(res, user, req);
     } catch (err) {
       logger.error((err as Error).message);
-      res
-        .status(HTTP_STATUSES.unauthorised)
-        .json({ error: 'Invalid username or password' });
+      this.respondLoginError(res, err);
     }
+  }
+
+  private static async respondLoginSuccess(
+    res: Response,
+    user: ChallengeResponseUser,
+    _req: Request,
+  ): Promise<void> {
+    const payload = {
+      userId: user.userId,
+      email: user.email,
+      roles: user.roles,
+    };
+
+    const accessToken = await signJwt(
+      payload,
+      config.get('authentication.accessTokenSecret'),
+      config.get('authentication.accessTokenExpiry'),
+    );
+
+    const refreshToken = await signJwt(
+      payload,
+      config.get('authentication.refreshTokenSecret'),
+      config.get('authentication.refreshTokenExpiry'),
+    );
+
+    res
+      .cookie(ACCESS_TOKEN, accessToken, {
+        httpOnly: true,
+        secure: config.get('deploymentEnvironment') !== 'local',
+        maxAge: getJwtExpiryMs(accessToken),
+      })
+      .cookie(REFRESH_TOKEN, refreshToken, {
+        httpOnly: true,
+        secure: config.get('deploymentEnvironment') !== 'local',
+        maxAge: getJwtExpiryMs(refreshToken),
+      })
+      .status(200)
+      .json({
+        challengeName: 'LOGIN_SUCCESS',
+        user: payload,
+        message: 'Login Successful',
+      });
+  }
+
+  private static respondLoginError(res: Response, _err: unknown): void {
+    res.status(HTTP_STATUSES.unauthorised).json({
+      error: 'Invalid username or password',
+    });
   }
 
   public static logout(_req: Request, res: Response) {

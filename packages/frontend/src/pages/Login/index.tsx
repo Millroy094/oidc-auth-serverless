@@ -11,6 +11,7 @@ import { ILoginFormInput } from './types';
 import UsernameInput from './UsernameInput';
 import VerifyMFAOtpInput from './VerifyOtpInput';
 import authenticateInteraction from '@/api/oidc/authenticate-interaction';
+import authenticateUser from '@/api/user/authenticate-user';
 import getLoginConfiguration from '@/api/user/get-login-configuration';
 import getPublicConfig from '@/api/user/get-public-config';
 import Logo from '@/assets/logo.svg';
@@ -26,7 +27,6 @@ import {
   RECOVERY_CODE_STAGE,
   USERNAME_LOGIN_STAGE,
 } from '@/constants';
-import { useAuth } from '@/context/AuthProvider';
 import useFeedback from '@/hooks/useFeedback';
 
 type ILoginStage = 'USERNAME' | 'PASSWORD' | 'MFA' | 'RECOVERY_CODE';
@@ -40,7 +40,6 @@ const Login: FC = () => {
   const { interactionId } = useParams();
   const navigate = useNavigate();
   const { feedbackAxiosError } = useFeedback();
-  const Auth = useAuth();
 
   const {
     control,
@@ -97,25 +96,62 @@ const Login: FC = () => {
     }
   };
 
-  const onNextStep = async () => {
-    if (loginStage === USERNAME_LOGIN_STAGE && (await trigger('email'))) {
-      await handleEmailVerification();
-      setLoginStage(PASSWORD_LOGIN_STAGE);
-    } else if (
-      loginStage === PASSWORD_LOGIN_STAGE &&
-      (await trigger('password'))
-    ) {
-      if (mfaType) {
-        setLoginStage(MFA_LOGIN_STAGE);
-      } else {
-        await handleSubmit(onSubmit)();
-      }
-    } else {
-      await handleSubmit(onSubmit)();
+  const handleChallenge = (
+    challengeName: string,
+    challengeParameters?: any,
+  ) => {
+    if (challengeName === 'EMAIL_VERIFICATION_REQUIRED') {
+      setLoginStage(MFA_LOGIN_STAGE);
+      setValue('mfaType', EMAIL_VERIFICATION);
+      setIsLoading(false);
+    } else if (challengeName === 'MFA_REQUIRED') {
+      const mfaType = challengeParameters?.mfaType;
+      setValue('mfaType', mfaType);
+      setLoginStage(MFA_LOGIN_STAGE);
+      setIsLoading(false);
     }
   };
 
-  const onSubmit = async (data: ILoginFormInput) => {
+  const handleAuthenticationSuccess = (redirect?: string) => {
+    setIsAuthenticating(true);
+    setTimeout(() => {
+      window.location.href = redirect || '/account';
+    }, 500);
+  };
+
+  const authenticatePasswordStage = async () => {
+    setIsLoading(true);
+    try {
+      const response = interactionId
+        ? await authenticateInteraction({
+            ...getValues(),
+            captchaToken: getValues('captchaToken') ?? '',
+            interactionId,
+          })
+        : await authenticateUser({
+            email: getValues('email'),
+            password: getValues('password'),
+            captchaToken: getValues('captchaToken') ?? '',
+          });
+
+      const { challengeName, challengeParameters, redirect } =
+        response?.data as any;
+
+      if (challengeName === 'LOGIN_SUCCESS' || redirect) {
+        handleAuthenticationSuccess(redirect);
+      } else {
+        handleChallenge(challengeName, challengeParameters);
+      }
+    } catch (err) {
+      feedbackAxiosError(
+        err,
+        'Failed to authenticate credentials, please try again.',
+      );
+      setIsLoading(false);
+    }
+  };
+
+  const authenticateMfaOrRecovery = async (data: ILoginFormInput) => {
     setIsLoading(true);
     try {
       const response = interactionId
@@ -124,22 +160,40 @@ const Login: FC = () => {
             captchaToken: data.captchaToken ?? '',
             interactionId,
           })
-        : await Auth?.login(data);
+        : await authenticateUser({
+            ...data,
+            captchaToken: data.captchaToken ?? '',
+          });
 
-      if (response?.data.redirect) {
-        setIsAuthenticating(true);
-        setTimeout(() => {
-          window.location.href = response.data.redirect;
-        }, 500);
+      const { challengeName, redirect } = response?.data as any;
+
+      if (challengeName === 'LOGIN_SUCCESS' || redirect) {
+        handleAuthenticationSuccess(redirect);
+      } else {
+        setIsLoading(false);
       }
     } catch (err) {
-      feedbackAxiosError(
-        err,
-        'Failed to authenticate credentials, please try again.',
-      );
+      feedbackAxiosError(err, 'Failed to authenticate, please try again.');
       setIsLoading(false);
-      onReset();
     }
+  };
+
+  const onNextStep = async () => {
+    if (loginStage === USERNAME_LOGIN_STAGE && (await trigger('email'))) {
+      await handleEmailVerification();
+      setLoginStage(PASSWORD_LOGIN_STAGE);
+    } else if (
+      loginStage === PASSWORD_LOGIN_STAGE &&
+      (await trigger('password'))
+    ) {
+      await authenticatePasswordStage();
+    } else {
+      await handleSubmit(onSubmit)();
+    }
+  };
+
+  const onSubmit = async (data: ILoginFormInput) => {
+    await authenticateMfaOrRecovery(data);
   };
 
   const navigateToForgotPassword = () =>
@@ -150,6 +204,11 @@ const Login: FC = () => {
     setValue('loginWithRecoveryCode', true);
     setLoginStage(RECOVERY_CODE_STAGE);
   };
+  const goBackToPassword = () => {
+    setLoginStage(PASSWORD_LOGIN_STAGE);
+    setValue('otp', '');
+    setValue('recoveryCode', '');
+  };
 
   const showButton = !(mfaType === 'passkey' && loginStage === MFA_LOGIN_STAGE);
   const buttonText =
@@ -159,7 +218,7 @@ const Login: FC = () => {
       : 'Next';
   return (
     <AuthCardLayout>
-      <TransitionOverlay isVisible={isAuthenticating} message="Signing in..." />
+      <TransitionOverlay isVisible={isAuthenticating} />
       <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60">
         <CardHeader className="items-center text-center gap-3 p-6 pb-4 sm:p-8 sm:pb-4">
           <div className="h-16 w-16">
@@ -229,44 +288,56 @@ const Login: FC = () => {
             />
           )}
         </CardContent>
-        <div
-          className={`flex flex-col-reverse gap-3 px-6 pb-6 sm:flex-row sm:gap-4 sm:px-8 sm:pb-8 ${
-            loginStage === 'USERNAME' ? 'sm:justify-end' : 'sm:justify-between'
-          }`}
-        >
-          {loginStage !== USERNAME_LOGIN_STAGE &&
-            loginStage !== MFA_LOGIN_STAGE && (
+        <div className="px-6 pb-5 sm:px-8 sm:pb-6">
+          <div
+            className={`flex gap-3 ${loginStage === MFA_LOGIN_STAGE ? 'justify-between mb-3' : loginStage === 'USERNAME' ? 'justify-end' : 'justify-between'}`}
+          >
+            {loginStage !== USERNAME_LOGIN_STAGE &&
+              loginStage !== MFA_LOGIN_STAGE && (
+                <Button
+                  variant="outline"
+                  onClick={onReset}
+                  disabled={isLoading}
+                  className="w-full sm:w-auto"
+                >
+                  Sign in with a different user
+                </Button>
+              )}
+            {loginStage === MFA_LOGIN_STAGE && (
               <Button
                 variant="outline"
-                onClick={onReset}
-                disabled={isLoading}
-                className="w-full sm:w-auto"
+                onClick={goBackToPassword}
+                disabled={isLoading || mfaType === 'passkey'}
+                className="w-full sm:w-auto text-sm"
               >
-                Sign in with a different user
+                Back
               </Button>
             )}
+            {showButton && (
+              <Button
+                onClick={onNextStep}
+                disabled={isLoading || (!!turnstileSiteKey && !captchaToken)}
+                className="w-full sm:w-auto whitespace-nowrap"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  buttonText
+                )}
+              </Button>
+            )}
+          </div>
           {loginStage === MFA_LOGIN_STAGE && (
-            <Button
-              variant="outline"
-              onClick={loginViaRecoveryCode}
-              disabled={isLoading}
-              className="w-full sm:w-auto"
-            >
-              Having trouble with MFA?
-            </Button>
-          )}
-          {showButton && (
-            <Button
-              onClick={onNextStep}
-              disabled={isLoading || (!!turnstileSiteKey && !captchaToken)}
-              className="w-full sm:w-auto"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                buttonText
-              )}
-            </Button>
+            <div className="flex justify-center pt-2 border-t border-border">
+              <Button
+                variant="link"
+                onClick={loginViaRecoveryCode}
+                disabled={isLoading || mfaType === 'passkey'}
+                className="text-xs sm:text-sm"
+              >
+                Having trouble with MFA?
+              </Button>
+            </div>
           )}
         </div>
       </Card>

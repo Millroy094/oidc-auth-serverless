@@ -101,6 +101,13 @@ const Settings: FC = () => {
     resolver: zodResolver(schema),
     criteriaMode: 'all',
     mode: 'onChange',
+    defaultValues: {
+      passkeyAttestationType: 'none',
+      passkeyAuthenticatorAttachment: 'platform',
+      passkeyChallengeTimeout: 300,
+      passkeyMaxPerUser: 0,
+      passkeyCrossDeviceSessionTimeout: 600,
+    },
     values: settings ?? undefined,
   });
 

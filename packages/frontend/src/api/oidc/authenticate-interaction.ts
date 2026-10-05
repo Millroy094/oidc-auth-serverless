@@ -1,21 +1,31 @@
 import { AxiosResponse } from 'axios';
 import axios from '@/utils/axios-instance';
+import {
+  AuthenticateCredentialsArgs,
+  EmailVerificationRequiredResponse,
+  MfaRequiredResponse,
+} from '@/api/shared/auth-types';
 
-type validateCredentialsArgs = {
-  email: string;
-  password: string;
-  otp?: string;
-  loginWithRecoveryCode?: boolean;
-  recoveryCode?: string;
-  resetMfa?: boolean;
+type validateCredentialsArgs = AuthenticateCredentialsArgs & {
   interactionId: string;
-  captchaToken: string;
 };
 
-interface AuthenticateInteractionResponseData {
+interface LoginSuccessResponse {
+  challengeName: 'LOGIN_SUCCESS';
+  redirect: string;
+  message: string;
+}
+
+interface RedirectOnlyResponse {
   redirect: string;
   message?: string;
 }
+
+export type AuthenticateInteractionResponseData =
+  | EmailVerificationRequiredResponse
+  | MfaRequiredResponse
+  | LoginSuccessResponse
+  | RedirectOnlyResponse;
 
 const authenticateInteraction = async (
   args: validateCredentialsArgs,

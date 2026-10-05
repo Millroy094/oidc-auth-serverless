@@ -6,9 +6,24 @@ type loginPasskeyVerificationArgs = {
   credential: unknown;
 };
 
-interface VerifyPasskeyLoginResponseData {
-  verified: boolean;
+export interface IAuthenticatedUser {
+  userId: string;
+  email: string;
+  roles: string[];
 }
+
+interface LoginSuccessResponse {
+  challengeName: 'LOGIN_SUCCESS';
+  user: IAuthenticatedUser;
+  message: string;
+}
+
+interface VerificationFailedResponse {
+  verified: false;
+}
+
+type VerifyPasskeyLoginResponseData =
+  LoginSuccessResponse | VerificationFailedResponse;
 
 const verifyPasskeyLogin = async (
   args: loginPasskeyVerificationArgs,

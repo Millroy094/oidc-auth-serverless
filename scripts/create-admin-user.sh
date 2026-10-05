@@ -27,22 +27,30 @@ echo "   Environment: $ENVIRONMENT"
 echo "   Region: $AWS_REGION"
 
 echo "📋 Checking if user already exists..."
-EXISTING=$(aws dynamodb scan \
+EXISTING=$(aws dynamodb query \
   $AWS_ENDPOINT \
   --table-name "$TABLE_NAME" \
-  --filter-expression "email = :email" \
+  --index-name "email-index" \
+  --key-condition-expression "email = :email" \
   --expression-attribute-values "{\":email\": {\"S\": \"$EMAIL\"}}" \
   --region "$AWS_REGION" \
   --output json 2>/dev/null || echo '{"Items":[]}')
 
-if [ "$(echo "$EXISTING" | grep -c "\"$EMAIL\"")" -gt 0 ]; then
-  echo "✅ Admin user already exists with email: $EMAIL"
-  exit 0
+USER_EXISTS=0
+EXISTING_USER_ID=""
+
+if command -v jq &> /dev/null; then
+  EXISTING_USER_ID=$(echo "$EXISTING" | jq -r '.Items[0].userId.S // empty')
+else
+  EXISTING_USER_ID=$(echo "$EXISTING" | grep -o '"userId": *{"S": *"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)".*/\1/')
 fi
 
-# Hash password using Node.js (bcryptjs, matching the backend's User model).
-# Run from packages/backend since pnpm workspaces don't hoist deps to the
-# root node_modules - bcryptjs is only resolvable from there.
+if [ -n "$EXISTING_USER_ID" ] && [ "$EXISTING_USER_ID" != "null" ]; then
+  echo "⚠️  Admin user already exists with email: $EMAIL"
+  echo "   Existing userId: $EXISTING_USER_ID"
+  USER_EXISTS=1
+fi
+
 echo "🔐 Hashing password..."
 HASHED_PASSWORD=$(cd packages/backend && pnpm exec node -e "
 const bcrypt = require('bcryptjs');
@@ -55,6 +63,30 @@ console.log(hash);
 if [ -z "$HASHED_PASSWORD" ]; then
   echo "❌ Failed to hash password. Ensure bcryptjs is installed."
   exit 1
+fi
+
+if [ "$USER_EXISTS" -eq 1 ]; then
+  if [ -z "$EXISTING_USER_ID" ] || [ "$EXISTING_USER_ID" = "null" ]; then
+    echo "❌ ERROR: Could not extract userId from existing user"
+    echo "   This may be a database issue. Please check manually:"
+    echo "   aws dynamodb scan --endpoint-url http://localhost:4566 --table-name User --region us-east-1"
+    exit 1
+  fi
+
+  echo "🗑️  Deleting existing user (userId: $EXISTING_USER_ID)..."
+  DELETE_RESULT=$(aws dynamodb delete-item \
+    $AWS_ENDPOINT \
+    --table-name "$TABLE_NAME" \
+    --key "{\"userId\": {\"S\": \"$EXISTING_USER_ID\"}}" \
+    --region "$AWS_REGION" 2>&1)
+
+  if [ $? -eq 0 ]; then
+    echo "✅ Old user deleted successfully"
+  else
+    echo "❌ Failed to delete old user:"
+    echo "$DELETE_RESULT"
+    exit 1
+  fi
 fi
 
 USER_ID=$(pnpm exec node -e "console.log(require('crypto').randomUUID())")

@@ -10,7 +10,7 @@ Vite + React 19 + TypeScript SPA, Tailwind CSS v4, shadcn/Radix-style UI compone
   - `Account` — user profile, security/MFA settings, sessions, admin UI
   - `PasskeyRegister` — reusable component for passkey registration (cross-device via `?passkey-session=xyz` param)
 - **`context/AuthProvider.tsx`** — holds authenticated user in React state, exposes `login`/`logout`/`refreshUser`.
-- **`api/`** — typed `axios` wrappers per backend endpoint.
+- **`api/`** — typed `axios` wrappers per backend endpoint, with shared type definitions in `api/shared/auth-types.ts` for authentication responses used across multiple endpoints.
 - **`components/ui/`** — shared design-system primitives (dialog, popover, tooltip, select, tabs, etc.), thin wrappers around Radix.
 - Routing is driven by `pages/index.tsx`, which handles:
   - Initial `refreshUser()`/OIDC-interaction-status check on mount

@@ -1,15 +1,12 @@
 import { AxiosResponse } from 'axios';
 import axios from '@/utils/axios-instance';
+import {
+  AuthenticateCredentialsArgs,
+  EmailVerificationRequiredResponse,
+  MfaRequiredResponse,
+} from '@/api/shared/auth-types';
 
-type AuthenticateUserArgs = {
-  email: string;
-  password: string;
-  otp?: string;
-  loginWithRecoveryCode?: boolean;
-  recoveryCode?: string;
-  resetMfa?: boolean;
-  captchaToken: string;
-};
+type AuthenticateUserArgs = AuthenticateCredentialsArgs;
 
 export interface IAuthenticatedUser {
   userId: string;
@@ -17,10 +14,16 @@ export interface IAuthenticatedUser {
   roles: string[];
 }
 
-interface AuthenticateUserResponseData {
+interface LoginSuccessResponse {
+  challengeName: 'LOGIN_SUCCESS';
   user: IAuthenticatedUser;
   message: string;
 }
+
+export type AuthenticateUserResponseData =
+  | EmailVerificationRequiredResponse
+  | MfaRequiredResponse
+  | LoginSuccessResponse;
 
 const authenticateUser = async (
   args: AuthenticateUserArgs,

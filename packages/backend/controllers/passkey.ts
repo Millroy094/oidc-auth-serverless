@@ -7,6 +7,7 @@ import {
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
 import { Request, Response } from 'express';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants/authentication.ts';
 import HTTP_STATUSES from '../constants/http-status.ts';
 import User, { MFACredential } from '../models/User.ts';
 import PasskeySession from '../models/PasskeySession.ts';
@@ -14,6 +15,7 @@ import PasskeyService from '../services/passkey.ts';
 import UserService from '../services/user.ts';
 import SettingsService from '../services/settings.ts';
 import config from '../support/env-config.ts';
+import { signJwt, getJwtExpiryMs } from '../utils/jwt.ts';
 import logger from '../utils/logger.ts';
 
 export interface GetPasskeysQuery {
@@ -295,7 +297,42 @@ class PasskeyController {
         await PasskeyService.deleteChallenge(user.userId, storedChallenge);
 
         await user.save();
-        res.status(HTTP_STATUSES.ok).send({ verified: true });
+
+        const payload = {
+          userId: user.userId,
+          email: user.email,
+          roles: user.roles,
+        };
+
+        const accessToken = await signJwt(
+          payload,
+          config.get('authentication.accessTokenSecret'),
+          config.get('authentication.accessTokenExpiry'),
+        );
+
+        const refreshToken = await signJwt(
+          payload,
+          config.get('authentication.refreshTokenSecret'),
+          config.get('authentication.refreshTokenExpiry'),
+        );
+
+        res
+          .cookie(ACCESS_TOKEN, accessToken, {
+            httpOnly: true,
+            secure: config.get('deploymentEnvironment') !== 'local',
+            maxAge: getJwtExpiryMs(accessToken),
+          })
+          .cookie(REFRESH_TOKEN, refreshToken, {
+            httpOnly: true,
+            secure: config.get('deploymentEnvironment') !== 'local',
+            maxAge: getJwtExpiryMs(refreshToken),
+          })
+          .status(HTTP_STATUSES.ok)
+          .json({
+            challengeName: 'LOGIN_SUCCESS',
+            user: payload,
+            message: 'Login Successful',
+          });
       } else {
         res.status(HTTP_STATUSES.ok).send({ verified: false });
       }

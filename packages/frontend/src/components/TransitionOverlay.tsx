@@ -28,7 +28,9 @@ const TransitionOverlay: FC<TransitionOverlayProps> = ({
       <div className="transition-overlay-visible fixed inset-0 bg-white/97 backdrop-blur-md flex items-center justify-center z-50">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm font-medium text-foreground">{message}</p>
+          {message && (
+            <p className="text-sm font-medium text-foreground">{message}</p>
+          )}
         </div>
       </div>
     </>

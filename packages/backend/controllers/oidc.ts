@@ -2,7 +2,13 @@ import { Request, Response } from 'express';
 import HTTP_STATUSES from '../constants/http-status.ts';
 import MFAService from '../services/mfa/index.ts';
 import UserService from '../services/user.ts';
-import logger from '../utils/logger.ts';
+import {
+  ChallengeResponseUser,
+  requiresEmailVerification,
+  requiresMfa,
+  respondEmailVerificationRequired,
+  respondMfaRequired,
+} from '../utils/auth-helper.ts';
 
 export interface AuthenticateInteractionBody {
   email: string;
@@ -18,13 +24,6 @@ export interface AuthorizeInteractionBody {
   authorize: boolean;
 }
 
-const logOidcError = (err: unknown): void => {
-  const { message, error_description: description } = err as Error & {
-    error_description?: string;
-  };
-  logger.error(description ? `${message}: ${description}` : message);
-};
-
 class OIDCController {
   public static async getInteractionStatus(req: Request, res: Response) {
     try {
@@ -33,7 +32,6 @@ class OIDCController {
       } = await req.oidcProvider.interactionDetails(req, res);
       res.status(HTTP_STATUSES.ok).json({ status: name });
     } catch (err) {
-      logOidcError(err);
       res.status(HTTP_STATUSES.badRequest).json({
         error: `Unable to process authentication: ${(err as Error).message}`,
       });
@@ -44,79 +42,100 @@ class OIDCController {
     req: Request<Record<string, string>, unknown, AuthenticateInteractionBody>,
     res: Response,
   ) {
-    let result: Record<string, unknown>;
     try {
       const interactionDetails = await req.oidcProvider.interactionDetails(
         req,
         res,
       );
-      const {
-        prompt: { name },
-      } = interactionDetails;
 
-      if (name !== 'login') {
+      if (interactionDetails.prompt.name !== 'login') {
         throw new Error('Interaction is not at login stage');
       }
 
-      const userAccount = await UserService.validateUserCredentials(
+      const user = await UserService.validateUserCredentials(
         req.body.email,
         req.body.password,
       );
 
-      if (!userAccount.emailVerified && req.body.otp) {
-        await UserService.verifyEmail(userAccount.userId, req.body.otp);
-      } else if (req.body.loginWithRecoveryCode && req.body.recoveryCode) {
+      if (requiresEmailVerification(user, req.body.otp)) {
+        return respondEmailVerificationRequired(res, user);
+      }
+
+      if (req.body.otp && !user.emailVerified) {
+        await UserService.verifyEmail(user.userId, req.body.otp);
+      }
+
+      if (req.body.loginWithRecoveryCode && req.body.recoveryCode) {
         await MFAService.validateRecoveryCode(
-          userAccount.userId,
+          user.userId,
           req.body.recoveryCode,
           req.body.resetMfa ?? false,
         );
-      } else if (userAccount.mfa.preference && req.body.otp) {
+      }
+
+      if (user.mfa.preference && req.body.otp) {
         await MFAService.verifyMFA(
-          userAccount.userId,
-          userAccount.mfa.preference as 'app' | 'sms' | 'email',
+          user.userId,
+          user.mfa.preference as 'app' | 'sms' | 'email' | 'passkey',
           req.body.otp,
         );
       }
 
-      result = {
-        login: {
-          accountId: userAccount.userId,
-        },
-      };
-      const redirect = await req.oidcProvider.interactionResult(
-        req,
-        res,
-        result,
-        {
-          mergeWithLastSubmission: false,
-        },
-      );
-      res
-        .status(HTTP_STATUSES.ok)
-        .json({ redirect, message: 'Login successful!' });
+      if (requiresMfa(user, req.body.otp, req.body.loginWithRecoveryCode)) {
+        return respondMfaRequired(res, user);
+      }
+
+      return this.respondOidcLoginSuccess(res, req, user);
     } catch (err) {
-      logOidcError(err);
       if ((err as Error).message === 'Interaction is not at login stage') {
-        result = {
+        return this.respondOidcError(res, req, {
           error: 'access_denied',
           error_description: 'Username or password is incorrect.',
-        };
-        const redirect = await req.oidcProvider.interactionResult(
-          req,
-          res,
-          result,
-          {
-            mergeWithLastSubmission: false,
-          },
-        );
-        res.status(HTTP_STATUSES.ok).json({ redirect });
-      } else {
-        res
-          .status(HTTP_STATUSES.unauthorised)
-          .json({ error: 'Invalid email or password' });
+        });
       }
+      res
+        .status(HTTP_STATUSES.unauthorised)
+        .json({ error: 'Invalid email or password' });
     }
+  }
+
+  private static async respondOidcLoginSuccess(
+    res: Response,
+    req: Request,
+    user: ChallengeResponseUser,
+  ): Promise<void> {
+    const result = {
+      login: {
+        accountId: user.userId,
+      },
+    };
+    const redirect = await req.oidcProvider.interactionResult(
+      req,
+      res,
+      result,
+      {
+        mergeWithLastSubmission: false,
+      },
+    );
+    res.status(HTTP_STATUSES.ok).json({
+      challengeName: 'LOGIN_SUCCESS',
+      redirect,
+      message: 'Login successful!',
+    });
+  }
+
+  private static async respondOidcError(
+    res: Response,
+    req: Request,
+    errorResult: Record<string, unknown>,
+  ): Promise<void> {
+    const redirect = await req.oidcProvider.interactionResult(
+      req,
+      res,
+      errorResult,
+      { mergeWithLastSubmission: false },
+    );
+    res.status(HTTP_STATUSES.ok).json({ redirect });
   }
 
   public static async authorizeInteraction(
@@ -197,7 +216,6 @@ class OIDCController {
           .status(HTTP_STATUSES.ok);
       }
     } catch (err) {
-      logOidcError(err);
       if (
         [
           'Interaction is not at consent stage',
