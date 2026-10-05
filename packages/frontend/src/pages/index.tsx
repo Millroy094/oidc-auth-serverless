@@ -38,10 +38,7 @@ function InteractionEntry() {
         }
       } catch (err) {
         feedbackAxiosError(err, 'Failed to process authentication');
-        // The interaction this link/redirect pointed at is gone (expired,
-        // already completed, or never existed) - there's nothing more this
-        // route can do with it, so send the user back to start a fresh
-        // login rather than leaving them on a blank page.
+        // Interaction is gone (expired/completed/invalid) - start over.
         await navigate('/login');
       }
     };

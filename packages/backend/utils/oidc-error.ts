@@ -1,10 +1,5 @@
-/**
- * oidc-provider throws errors (e.g. `SessionNotFound` when an interaction has
- * expired, been consumed, or never existed) whose `message` is just the OAuth
- * error code (e.g. `invalid_request`) - the actionable detail lives in
- * `error_description`. Plain `Error`s thrown by our own code (credential
- * validation, etc.) don't have this shape, so they're left untouched.
- */
+// oidc-provider errors (e.g. SessionNotFound) carry the OAuth error code as
+// `message` and the actionable detail in `error_description`.
 interface OidcProviderError extends Error {
   error: string;
   error_description?: string;

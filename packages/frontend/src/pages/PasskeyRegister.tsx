@@ -97,11 +97,8 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
         setSuccess(true);
         feedback('Passkey registered successfully!', 'success');
 
-        // This page is reached via a cross-device registration link/QR code,
-        // so the browser completing registration here has no authenticated
-        // session. Redirecting it to /account would just bounce to the
-        // login page instead of showing the success state, so only the
-        // modal (same-device, already-authenticated) flow auto-closes.
+        // Only the modal (same-device, authenticated) flow auto-closes;
+        // the cross-device page has no session to redirect with.
         if (isModal && onClose) {
           setTimeout(() => onClose(), 2000);
         }

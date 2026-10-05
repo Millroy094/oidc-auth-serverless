@@ -101,10 +101,8 @@ class OIDCController {
         });
       }
 
-      // interactionDetails() itself failed (e.g. the interaction expired, was
-      // already completed, or never existed) rather than the credentials
-      // being wrong - reporting "Invalid email or password" here would be
-      // misleading, so surface the real reason instead.
+      // interactionDetails() failed (expired/invalid interaction), not the
+      // credentials - avoid the misleading "Invalid email or password".
       if (isOidcProviderError(err)) {
         return res.status(HTTP_STATUSES.badRequest).json({
           error: `Unable to process authentication: ${getOidcErrorMessage(err)}`,
@@ -254,10 +252,8 @@ class OIDCController {
         );
         res.status(HTTP_STATUSES.ok).json({ redirect });
       } else if (isOidcProviderError(err)) {
-        // interactionDetails() itself failed (e.g. the interaction expired,
-        // was already completed, or never existed), so there's no valid
-        // interaction left to call interactionResult() against - just
-        // surface the real reason instead of a generic failure.
+        // interactionDetails() failed, so there's no valid interaction left
+        // to call interactionResult() against.
         res.status(HTTP_STATUSES.badRequest).json({
           error: `Unable to process authentication: ${getOidcErrorMessage(err)}`,
         });
