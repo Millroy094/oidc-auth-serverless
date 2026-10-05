@@ -5,7 +5,7 @@ import {
   Routes,
   useLocation,
   useNavigate,
-  useSearchParams,
+  useParams,
 } from 'react-router-dom';
 import getInteractionStatus from '@/api/oidc/get-interaction-status';
 import { PUBLIC_ROUTES } from '@/constants';
@@ -20,36 +20,67 @@ const Register = lazy(() => import('./Register'));
 const ForgotPassword = lazy(() => import('./ForgotPassword'));
 const Account = lazy(() => import('./Account'));
 
-function Pages() {
+// Top-level static routes that must take precedence over the dynamic
+// `/:interactionId` entry route used to kick off an OIDC interaction.
+const STATIC_ROUTE_PREFIXES = [
+  '/registration',
+  '/login',
+  '/forgot-password',
+  '/account',
+  '/oauth',
+];
+
+function InteractionEntry() {
+  const { interactionId } = useParams();
+  const navigate = useNavigate();
   const { feedbackAxiosError } = useFeedback();
+
+  useEffect(() => {
+    const navigateByInteractionStage = async (): Promise<void> => {
+      if (!interactionId) {
+        return;
+      }
+
+      try {
+        const response = await getInteractionStatus(interactionId);
+        if (response.data.status) {
+          await navigate(`/oauth/${response.data.status}/${interactionId}`);
+        }
+      } catch (err) {
+        feedbackAxiosError(err, 'Failed to process authentication');
+      }
+    };
+
+    void navigateByInteractionStage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interactionId]);
+
+  return null;
+}
+
+function PasskeyRegisterRoute() {
+  const { sessionId } = useParams();
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <PasskeyRegisterComponent sessionId={sessionId} />
+    </div>
+  );
+}
+
+function Pages() {
   const { pathname } = useLocation();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const Auth = useAuth();
   globalRouter.navigate = navigate;
 
-  const passkeySessionId = searchParams.get('passkey-session');
-
-  const navigateByInteractionStage = async (
-    interactionId: string,
-  ): Promise<void> => {
-    try {
-      const response = await getInteractionStatus(interactionId);
-      if (response.data.status) {
-        await navigate(
-          `/oauth/${response.data.status}/${searchParams.get('interactionId')}`,
-        );
-      }
-    } catch (err) {
-      feedbackAxiosError(err, 'Failed to process authentication');
-    }
-  };
+  const isDynamicInteractionEntry =
+    pathname !== '/' &&
+    !STATIC_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
   useEffect(() => {
-    if (pathname === '/' && searchParams.has('interactionId')) {
-      void navigateByInteractionStage(searchParams.get('interactionId') ?? '');
-    } else if (
-      !passkeySessionId &&
+    if (
+      !isDynamicInteractionEntry &&
       !PUBLIC_ROUTES.includes(pathname) &&
       pathname !== '/login'
     ) {
@@ -57,14 +88,6 @@ function Pages() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  if (passkeySessionId) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <PasskeyRegisterComponent sessionId={passkeySessionId} />
-      </div>
-    );
-  }
 
   return (
     <Suspense
