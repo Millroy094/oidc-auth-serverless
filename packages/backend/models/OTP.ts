@@ -13,7 +13,10 @@ export interface OTPItem extends Item {
   otp: string;
   type: string;
   userId: string;
-  expiresAt?: number;
+  // Written as a plain epoch-seconds number, but dynamoose's `expires`
+  // table option internally types this attribute as Date, so reads
+  // return a Date instance rather than the number that was written.
+  expiresAt?: number | Date;
 }
 
 const OTPSchema = new Schema(

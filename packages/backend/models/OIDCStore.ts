@@ -9,7 +9,10 @@ const { Schema, model } = dynamoose;
 export interface OIDCStoreItem extends Item {
   id: string;
   payload: AdapterPayload;
-  expiresAt?: number;
+  // Written as a plain epoch-seconds number, but dynamoose's `expires`
+  // table option internally types this attribute as Date, so reads
+  // return a Date instance rather than the number that was written.
+  expiresAt?: number | Date;
   userCode?: string;
   uid?: string;
   grantId?: string;

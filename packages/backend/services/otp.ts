@@ -1,5 +1,6 @@
 import isEmpty from 'lodash/isEmpty.js';
 import OTP from '../models/OTP.ts';
+import { isNotExpired } from '../utils/expiry.ts';
 
 class OTPService {
   public static async storeOtp(
@@ -32,9 +33,7 @@ class OTPService {
       .eq(otp)
       .exec();
     if (!isEmpty(otpResult)) {
-      isValid = Boolean(
-        otpResult.expiresAt && Date.now() <= otpResult.expiresAt * 1000,
-      );
+      isValid = isNotExpired(otpResult.expiresAt);
       await otpResult.delete();
     }
     return isValid;
