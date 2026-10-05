@@ -306,6 +306,7 @@ const Login: FC = () => {
             <PasskeyAuthentication
               email={email}
               handleSubmit={handleSubmit(onSubmit)}
+              interactionId={interactionId}
             />
           )}
           {loginStage === RECOVERY_CODE_STAGE && (

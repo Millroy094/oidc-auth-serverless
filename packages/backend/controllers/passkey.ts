@@ -45,6 +45,7 @@ export interface LoginWithPasskeyBody {
 export interface VerifyLoginPasskeyBody {
   email: string;
   credential: AuthenticationResponseJSON;
+  interactionId?: string;
 }
 
 export interface CheckPasskeyExistsBody {
@@ -297,6 +298,35 @@ class PasskeyController {
         await PasskeyService.deleteChallenge(user.userId, storedChallenge);
 
         await user.save();
+
+        const { interactionId } = req.body;
+
+        if (interactionId) {
+          const interactionDetails = await req.oidcProvider.interactionDetails(
+            req,
+            res,
+          );
+
+          if (
+            interactionDetails.uid !== interactionId ||
+            interactionDetails.prompt.name !== 'login'
+          ) {
+            throw new Error('Interaction is not at login stage');
+          }
+
+          const redirect = await req.oidcProvider.interactionResult(
+            req,
+            res,
+            { login: { accountId: user.userId } },
+            { mergeWithLastSubmission: false },
+          );
+
+          res.status(HTTP_STATUSES.ok).json({
+            redirect,
+            message: 'Login Successful',
+          });
+          return;
+        }
 
         const payload = {
           userId: user.userId,
