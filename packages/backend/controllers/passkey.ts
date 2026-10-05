@@ -45,6 +45,7 @@ export interface LoginWithPasskeyBody {
 export interface VerifyLoginPasskeyBody {
   email: string;
   credential: AuthenticationResponseJSON;
+  interactionId?: string;
 }
 
 export interface CheckPasskeyExistsBody {
