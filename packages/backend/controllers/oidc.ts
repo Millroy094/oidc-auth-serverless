@@ -9,6 +9,10 @@ import {
   respondEmailVerificationRequired,
   respondMfaRequired,
 } from '../utils/auth-helper.ts';
+import {
+  getOidcErrorMessage,
+  isOidcProviderError,
+} from '../utils/oidc-error.ts';
 
 export interface AuthenticateInteractionBody {
   email: string;
@@ -32,8 +36,11 @@ class OIDCController {
       } = await req.oidcProvider.interactionDetails(req, res);
       res.status(HTTP_STATUSES.ok).json({ status: name });
     } catch (err) {
+      const message = isOidcProviderError(err)
+        ? getOidcErrorMessage(err)
+        : (err as Error).message;
       res.status(HTTP_STATUSES.badRequest).json({
-        error: `Unable to process authentication: ${(err as Error).message}`,
+        error: `Unable to process authentication: ${message}`,
       });
     }
   }
@@ -93,6 +100,17 @@ class OIDCController {
           error_description: 'Username or password is incorrect.',
         });
       }
+
+      // interactionDetails() itself failed (e.g. the interaction expired, was
+      // already completed, or never existed) rather than the credentials
+      // being wrong - reporting "Invalid email or password" here would be
+      // misleading, so surface the real reason instead.
+      if (isOidcProviderError(err)) {
+        return res.status(HTTP_STATUSES.badRequest).json({
+          error: `Unable to process authentication: ${getOidcErrorMessage(err)}`,
+        });
+      }
+
       res
         .status(HTTP_STATUSES.unauthorised)
         .json({ error: 'Invalid email or password' });
@@ -235,6 +253,14 @@ class OIDCController {
           },
         );
         res.status(HTTP_STATUSES.ok).json({ redirect });
+      } else if (isOidcProviderError(err)) {
+        // interactionDetails() itself failed (e.g. the interaction expired,
+        // was already completed, or never existed), so there's no valid
+        // interaction left to call interactionResult() against - just
+        // surface the real reason instead of a generic failure.
+        res.status(HTTP_STATUSES.badRequest).json({
+          error: `Unable to process authentication: ${getOidcErrorMessage(err)}`,
+        });
       } else {
         res
           .status(HTTP_STATUSES.unauthorised)
