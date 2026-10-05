@@ -129,11 +129,12 @@ adminRouter.get(
   authorize(['admin']),
   (req, res) => PasskeyController.getPasskeySettingsEndpoint(req, res),
 );
-adminRouter.put(
-  '/settings/passkey',
-  authenticate,
-  authorize(['admin']),
-  (req, res) => PasskeyController.updatePasskeySettings(req, res),
+adminRouter.put<
+  Record<string, string>,
+  unknown,
+  Partial<Record<string, unknown>>
+>('/settings/passkey', authenticate, authorize(['admin']), (req, res) =>
+  PasskeyController.updatePasskeySettings(req, res),
 );
 
 export default adminRouter;

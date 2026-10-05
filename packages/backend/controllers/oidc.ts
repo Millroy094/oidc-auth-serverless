@@ -76,7 +76,7 @@ class OIDCController {
       if (user.mfa.preference && req.body.otp) {
         await MFAService.verifyMFA(
           user.userId,
-          user.mfa.preference as 'app' | 'sms' | 'email' | 'passkey',
+          user.mfa.preference as 'app' | 'sms' | 'email',
           req.body.otp,
         );
       }

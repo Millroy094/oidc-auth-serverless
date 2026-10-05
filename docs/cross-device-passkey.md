@@ -91,10 +91,10 @@ PASSKEY_CROSS_DEVICE_SESSION_TTL=600  # Session timeout in seconds
 **New Route**:
 
 ```
-/?passkey-session={sessionId}
+/passkey-register/:sessionId
 ```
 
-Renders `PasskeyRegisterComponent` inline on the home page (state-based routing, no dedicated route)
+Renders `PasskeyRegisterComponent` via a dedicated path-based route (`PasskeyRegisterRoute` in `pages/index.tsx`)
 
 **New API Client**:
 

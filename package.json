@@ -12,6 +12,7 @@
     "admin:create": "./scripts/create-admin-user.sh",
     "lint": "eslint '**/*.{js,jsx,ts,tsx}'",
     "format": "prettier --write '**/*.{js,jsx,ts,tsx}'",
+    "typecheck": "pnpm -r --if-present run typecheck",
     "prepare": "husky"
   },
   "lint-staged": {
