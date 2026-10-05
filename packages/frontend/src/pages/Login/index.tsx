@@ -31,6 +31,12 @@ import useFeedback from '@/hooks/useFeedback';
 
 type ILoginStage = 'USERNAME' | 'PASSWORD' | 'MFA' | 'RECOVERY_CODE';
 
+interface ChallengeParameters {
+  mfaType?: string;
+  userId?: string;
+  email?: string;
+}
+
 const Login: FC = () => {
   const [loginStage, setLoginStage] = useState<ILoginStage>('USERNAME');
   const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
@@ -98,14 +104,14 @@ const Login: FC = () => {
 
   const handleChallenge = (
     challengeName: string,
-    challengeParameters?: any,
+    challengeParameters?: ChallengeParameters,
   ) => {
     if (challengeName === 'EMAIL_VERIFICATION_REQUIRED') {
       setLoginStage(MFA_LOGIN_STAGE);
       setValue('mfaType', EMAIL_VERIFICATION);
       setIsLoading(false);
     } else if (challengeName === 'MFA_REQUIRED') {
-      const mfaType = challengeParameters?.mfaType;
+      const mfaType = challengeParameters?.mfaType ?? '';
       setValue('mfaType', mfaType);
       setLoginStage(MFA_LOGIN_STAGE);
       setIsLoading(false);
@@ -134,13 +140,23 @@ const Login: FC = () => {
             captchaToken: getValues('captchaToken') ?? '',
           });
 
-      const { challengeName, challengeParameters, redirect } =
-        response?.data as any;
+      if (!response || !response.data) {
+        throw new Error('Invalid response from authentication');
+      }
+
+      const responseData = response.data;
+      const { challengeName } = responseData;
+      const redirect =
+        'redirect' in responseData ? responseData.redirect : undefined;
 
       if (challengeName === 'LOGIN_SUCCESS' || redirect) {
         handleAuthenticationSuccess(redirect);
       } else {
-        handleChallenge(challengeName, challengeParameters);
+        const challengeParams =
+          'challengeParameters' in responseData
+            ? responseData.challengeParameters
+            : undefined;
+        handleChallenge(String(challengeName), challengeParams);
       }
     } catch (err) {
       feedbackAxiosError(
@@ -165,7 +181,14 @@ const Login: FC = () => {
             captchaToken: data.captchaToken ?? '',
           });
 
-      const { challengeName, redirect } = response?.data as any;
+      if (!response || !response.data) {
+        throw new Error('Invalid response from authentication');
+      }
+
+      const responseData = response.data;
+      const { challengeName } = responseData;
+      const redirect =
+        'redirect' in responseData ? responseData.redirect : undefined;
 
       if (challengeName === 'LOGIN_SUCCESS' || redirect) {
         handleAuthenticationSuccess(redirect);

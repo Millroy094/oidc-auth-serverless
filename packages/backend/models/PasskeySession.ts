@@ -30,7 +30,6 @@ const PasskeySessionSchema = new Schema(
     },
     deviceName: {
       type: String,
-      required: true,
     },
     challenge: {
       type: String,
