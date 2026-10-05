@@ -20,16 +20,6 @@ const Register = lazy(() => import('./Register'));
 const ForgotPassword = lazy(() => import('./ForgotPassword'));
 const Account = lazy(() => import('./Account'));
 
-// Top-level static routes that must take precedence over the dynamic
-// `/:interactionId` entry route used to kick off an OIDC interaction.
-const STATIC_ROUTE_PREFIXES = [
-  '/registration',
-  '/login',
-  '/forgot-password',
-  '/account',
-  '/oauth',
-];
-
 function InteractionEntry() {
   const { interactionId } = useParams();
   const navigate = useNavigate();
@@ -74,9 +64,10 @@ function Pages() {
   const Auth = useAuth();
   globalRouter.navigate = navigate;
 
-  const isDynamicInteractionEntry =
-    pathname !== '/' &&
-    !STATIC_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  // The `/interaction/:interactionId` entry route kicks off an OIDC
+  // interaction and shouldn't trigger a refreshUser() call before the
+  // interaction status redirect has had a chance to run.
+  const isDynamicInteractionEntry = pathname.startsWith('/interaction/');
 
   useEffect(() => {
     if (
@@ -118,7 +109,10 @@ function Pages() {
           path={`/passkey-register/:sessionId`}
           element={<PasskeyRegisterRoute />}
         />
-        <Route path={`/:interactionId`} element={<InteractionEntry />} />
+        <Route
+          path={`/interaction/:interactionId`}
+          element={<InteractionEntry />}
+        />
       </Routes>
     </Suspense>
   );
