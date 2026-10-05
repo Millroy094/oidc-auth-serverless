@@ -16,7 +16,6 @@ const CrossDevicePasskeyModal: FC<CrossDevicePasskeyModalProps> = ({
   const { feedback } = useFeedback();
   const [copied, setCopied] = useState(false);
 
-  // Build registration URL with session ID
   const baseUrl = window.location.origin;
   const registrationUrl = `${baseUrl}/?passkey-session=${sessionId}`;
 
@@ -38,12 +37,10 @@ const CrossDevicePasskeyModal: FC<CrossDevicePasskeyModalProps> = ({
         </p>
       </div>
 
-      {/* QR Code */}
       <div className="flex justify-center p-4 bg-white rounded-lg border border-slate-200">
         <QRCodeSVG value={registrationUrl} size={256} level="H" includeMargin />
       </div>
 
-      {/* Alternative: Copy URL */}
       <div className="w-full">
         <p className="text-xs text-slate-500 mb-2 text-center">
           Or copy this link to another device:
@@ -67,7 +64,6 @@ const CrossDevicePasskeyModal: FC<CrossDevicePasskeyModalProps> = ({
         </div>
       </div>
 
-      {/* Instructions */}
       <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-xs text-blue-900 font-medium mb-2">📱 Next Steps:</p>
         <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
@@ -77,7 +73,6 @@ const CrossDevicePasskeyModal: FC<CrossDevicePasskeyModalProps> = ({
         </ol>
       </div>
 
-      {/* Buttons */}
       <div className="flex gap-2 w-full">
         <Button variant="outline" onClick={onCancel} className="flex-1">
           Cancel
