@@ -17,7 +17,7 @@ const CrossDevicePasskeyModal: FC<CrossDevicePasskeyModalProps> = ({
   const [copied, setCopied] = useState(false);
 
   const baseUrl = window.location.origin;
-  const registrationUrl = `${baseUrl}/?passkey-session=${sessionId}`;
+  const registrationUrl = `${baseUrl}/passkey-register/${sessionId}`;
 
   const handleCopyUrl = async () => {
     await navigator.clipboard.writeText(registrationUrl);

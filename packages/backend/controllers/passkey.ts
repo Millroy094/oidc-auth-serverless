@@ -435,7 +435,7 @@ class PasskeyController {
       const options = await generateRegistrationOptions({
         rpID: config.get('authentication.rpId'),
         rpName: config.get('authentication.issuer'),
-        userName: userId,
+        userName: session.userId,
         userDisplayName: user.email,
         attestationType: 'none',
         authenticatorSelection: {

@@ -5,7 +5,8 @@
   "main": "handler.ts",
   "type": "module",
   "scripts": {
-    "build": "esbuild handler.ts --bundle --platform=node --target=node24 --format=esm --outfile=build/handler.mjs --external:aws-sdk --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\""
+    "build": "esbuild handler.ts --bundle --platform=node --target=node24 --format=esm --outfile=build/handler.mjs --external:aws-sdk --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
+    "typecheck": "tsc --noEmit"
   },
   "author": "",
   "license": "ISC",

@@ -114,6 +114,11 @@ function Pages() {
         <Route path={`/account`} element={<Account />} />
         <Route path={`/oauth/login/:interactionId`} element={<Login />} />
         <Route path={`/oauth/consent/:interactionId`} element={<Confirm />} />
+        <Route
+          path={`/passkey-register/:sessionId`}
+          element={<PasskeyRegisterRoute />}
+        />
+        <Route path={`/:interactionId`} element={<InteractionEntry />} />
       </Routes>
     </Suspense>
   );
