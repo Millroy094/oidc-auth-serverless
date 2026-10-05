@@ -97,13 +97,14 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
         setSuccess(true);
         feedback('Passkey registered successfully!', 'success');
 
-        setTimeout(() => {
-          if (isModal && onClose) {
-            onClose();
-          } else {
-            window.location.href = '/account?tab=security';
-          }
-        }, 2000);
+        // This page is reached via a cross-device registration link/QR code,
+        // so the browser completing registration here has no authenticated
+        // session. Redirecting it to /account would just bounce to the
+        // login page instead of showing the success state, so only the
+        // modal (same-device, already-authenticated) flow auto-closes.
+        if (isModal && onClose) {
+          setTimeout(() => onClose(), 2000);
+        }
       } else {
         throw new Error('Verification failed');
       }
@@ -138,7 +139,8 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
               {success && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                   <p className="text-sm text-green-800">
-                    ✓ Passkey registered successfully! Redirecting...
+                    ✓ Passkey registered successfully! You can close this tab
+                    and return to the device where you started registration.
                   </p>
                 </div>
               )}
@@ -162,21 +164,6 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
                   className="w-full"
                 >
                   {loading ? 'Registering...' : 'Complete Registration'}
-                </Button>
-              )}
-
-              {success && (
-                <Button
-                  onClick={() => {
-                    if (isModal && onClose) {
-                      onClose();
-                    } else {
-                      window.location.href = '/account?tab=security';
-                    }
-                  }}
-                  className="w-full"
-                >
-                  Return to Account
                 </Button>
               )}
             </CardContent>
