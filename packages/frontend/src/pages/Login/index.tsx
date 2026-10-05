@@ -145,13 +145,16 @@ const Login: FC = () => {
       }
 
       const responseData = response.data;
-      const { challengeName } = responseData;
+      const challengeName =
+        'challengeName' in responseData
+          ? responseData.challengeName
+          : undefined;
       const redirect =
         'redirect' in responseData ? responseData.redirect : undefined;
 
       if (challengeName === 'LOGIN_SUCCESS' || redirect) {
         handleAuthenticationSuccess(redirect);
-      } else {
+      } else if (challengeName) {
         const challengeParams =
           'challengeParameters' in responseData
             ? responseData.challengeParameters
@@ -186,7 +189,10 @@ const Login: FC = () => {
       }
 
       const responseData = response.data;
-      const { challengeName } = responseData;
+      const challengeName =
+        'challengeName' in responseData
+          ? responseData.challengeName
+          : undefined;
       const redirect =
         'redirect' in responseData ? responseData.redirect : undefined;
 
