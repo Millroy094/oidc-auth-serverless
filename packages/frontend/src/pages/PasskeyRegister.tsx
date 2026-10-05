@@ -30,7 +30,6 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
   const { feedback } = useFeedback();
 
   const sessionId = sessionIdProp || searchParams.get('passkey-session');
-  const userId = searchParams.get('userId') || 'current-user';
 
   useEffect(() => {
     if (!sessionId) {
@@ -76,7 +75,7 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
         options: Parameters<typeof startRegistration>[0]['optionsJSON'];
       }>(
         '/api/user/register-passkey-with-session',
-        { userId, sessionId },
+        { sessionId },
         { withCredentials: true },
       );
 
@@ -87,7 +86,6 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
       const verificationResponse = await axios.post<{ verified: boolean }>(
         '/api/user/complete-passkey-registration',
         {
-          userId,
           sessionId,
           credential,
           deviceName,

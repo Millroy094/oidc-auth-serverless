@@ -64,13 +64,13 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = React.memo(
           <OtpResendSection handleResendOtp={handleResendOtp} timer={timer} />
         )}
 
-        <div>
+        <div className="w-full px-2 sm:px-0">
           <Controller
             name="otp"
             control={control}
             render={({ field: { onChange, value }, fieldState: { error } }) => (
               <div className="flex flex-col items-center gap-2">
-                <div>
+                <div className="flex justify-center overflow-x-auto">
                   <OTPInput
                     value={value}
                     onChange={onChange}
@@ -86,13 +86,13 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = React.memo(
                           }
                           props.onKeyDown?.(e);
                         }}
-                        className="w-12 h-12 text-xl border border-input rounded-md text-center focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-10 h-10 sm:w-12 sm:h-12 text-lg sm:text-xl border border-input rounded-md text-center focus:outline-none focus:ring-2 focus:ring-ring shrink-0"
                       />
                     )}
                     inputType="tel"
                     containerStyle={{
                       display: 'flex',
-                      gap: '10px',
+                      gap: '6px',
                       justifyContent: 'center',
                     }}
                   />

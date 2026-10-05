@@ -473,20 +473,17 @@ class PasskeyController {
     res: Response,
   ) {
     try {
-      const { userId, sessionId, credential, deviceName } = req.body;
+      const { sessionId, credential, deviceName } = req.body;
 
       const session = await PasskeySession.get(sessionId);
-      if (!session || session.userId !== userId) {
+      if (!session) {
         res
           .status(HTTP_STATUSES.unauthorised)
           .send({ error: 'Invalid session' });
         return;
       }
 
-      const user = await User.get(userId);
-      const { challenge: _signedChallenge } = PasskeyService.decodeClientData(
-        credential.response.clientDataJSON,
-      );
+      const user = await User.get(session.userId);
 
       const verification = await verifyRegistrationResponse({
         response: credential,

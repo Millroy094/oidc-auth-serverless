@@ -68,7 +68,7 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = ({
         )}
       </div>
       <div className="flex flex-col items-center justify-center gap-4">
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+        <div className="w-full px-2 sm:px-0 flex justify-center overflow-x-auto">
           <OTPInput
             value={value}
             onChange={onChange}
@@ -84,13 +84,13 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = ({
                   }
                   props.onKeyDown?.(e);
                 }}
-                className="w-12 h-12 text-center text-xl border border-slate-300 rounded focus:outline-none"
+                className="w-10 h-10 sm:w-12 sm:h-12 text-lg sm:text-xl text-center border border-slate-300 rounded focus:outline-none shrink-0"
               />
             )}
             inputType="tel"
             containerStyle={{
               display: 'flex',
-              gap: '10px',
+              gap: '6px',
               justifyContent: 'center',
             }}
           />
