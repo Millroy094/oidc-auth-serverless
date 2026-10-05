@@ -48,14 +48,7 @@ const importRules = {
   'import/no-duplicates': 'error',
   'import/no-self-import': 'error',
   'import/no-cycle': 'error',
-  'import/order': [
-    'warn',
-    {
-      groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
-      'newlines-between': 'never',
-      alphabetize: { order: 'asc', caseInsensitive: true },
-    },
-  ],
+  'import/order': 'off',
 };
 
 module.exports = [
@@ -66,6 +59,7 @@ module.exports = [
       '**/build/**',
       '**/coverage/**',
       '**/*.min.js',
+      'artifacts/**',
     ],
   },
   js.configs.recommended,

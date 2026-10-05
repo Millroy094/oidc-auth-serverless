@@ -70,6 +70,11 @@ export interface UpdateResourceBody {
 export type UpdateSettingsBody = Partial<TtlSettings> & {
   registrationEnabled?: boolean;
   rotateRefreshTokenOnUse?: boolean;
+  attestationType?: 'none' | 'direct';
+  authenticatorAttachment?: 'platform' | 'cross-platform' | 'all';
+  challengeTimeout?: number;
+  maxPerUser?: number;
+  crossDeviceSessionTimeout?: number;
 };
 
 class AdminController {
@@ -415,17 +420,29 @@ class AdminController {
 
   public static async getSettings(_req: Request, res: Response) {
     try {
-      const [ttlSettings, registrationEnabled, rotateRefreshTokenOnUse] =
-        await Promise.all([
-          SettingsService.getTtlSettings(),
-          SettingsService.getRegistrationEnabled(),
-          SettingsService.getRotateRefreshTokenOnUse(),
-        ]);
+      const [
+        ttlSettings,
+        registrationEnabled,
+        rotateRefreshTokenOnUse,
+        passkeySettings,
+      ] = await Promise.all([
+        SettingsService.getTtlSettings(),
+        SettingsService.getRegistrationEnabled(),
+        SettingsService.getRotateRefreshTokenOnUse(),
+        SettingsService.getPasskeySettings(),
+      ]);
       res.status(HTTP_STATUSES.ok).json({
         settings: {
           ...ttlSettings,
           registrationEnabled,
           rotateRefreshTokenOnUse,
+          passkeyAttestationType: passkeySettings.attestationType,
+          passkeyAuthenticatorAttachment:
+            passkeySettings.authenticatorAttachment,
+          passkeyChallengeTimeout: passkeySettings.challengeTimeout,
+          passkeyMaxPerUser: passkeySettings.maxPerUser,
+          passkeyCrossDeviceSessionTimeout:
+            passkeySettings.crossDeviceSessionTimeout,
         },
         message: 'Successfully retrieved settings!',
       });
@@ -442,13 +459,22 @@ class AdminController {
     res: Response,
   ) {
     try {
-      const { registrationEnabled, rotateRefreshTokenOnUse, ...ttlFields } =
-        req.body;
+      const {
+        registrationEnabled,
+        rotateRefreshTokenOnUse,
+        attestationType,
+        authenticatorAttachment,
+        challengeTimeout,
+        maxPerUser,
+        crossDeviceSessionTimeout,
+        ...ttlFields
+      } = req.body;
 
       const [
         ttlSettings,
         updatedRegistrationEnabled,
         updatedRotateRefreshTokenOnUse,
+        updatedPasskeySettings,
       ] = await Promise.all([
         SettingsService.updateTtlSettings(ttlFields),
         registrationEnabled === undefined
@@ -459,6 +485,19 @@ class AdminController {
           : SettingsService.updateRotateRefreshTokenOnUse(
               rotateRefreshTokenOnUse,
             ),
+        attestationType ||
+        authenticatorAttachment ||
+        challengeTimeout !== undefined ||
+        maxPerUser !== undefined ||
+        crossDeviceSessionTimeout !== undefined
+          ? SettingsService.updatePasskeySettings({
+              attestationType,
+              authenticatorAttachment,
+              challengeTimeout,
+              maxPerUser,
+              crossDeviceSessionTimeout,
+            })
+          : SettingsService.getPasskeySettings(),
       ]);
 
       res.status(HTTP_STATUSES.ok).json({
@@ -466,6 +505,13 @@ class AdminController {
           ...ttlSettings,
           registrationEnabled: updatedRegistrationEnabled,
           rotateRefreshTokenOnUse: updatedRotateRefreshTokenOnUse,
+          passkeyAttestationType: updatedPasskeySettings.attestationType,
+          passkeyAuthenticatorAttachment:
+            updatedPasskeySettings.authenticatorAttachment,
+          passkeyChallengeTimeout: updatedPasskeySettings.challengeTimeout,
+          passkeyMaxPerUser: updatedPasskeySettings.maxPerUser,
+          passkeyCrossDeviceSessionTimeout:
+            updatedPasskeySettings.crossDeviceSessionTimeout,
         },
         message: 'Successfully updated settings!',
       });

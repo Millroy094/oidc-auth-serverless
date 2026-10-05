@@ -51,7 +51,6 @@ export interface UserItem extends Item {
   lastLoggedIn: number;
   failedLogins: number;
   suspended: boolean;
-  credentials: MFACredential[];
   resources: ResourceScope[];
 }
 
@@ -211,23 +210,6 @@ const UserSchema = new Schema(
     suspended: {
       type: Boolean,
       default: false,
-    },
-    credentials: {
-      type: Array,
-      schema: [
-        {
-          type: Object,
-          schema: {
-            id: { type: String },
-            publicKey: {
-              type: Buffer,
-            },
-            counter: { type: Number },
-            deviceName: { type: String },
-          },
-        },
-      ],
-      default: [],
     },
     resources: {
       type: Array,

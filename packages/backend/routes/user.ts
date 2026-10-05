@@ -122,6 +122,29 @@ router.post<Record<string, string>, unknown, CheckPasskeyExistsBody>(
   (req, res) => PasskeyController.checkPasskeyExists(req, res),
 );
 
+// Cross-device passkey registration endpoints
+router.post<Record<string, string>, unknown, RegisterPasskeyBody>(
+  '/initiate-passkey-registration',
+  authenticate,
+  (req, res) => PasskeyController.initiatePasskeyRegistration(req, res),
+);
+
+router.post<
+  Record<string, string>,
+  unknown,
+  RegisterPasskeyBody & { sessionId: string }
+>('/register-passkey-with-session', (req, res) =>
+  PasskeyController.registerPasskeyWithSession(req, res),
+);
+
+router.post<
+  Record<string, string>,
+  unknown,
+  VerifyPasskeyRegistrationBody & { sessionId: string }
+>('/complete-passkey-registration', (req, res) =>
+  PasskeyController.completePasskeyRegistration(req, res),
+);
+
 router.post<Record<string, string>, unknown, SendOtpBody>(
   '/send-otp',
   (req, res) => UserController.sendOtp(req, res),

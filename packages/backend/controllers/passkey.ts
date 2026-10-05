@@ -9,8 +9,10 @@ import {
 import { Request, Response } from 'express';
 import HTTP_STATUSES from '../constants/http-status.ts';
 import User, { MFACredential } from '../models/User.ts';
+import PasskeySession from '../models/PasskeySession.ts';
 import PasskeyService from '../services/passkey.ts';
 import UserService from '../services/user.ts';
+import SettingsService from '../services/settings.ts';
 import config from '../support/env-config.ts';
 import logger from '../utils/logger.ts';
 
@@ -220,7 +222,7 @@ class PasskeyController {
       const options = await generateAuthenticationOptions({
         rpID: config.get('authentication.rpId'),
         allowCredentials:
-          user?.credentials?.map((cred: MFACredential) => ({
+          user?.mfa?.passkey?.credentials?.map((cred: MFACredential) => ({
             id: cred.id,
             type: 'public-key',
           })) ?? [],
@@ -327,6 +329,206 @@ class PasskeyController {
     } catch (error) {
       console.error('Error checking passkey:', error);
       res.status(500).send({ error: 'Internal server error' });
+    }
+  }
+
+  public static async initiatePasskeyRegistration(
+    req: Request<Record<string, string>, unknown, RegisterPasskeyBody>,
+    res: Response,
+  ) {
+    try {
+      const userId = req.body.userId || req.user?.userId;
+      if (!userId) {
+        res
+          .status(HTTP_STATUSES.unauthorised)
+          .send({ error: 'User not authenticated' });
+        return;
+      }
+
+      const user = await User.get(userId);
+
+      const options = await generateRegistrationOptions({
+        rpID: config.get('authentication.rpId'),
+        rpName: config.get('authentication.issuer'),
+        userName: userId,
+        userDisplayName: user.email,
+        attestationType: 'none',
+        authenticatorSelection: {
+          authenticatorAttachment: 'cross-platform',
+          userVerification: 'required',
+        },
+      });
+
+      // Create a passkey session for cross-device registration
+      const session = await PasskeySession.create({
+        userId,
+        challenge: options.challenge,
+      });
+
+      res
+        .status(HTTP_STATUSES.ok)
+        .send({ options, sessionId: session.sessionId });
+    } catch (error) {
+      logger.error(
+        `Failed passkey registration initiation ${(error as Error).message}`,
+      );
+      res
+        .status(HTTP_STATUSES.badRequest)
+        .send({ error: 'There was an issue initiating passkey registration' });
+    }
+  }
+
+  public static async registerPasskeyWithSession(
+    req: Request<
+      Record<string, string>,
+      unknown,
+      RegisterPasskeyBody & { sessionId: string }
+    >,
+    res: Response,
+  ) {
+    try {
+      const { userId, sessionId } = req.body;
+
+      const session = await PasskeySession.get(sessionId);
+      if (!session || session.userId !== userId) {
+        res
+          .status(HTTP_STATUSES.unauthorised)
+          .send({ error: 'Invalid session' });
+        return;
+      }
+
+      const user = await User.get(userId);
+
+      const options = await generateRegistrationOptions({
+        rpID: config.get('authentication.rpId'),
+        rpName: config.get('authentication.issuer'),
+        userName: userId,
+        userDisplayName: user.email,
+        attestationType: 'none',
+        authenticatorSelection: {
+          authenticatorAttachment: 'cross-platform',
+          userVerification: 'required',
+        },
+      });
+
+      // Update the session with new challenge
+      session.challenge = options.challenge;
+      await session.save();
+
+      await user.save();
+      res.status(HTTP_STATUSES.ok).send({ options });
+    } catch (error) {
+      logger.error(
+        `Failed passkey registration with session ${(error as Error).message}`,
+      );
+      res
+        .status(HTTP_STATUSES.badRequest)
+        .send({ error: 'There was an issue registering passkey with session' });
+    }
+  }
+
+  public static async completePasskeyRegistration(
+    req: Request<
+      Record<string, string>,
+      unknown,
+      VerifyPasskeyRegistrationBody & { sessionId: string }
+    >,
+    res: Response,
+  ) {
+    try {
+      const { userId, sessionId, credential, deviceName } = req.body;
+
+      const session = await PasskeySession.get(sessionId);
+      if (!session || session.userId !== userId) {
+        res
+          .status(HTTP_STATUSES.unauthorised)
+          .send({ error: 'Invalid session' });
+        return;
+      }
+
+      const user = await User.get(userId);
+      const { challenge: _signedChallenge } = PasskeyService.decodeClientData(
+        credential.response.clientDataJSON,
+      );
+
+      const verification = await verifyRegistrationResponse({
+        response: credential,
+        expectedChallenge: session.challenge,
+        expectedOrigin:
+          req.headers.origin ??
+          `${req.protocol}://${config.get('authentication.rpId')}`,
+        expectedRPID: config.get('authentication.rpId'),
+      });
+
+      if (verification.verified) {
+        user.mfa.passkey.credentials.push({
+          id: verification?.registrationInfo?.credential?.id,
+          publicKey: Buffer.from(
+            verification?.registrationInfo?.credential?.publicKey ?? '',
+          ),
+          counter: verification?.registrationInfo?.credential?.counter,
+          deviceName,
+        });
+
+        user.mfa.passkey.verified = true;
+
+        if (!user.mfa.preference) {
+          user.mfa.preference = 'passkey';
+        }
+
+        await user.save();
+        await session.delete();
+
+        res.status(HTTP_STATUSES.ok).send({ verified: true });
+      } else {
+        res.status(HTTP_STATUSES.unauthorised).send({ verified: false });
+      }
+    } catch (error) {
+      logger.error(
+        `Failed completing passkey registration ${(error as Error).message}`,
+      );
+      res
+        .status(HTTP_STATUSES.badRequest)
+        .send({ error: 'There was an issue completing passkey registration' });
+    }
+  }
+
+  public static async getPasskeySettingsEndpoint(_req: Request, res: Response) {
+    try {
+      const passkeySettings = await SettingsService.getPasskeySettings();
+      res.status(HTTP_STATUSES.ok).json({
+        settings: passkeySettings,
+        message: 'Successfully retrieved passkey settings!',
+      });
+    } catch (err) {
+      logger.error((err as Error).message);
+      res
+        .status(HTTP_STATUSES.serverError)
+        .json({ error: 'Failed retrieving passkey settings' });
+    }
+  }
+
+  public static async updatePasskeySettings(
+    req: Request<
+      Record<string, string>,
+      unknown,
+      Partial<Record<string, unknown>>
+    >,
+    res: Response,
+  ) {
+    try {
+      const updatedSettings = await SettingsService.updatePasskeySettings(
+        req.body,
+      );
+      res.status(HTTP_STATUSES.ok).json({
+        settings: updatedSettings,
+        message: 'Successfully updated passkey settings!',
+      });
+    } catch (err) {
+      logger.error((err as Error).message);
+      res
+        .status(HTTP_STATUSES.serverError)
+        .json({ error: 'Failed updating passkey settings' });
     }
   }
 }

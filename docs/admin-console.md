@@ -1,6 +1,6 @@
 # Managing OIDC clients & resources (admin console)
 
-Users with the `admin` role get an extra `Account` section (`pages/Account/Clients`, `pages/Account/Resources`, `pages/Account/Users`, `pages/Account/Settings`) backed by `/api/admin/*` (all routes gated by `authenticate` + `authorize(['admin'])`).
+Users with the `admin` role get an extra `Account` section (`pages/Account/Clients`, `pages/Account/Resources`, `pages/Account/Users`, `pages/Account/Settings`) backed by `/api/admin/*` (all routes gated by `authenticate` + `authorize(['admin'])`). The Settings page contains two separate cards: **Token & Session Settings** and **Passkey Settings**.
 
 ## Registering a new OIDC client (relying party)
 1. In **Account → Clients → Add Client**, provide: `clientId`, `clientName`, `scopes` (e.g. `openid profile email`), `grants` (e.g. `authorization_code`, `refresh_token`, `client_credentials`), and `redirectUris` (must be `https://`, except `localhost`/`127.0.0.1` which may be plain `http://`).
@@ -24,12 +24,22 @@ Users with the `admin` role get an extra `Account` section (`pages/Account/Clien
 - **Account → Users** lists all registered users; admins can suspend/unsuspend, edit roles, edit profile fields, force-reset a user's MFA (`resetMFA`), or force-revoke sessions.
 - **Add User** creates an account without setting a password: `UserService.createUser` generates a random unusable password, and `sendAccountCreatedNotification` emails the new user instructions to use "Forgot Password" (with their email) to set their own password and complete registration — deliberately avoiding sending a real OTP (see the "one active OTP per channel" note in [authentication.md](./authentication.md)).
 
-## Token & session lifetimes
-- **Account → Settings** lets admins configure how long access tokens, ID tokens, refresh tokens, sessions, and grants remain valid (entered in minutes, stored in seconds).
+## Token & Session Lifetimes
+- **Account → Settings → Token & Session Settings** lets admins configure how long access tokens, ID tokens, refresh tokens, sessions, and grants remain valid (entered in minutes, stored in seconds).
 - Backed by a single-item `Settings` DynamoDB table (`SettingsService`); `get-configuration.ts` reads these values through the same 30-second in-memory cache used for clients, so changes take effect on running Lambda instances within 30s (cold starts always read fresh).
 - Values are bounded server-side to between 5 minutes and 30 days; if no settings have been saved yet, defaults are used (1 hour for access/ID tokens, 2 hours for refresh tokens/sessions/grants).
 
+## Passkey Settings
+- **Account → Settings → Passkey Settings** lets admins configure WebAuthn passkey authentication options:
+  - **Attestation Type**: `none` (trust client) or `direct` (verify authenticator certificate) — controls security/registration speed tradeoff
+  - **Authenticator Types**: `platform` (Face ID, Touch ID, Windows Hello), `cross-platform` (YubiKey, security keys), or `all`
+  - **Challenge Timeout**: How long a registration/authentication challenge remains valid (30-3600 seconds, default 300)
+  - **Max Passkeys Per User**: Maximum passkeys each user can register (0 = unlimited); existing passkeys are not affected when this limit is reduced
+  - **Cross-Device Session Timeout**: How long QR code sessions remain valid for cross-device registration (60-3600 seconds, default 600)
+- Settings are stored on the same `Settings` DynamoDB item and read through the same 30-second cache as token/session settings.
+- Changes apply only to new registrations; existing passkeys remain valid and continue to work with old settings.
+
 ## Allowing or blocking new user registration
-- The same **Account → Settings** page has an "Allow new user registration" toggle, stored on the same `Settings` item (`registrationEnabled`, defaults to `true`).
+- **Account → Settings → Token & Session Settings** includes an "Allow new user registration" toggle, stored on the `Settings` DynamoDB item (`registrationEnabled`, defaults to `true`).
 - When disabled, `POST /api/user/register` rejects new sign-ups with a `403`, and the frontend registration page (`/registration`) shows a "registration is closed" message instead of the form; the "Not registered? Create an account" link on the login page is also hidden. Existing users can still log in as normal.
 - The registration form and login page read this flag from the existing public `GET /api/user/public-config` endpoint (no caching — always reads the current value), so it always reflects the latest setting without waiting on the 30-second TTL cache.

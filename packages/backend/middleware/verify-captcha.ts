@@ -12,6 +12,13 @@ const verifyCaptcha = async (
   next: NextFunction,
 ): Promise<void> => {
   const token = (req.body as { captchaToken?: string })?.captchaToken;
+  const deploymentEnv = config.get('deploymentEnvironment');
+
+  // Skip captcha verification in local development mode
+  if (deploymentEnv === 'local') {
+    next();
+    return;
+  }
 
   if (!token) {
     res

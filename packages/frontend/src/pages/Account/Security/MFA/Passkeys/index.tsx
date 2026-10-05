@@ -1,5 +1,5 @@
 import { startRegistration } from '@simplewebauthn/browser';
-import { Trash2, Fingerprint } from 'lucide-react';
+import { Trash2, Fingerprint, QrCode } from 'lucide-react';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
 import checkPasskeyAlreadyExists from '@/api/user/check-passkey-exists';
 import deletePasskey from '@/api/user/delete-passkey';
@@ -15,9 +15,11 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthProvider';
 import useFeedback from '@/hooks/useFeedback';
+import CrossDevicePasskeyModal from './CrossDeviceModal';
 
 function getDetailedDeviceInfo(): string {
   const userAgent = navigator.userAgent;
@@ -76,6 +78,9 @@ const Passkeys: FC<PasskeysProps> = (props) => {
   } = props;
   const [devices, setDevices] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showCrossDeviceModal, setShowCrossDeviceModal] =
+    useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<string>('');
 
   const auth = useAuth();
   const { feedbackAxiosError, feedbackAxiosResponse, feedback } = useFeedback();
@@ -107,7 +112,7 @@ const Passkeys: FC<PasskeysProps> = (props) => {
     } catch (err) {
       feedbackAxiosError(
         err,
-        'There was an issue deleting passkey, please try again',
+        'There was an issue registering passkey, please try again',
       );
     }
   };
@@ -148,10 +153,35 @@ const Passkeys: FC<PasskeysProps> = (props) => {
     }
   };
 
+  const initiatePasskey = async (userId: string) => {
+    try {
+      const axios = await import('@/utils/axios-instance').then(
+        (m) => m.default,
+      );
+      const response = await axios.post<{ sessionId: string }>(
+        '/api/user/initiate-passkey-registration',
+        { userId },
+        { withCredentials: true },
+      );
+      setSessionId(response.data.sessionId);
+      setShowCrossDeviceModal(true);
+      feedback('QR code generated. Scan from another device.', 'success');
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to initiate registration';
+      feedback(`An error occurred: ${errorMessage}`, 'error');
+    }
+  };
+
+  // eslint-disable react-hooks/exhaustive-deps
   useEffect(() => {
-    void fetchPasskeys(auth?.user?.userId ?? '');
+    if (auth?.user?.userId) {
+      void fetchPasskeys(auth.user.userId);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [auth?.user?.userId]);
 
   return (
     <Card className="border-t-4 border-t-primary shadow-sm">
@@ -222,14 +252,38 @@ const Passkeys: FC<PasskeysProps> = (props) => {
           )}
         </div>
       </CardContent>
-      <CardFooter className="flex justify-end">
-        <Button
-          variant="outline"
-          onClick={() => register(auth?.user?.userId ?? '')}
-        >
+      <CardFooter className="flex justify-end gap-2">
+        {import.meta.env.VITE_ENVIRONMENT !== 'local' && (
+          <Button
+            variant="outline"
+            onClick={() => initiatePasskey(auth?.user?.userId ?? '')}
+            title="Register passkey on another device via QR code"
+          >
+            <QrCode className="w-4 h-4 mr-2" />
+            Register on Another Device
+          </Button>
+        )}
+        <Button onClick={() => register(auth?.user?.userId ?? '')}>
           Add Passkey
         </Button>
       </CardFooter>
+
+      <Dialog
+        open={showCrossDeviceModal}
+        onOpenChange={setShowCrossDeviceModal}
+      >
+        <DialogContent className="max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div className="bg-white">
+            <CrossDevicePasskeyModal
+              sessionId={sessionId}
+              onCancel={() => {
+                setShowCrossDeviceModal(false);
+                setSessionId('');
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

@@ -6,4 +6,9 @@ export interface ISettingsInput {
   grantTtl: number;
   registrationEnabled: boolean;
   rotateRefreshTokenOnUse: boolean;
+  passkeyAttestationType: 'none' | 'direct';
+  passkeyAuthenticatorAttachment: 'platform' | 'cross-platform' | 'all';
+  passkeyChallengeTimeout: number;
+  passkeyMaxPerUser: number;
+  passkeyCrossDeviceSessionTimeout: number;
 }

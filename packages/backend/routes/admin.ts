@@ -9,6 +9,7 @@ import AdminController, {
   UpdateSettingsBody,
   UpdateUserBody,
 } from '../controllers/admin.ts';
+import PasskeyController from '../controllers/passkey.ts';
 import authenticate from '../middleware/authenticate.ts';
 import authorize from '../middleware/authorize.ts';
 
@@ -119,6 +120,20 @@ adminRouter.put<Record<string, string>, unknown, UpdateSettingsBody>(
   authenticate,
   authorize(['admin']),
   (req, res) => AdminController.updateSettings(req, res),
+);
+
+// Passkey settings endpoints
+adminRouter.get(
+  '/settings/passkey',
+  authenticate,
+  authorize(['admin']),
+  (req, res) => PasskeyController.getPasskeySettingsEndpoint(req, res),
+);
+adminRouter.put(
+  '/settings/passkey',
+  authenticate,
+  authorize(['admin']),
+  (req, res) => PasskeyController.updatePasskeySettings(req, res),
 );
 
 export default adminRouter;

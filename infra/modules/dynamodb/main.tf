@@ -224,3 +224,35 @@ resource "aws_dynamodb_table" "settings" {
     type = "S"
   }
 }
+
+resource "aws_dynamodb_table" "passkey_session" {
+  name         = "PasskeySession"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "sessionId"
+
+  attribute {
+    name = "sessionId"
+    type = "S"
+  }
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "userId-index"
+    projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "userId"
+      key_type       = "HASH"
+    }
+  }
+
+  ttl {
+    attribute_name = "expiresAt"
+    enabled        = true
+  }
+}
+

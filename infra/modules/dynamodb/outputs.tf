@@ -22,6 +22,10 @@ output "settings_table_name" {
   value = aws_dynamodb_table.settings.name
 }
 
+output "passkey_session_table_name" {
+  value = aws_dynamodb_table.passkey_session.name
+}
+
 output "table_arns" {
   description = "ARNs for all tables (used for Lambda IAM policy)"
   value = [
@@ -32,5 +36,6 @@ output "table_arns" {
     aws_dynamodb_table.otp.arn,
     aws_dynamodb_table.challenge.arn,
     aws_dynamodb_table.settings.arn,
+    aws_dynamodb_table.passkey_session.arn,
   ]
 }

@@ -12,6 +12,11 @@ export interface ITtlSettings {
 export interface ISettings extends ITtlSettings {
   registrationEnabled: boolean;
   rotateRefreshTokenOnUse: boolean;
+  passkeyAttestationType: 'none' | 'direct';
+  passkeyAuthenticatorAttachment: 'platform' | 'cross-platform' | 'all';
+  passkeyChallengeTimeout: number;
+  passkeyMaxPerUser: number;
+  passkeyCrossDeviceSessionTimeout: number;
 }
 
 interface GetSettingsResponseData {

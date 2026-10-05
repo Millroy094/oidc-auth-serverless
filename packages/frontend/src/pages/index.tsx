@@ -12,6 +12,7 @@ import { PUBLIC_ROUTES } from '@/constants';
 import { useAuth } from '@/context/AuthProvider';
 import useFeedback from '@/hooks/useFeedback';
 import globalRouter from '@/utils/global-router';
+import PasskeyRegisterComponent from './PasskeyRegister';
 
 const Login = lazy(() => import('./Login'));
 const Confirm = lazy(() => import('./Confirm'));
@@ -26,6 +27,8 @@ function Pages() {
   const navigate = useNavigate();
   const Auth = useAuth();
   globalRouter.navigate = navigate;
+
+  const passkeySessionId = searchParams.get('passkey-session');
 
   const navigateByInteractionStage = async (
     interactionId: string,
@@ -45,11 +48,23 @@ function Pages() {
   useEffect(() => {
     if (pathname === '/' && searchParams.has('interactionId')) {
       void navigateByInteractionStage(searchParams.get('interactionId') ?? '');
-    } else if (!PUBLIC_ROUTES.includes(pathname) && pathname !== '/login') {
+    } else if (
+      !passkeySessionId &&
+      !PUBLIC_ROUTES.includes(pathname) &&
+      pathname !== '/login'
+    ) {
       void Auth?.refreshUser();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (passkeySessionId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <PasskeyRegisterComponent sessionId={passkeySessionId} />
+      </div>
+    );
+  }
 
   return (
     <Suspense

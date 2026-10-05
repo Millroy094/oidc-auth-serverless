@@ -18,11 +18,14 @@ class PasskeyService {
   public static async createChallenge(
     userId: string,
     challenge: string,
+    ttlSeconds?: number,
   ): Promise<void> {
+    const ttl = ttlSeconds ?? 300;
+
     await Challenge.create({
       userId,
       challenge,
-      expiresAt: Math.floor(Date.now() / 1000) + 300,
+      expiresAt: Math.floor(Date.now() / 1000) + ttl,
     });
   }
 

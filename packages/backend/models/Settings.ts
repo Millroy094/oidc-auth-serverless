@@ -18,6 +18,11 @@ export interface SettingsItem extends Item {
   grantTtl?: number;
   registrationEnabled?: boolean;
   rotateRefreshTokenOnUse?: boolean;
+  passkeyAttestationType?: 'none' | 'direct';
+  passkeyAuthenticatorAttachment?: 'platform' | 'cross-platform' | 'all';
+  passkeyChallengeTimeout?: number;
+  passkeyMaxPerUser?: number;
+  passkeyCrossDeviceSessionTimeout?: number;
 }
 
 const SettingsSchema = new Schema({
@@ -45,6 +50,28 @@ const SettingsSchema = new Schema({
   },
   rotateRefreshTokenOnUse: {
     type: Boolean,
+  },
+  passkeyAttestationType: {
+    type: String,
+    enum: ['none', 'direct'],
+    default: 'none',
+  },
+  passkeyAuthenticatorAttachment: {
+    type: String,
+    enum: ['platform', 'cross-platform', 'all'],
+    default: 'platform',
+  },
+  passkeyChallengeTimeout: {
+    type: Number,
+    default: 300,
+  },
+  passkeyMaxPerUser: {
+    type: Number,
+    default: 0,
+  },
+  passkeyCrossDeviceSessionTimeout: {
+    type: Number,
+    default: 600,
   },
 });
 

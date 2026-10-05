@@ -21,40 +21,32 @@ interface IAuthContext {
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   isLoggingOut?: boolean;
-  isSigningIn?: boolean;
 }
 
 const AuthContext = createContext<IAuthContext | null>(null);
 
-const TRANSITION_OVERLAY_DELAY_MS = 500;
-
 const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
   const [user, setUser] = useState<IUser | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
-  const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { feedbackAxiosError } = useFeedback();
   const { enqueueSnackbar } = useSnackbar();
 
-  const showTransitionThenNavigate = (
-    setIsTransitioning: (value: boolean) => void,
-    path: string,
-  ): void => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      void navigate(path);
-      setIsTransitioning(false);
-    }, TRANSITION_OVERLAY_DELAY_MS);
-  };
-
   const login = async (data: ILoginFormInput): Promise<void> => {
-    const response = await authenticateUser({
-      ...data,
-      captchaToken: data.captchaToken ?? '',
-    });
-    setUser(response.data.user);
-    showTransitionThenNavigate(setIsSigningIn, '/account');
+    try {
+      const response = await authenticateUser({
+        ...data,
+        captchaToken: data.captchaToken ?? '',
+      });
+      setUser(response.data.user);
+      await navigate('/account');
+    } catch (err) {
+      feedbackAxiosError(
+        err,
+        'Failed to authenticate credentials, please try again.',
+      );
+    }
   };
 
   const refreshUser = async (): Promise<void> => {
@@ -80,7 +72,11 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
       await logoutUser();
       setUser(null);
       localStorage.removeItem(ACCOUNT_ACTIVE_TAB_STORAGE_KEY);
-      showTransitionThenNavigate(setIsLoggingOut, '/login');
+      setIsLoggingOut(true);
+      // Show transition overlay for 500ms before navigating
+      setTimeout(() => {
+        void navigate('/login');
+      }, 500);
     } catch (err) {
       feedbackAxiosError(err, 'Failed to logout user, please try again.');
       setIsLoggingOut(false);
@@ -89,10 +85,9 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ login, logout, refreshUser, user, isLoggingOut, isSigningIn }}
+      value={{ login, logout, refreshUser, user, isLoggingOut }}
     >
       <TransitionOverlay isVisible={isLoggingOut} message="Logging out..." />
-      <TransitionOverlay isVisible={isSigningIn} message="Signing in..." />
       {children}
     </AuthContext.Provider>
   );

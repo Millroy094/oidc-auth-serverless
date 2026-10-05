@@ -3,6 +3,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ESNext"],
+    "types": ["node"],
     "allowJs": true,
     "rootDir": ".",
     "resolveJsonModule": true,
@@ -18,5 +19,5 @@
     "allowImportingTsExtensions": true
   },
   "include": [".", "types"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "build"]
 }

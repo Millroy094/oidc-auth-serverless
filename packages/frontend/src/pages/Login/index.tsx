@@ -128,7 +128,6 @@ const Login: FC = () => {
 
       if (response?.data.redirect) {
         setIsAuthenticating(true);
-        // Show overlay for 500ms before redirecting
         setTimeout(() => {
           window.location.href = response.data.redirect;
         }, 500);
