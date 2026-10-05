@@ -15,7 +15,7 @@ Vite + React 19 + TypeScript SPA, Tailwind CSS v4, shadcn/Radix-style UI compone
 - Routing is driven by `pages/index.tsx`, which handles:
   - Initial `refreshUser()`/OIDC-interaction-status check on mount
   - `/passkey-register/:sessionId` — dedicated route rendering `PasskeyRegisterComponent` for cross-device registration
-  - `/:interactionId` — dynamic catch-all route rendering `InteractionEntry`, which looks up the OIDC interaction status and redirects to the matching `/oauth/:stage/:interactionId` route
+  - `/interaction/:interactionId` — entry route rendering `InteractionEntry`, which looks up the OIDC interaction status and redirects to the matching `/oauth/:stage/:interactionId` route
 
 ## Cross-Device Passkey Registration Flow
 

@@ -1,6 +1,7 @@
 import { Adapter, AdapterPayload } from 'oidc-provider';
 import OIDCStore from '../models/OIDCStore.ts';
 import ClientService from '../services/client.ts';
+import { isExpired } from '../utils/expiry.ts';
 import logger from '../utils/logger.ts';
 
 class DynamoDBAdapter implements Adapter {
@@ -55,10 +56,7 @@ class DynamoDBAdapter implements Adapter {
       const record = await OIDCStore.get(modelId);
 
       // DynamoDB can take upto 48 hours to drop expired items, so a check is required
-      if (
-        !record ||
-        (record.expiresAt && Date.now() > record.expiresAt * 1000)
-      ) {
+      if (!record || isExpired(record.expiresAt)) {
         return undefined;
       }
 
@@ -80,10 +78,7 @@ class DynamoDBAdapter implements Adapter {
         .exec();
 
       // DynamoDB can take upto 48 hours to drop expired items, so a check is required
-      if (
-        !record ||
-        (record.expiresAt && Date.now() > record.expiresAt * 1000)
-      ) {
+      if (!record || isExpired(record.expiresAt)) {
         return undefined;
       }
 
@@ -103,10 +98,7 @@ class DynamoDBAdapter implements Adapter {
         .eq(uid)
         .exec();
       // DynamoDB can take upto 48 hours to drop expired items, so a check is required
-      if (
-        !record ||
-        (record.expiresAt && Date.now() > record.expiresAt * 1000)
-      ) {
+      if (!record || isExpired(record.expiresAt)) {
         return undefined;
       }
 

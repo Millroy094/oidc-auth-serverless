@@ -47,7 +47,8 @@ const PasskeySession = model<PasskeySessionItem>(
   {
     ...tableOptions,
     expires: {
-      ttl: 600,
+      // dynamoose's expires.ttl is in milliseconds, not seconds.
+      ttl: 600 * 1000,
       attribute: 'expiresAt',
       items: {
         returnExpired: false,

@@ -46,7 +46,8 @@ const ChallengeSchema = new Schema(
 const Challenge = model<ChallengeItem>('Challenge', ChallengeSchema, {
   ...tableOptions,
   expires: {
-    ttl: 300,
+    // dynamoose's expires.ttl is in milliseconds, not seconds.
+    ttl: 300 * 1000,
     attribute: 'expiresAt',
     items: {
       returnExpired: false,

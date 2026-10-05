@@ -9,7 +9,9 @@ const { Schema, model } = dynamoose;
 export interface OIDCStoreItem extends Item {
   id: string;
   payload: AdapterPayload;
-  expiresAt?: number;
+  // Stored as epoch seconds, but dynamoose's `expires` option types this
+  // attribute as Date, so reads return a Date instance.
+  expiresAt?: number | Date;
   userCode?: string;
   uid?: string;
   grantId?: string;
@@ -73,7 +75,8 @@ const OIDCStoreSchema = new Schema(
 const OIDCStore = model<OIDCStoreItem>('OIDCStore', OIDCStoreSchema, {
   ...tableOptions,
   expires: {
-    ttl: 7 * 24 * 60 * 60,
+    // dynamoose's expires.ttl is in milliseconds, not seconds.
+    ttl: 7 * 24 * 60 * 60 * 1000,
     attribute: 'expiresAt',
     items: {
       returnExpired: false,
