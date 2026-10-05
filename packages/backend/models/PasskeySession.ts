@@ -47,7 +47,10 @@ const PasskeySession = model<PasskeySessionItem>(
   {
     ...tableOptions,
     expires: {
-      ttl: 600,
+      // dynamoose's expires.ttl expects milliseconds, not seconds - without
+      // the *1000 the session (and the QR-code cross-device flow relying on
+      // it) expires almost immediately after creation.
+      ttl: 600 * 1000,
       attribute: 'expiresAt',
       items: {
         returnExpired: false,

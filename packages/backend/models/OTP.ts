@@ -51,7 +51,8 @@ const OTPSchema = new Schema(
 const OTP = model<OTPItem>('OTP', OTPSchema, {
   ...tableOptions,
   expires: {
-    ttl: 300,
+    // dynamoose's expires.ttl expects milliseconds, not seconds.
+    ttl: 300 * 1000,
     attribute: 'expiresAt',
     items: {
       returnExpired: false,

@@ -73,7 +73,10 @@ const OIDCStoreSchema = new Schema(
 const OIDCStore = model<OIDCStoreItem>('OIDCStore', OIDCStoreSchema, {
   ...tableOptions,
   expires: {
-    ttl: 7 * 24 * 60 * 60,
+    // dynamoose's expires.ttl expects milliseconds, not seconds. In
+    // practice the adapter always sets expiresAt explicitly, but this
+    // default is kept correct as a fallback for the rare case it doesn't.
+    ttl: 7 * 24 * 60 * 60 * 1000,
     attribute: 'expiresAt',
     items: {
       returnExpired: false,
