@@ -38,6 +38,8 @@ function InteractionEntry() {
         }
       } catch (err) {
         feedbackAxiosError(err, 'Failed to process authentication');
+        // Interaction is gone (expired/completed/invalid) - start over.
+        await navigate('/login');
       }
     };
 

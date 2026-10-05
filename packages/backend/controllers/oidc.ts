@@ -9,6 +9,10 @@ import {
   respondEmailVerificationRequired,
   respondMfaRequired,
 } from '../utils/auth-helper.ts';
+import {
+  getOidcErrorMessage,
+  isOidcProviderError,
+} from '../utils/oidc-error.ts';
 
 export interface AuthenticateInteractionBody {
   email: string;
@@ -32,8 +36,11 @@ class OIDCController {
       } = await req.oidcProvider.interactionDetails(req, res);
       res.status(HTTP_STATUSES.ok).json({ status: name });
     } catch (err) {
+      const message = isOidcProviderError(err)
+        ? getOidcErrorMessage(err)
+        : (err as Error).message;
       res.status(HTTP_STATUSES.badRequest).json({
-        error: `Unable to process authentication: ${(err as Error).message}`,
+        error: `Unable to process authentication: ${message}`,
       });
     }
   }
@@ -93,6 +100,15 @@ class OIDCController {
           error_description: 'Username or password is incorrect.',
         });
       }
+
+      // interactionDetails() failed (expired/invalid interaction), not the
+      // credentials - avoid the misleading "Invalid email or password".
+      if (isOidcProviderError(err)) {
+        return res.status(HTTP_STATUSES.badRequest).json({
+          error: `Unable to process authentication: ${getOidcErrorMessage(err)}`,
+        });
+      }
+
       res
         .status(HTTP_STATUSES.unauthorised)
         .json({ error: 'Invalid email or password' });
@@ -235,6 +251,12 @@ class OIDCController {
           },
         );
         res.status(HTTP_STATUSES.ok).json({ redirect });
+      } else if (isOidcProviderError(err)) {
+        // interactionDetails() failed, so there's no valid interaction left
+        // to call interactionResult() against.
+        res.status(HTTP_STATUSES.badRequest).json({
+          error: `Unable to process authentication: ${getOidcErrorMessage(err)}`,
+        });
       } else {
         res
           .status(HTTP_STATUSES.unauthorised)

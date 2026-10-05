@@ -97,13 +97,11 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
         setSuccess(true);
         feedback('Passkey registered successfully!', 'success');
 
-        setTimeout(() => {
-          if (isModal && onClose) {
-            onClose();
-          } else {
-            window.location.href = '/account?tab=security';
-          }
-        }, 2000);
+        // Only the modal (same-device, authenticated) flow auto-closes;
+        // the cross-device page has no session to redirect with.
+        if (isModal && onClose) {
+          setTimeout(() => onClose(), 2000);
+        }
       } else {
         throw new Error('Verification failed');
       }
@@ -138,7 +136,8 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
               {success && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                   <p className="text-sm text-green-800">
-                    ✓ Passkey registered successfully! Redirecting...
+                    ✓ Passkey registered successfully! You can close this tab
+                    and return to the device where you started registration.
                   </p>
                 </div>
               )}
@@ -162,21 +161,6 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
                   className="w-full"
                 >
                   {loading ? 'Registering...' : 'Complete Registration'}
-                </Button>
-              )}
-
-              {success && (
-                <Button
-                  onClick={() => {
-                    if (isModal && onClose) {
-                      onClose();
-                    } else {
-                      window.location.href = '/account?tab=security';
-                    }
-                  }}
-                  className="w-full"
-                >
-                  Return to Account
                 </Button>
               )}
             </CardContent>
