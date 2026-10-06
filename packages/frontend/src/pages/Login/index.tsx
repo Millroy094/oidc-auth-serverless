@@ -10,13 +10,10 @@ import schema from './schema';
 import { ILoginFormInput } from './types';
 import UsernameInput from './UsernameInput';
 import VerifyMFAOtpInput from './VerifyOtpInput';
-import authenticateInteraction from '@/api/oidc/authenticate-interaction';
-import authenticateUser from '@/api/user/authenticate-user';
 import getLoginConfiguration from '@/api/user/get-login-configuration';
 import getPublicConfig from '@/api/user/get-public-config';
 import Logo from '@/assets/logo.svg';
 import AuthCardLayout from '@/components/AuthCardLayout';
-import TransitionOverlay from '@/components/TransitionOverlay';
 import Turnstile from '@/components/Turnstile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -27,24 +24,19 @@ import {
   RECOVERY_CODE_STAGE,
   USERNAME_LOGIN_STAGE,
 } from '@/constants';
+import { useAuth, ChallengeParameters } from '@/context/AuthProvider';
 import useFeedback from '@/hooks/useFeedback';
 
 type ILoginStage = 'USERNAME' | 'PASSWORD' | 'MFA' | 'RECOVERY_CODE';
-
-interface ChallengeParameters {
-  mfaType?: string;
-  userId?: string;
-  email?: string;
-}
 
 const Login: FC = () => {
   const [loginStage, setLoginStage] = useState<ILoginStage>('USERNAME');
   const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
   const { interactionId } = useParams();
   const navigate = useNavigate();
+  const auth = useAuth();
   const { feedbackAxiosError } = useFeedback();
 
   const {
@@ -118,48 +110,19 @@ const Login: FC = () => {
     }
   };
 
-  const handleAuthenticationSuccess = (redirect?: string) => {
-    setIsAuthenticating(true);
-    setTimeout(() => {
-      window.location.href = redirect || '/account';
-    }, 500);
-  };
-
   const authenticatePasswordStage = async () => {
     setIsLoading(true);
     try {
-      const response = interactionId
-        ? await authenticateInteraction({
-            ...getValues(),
-            captchaToken: getValues('captchaToken') ?? '',
-            interactionId,
-          })
-        : await authenticateUser({
-            email: getValues('email'),
-            password: getValues('password'),
-            captchaToken: getValues('captchaToken') ?? '',
-          });
+      const challenge = await auth.login(
+        {
+          ...getValues(),
+          captchaToken: getValues('captchaToken') ?? '',
+        },
+        interactionId,
+      );
 
-      if (!response || !response.data) {
-        throw new Error('Invalid response from authentication');
-      }
-
-      const responseData = response.data;
-      const challengeName =
-        'challengeName' in responseData
-          ? responseData.challengeName
-          : undefined;
-      const redirect =
-        'redirect' in responseData ? responseData.redirect : undefined;
-
-      if (challengeName === 'LOGIN_SUCCESS' || redirect) {
-        handleAuthenticationSuccess(redirect);
-      } else if (challengeName) {
-        const challengeParams =
-          'challengeParameters' in responseData
-            ? responseData.challengeParameters
-            : undefined;
-        handleChallenge(String(challengeName), challengeParams);
+      if (challenge) {
+        handleChallenge(challenge.challengeName, challenge.challengeParameters);
       }
     } catch (err) {
       feedbackAxiosError(
@@ -173,32 +136,15 @@ const Login: FC = () => {
   const authenticateMfaOrRecovery = async (data: ILoginFormInput) => {
     setIsLoading(true);
     try {
-      const response = interactionId
-        ? await authenticateInteraction({
-            ...data,
-            captchaToken: data.captchaToken ?? '',
-            interactionId,
-          })
-        : await authenticateUser({
-            ...data,
-            captchaToken: data.captchaToken ?? '',
-          });
+      const challenge = await auth.login(
+        {
+          ...data,
+          captchaToken: data.captchaToken ?? '',
+        },
+        interactionId,
+      );
 
-      if (!response || !response.data) {
-        throw new Error('Invalid response from authentication');
-      }
-
-      const responseData = response.data;
-      const challengeName =
-        'challengeName' in responseData
-          ? responseData.challengeName
-          : undefined;
-      const redirect =
-        'redirect' in responseData ? responseData.redirect : undefined;
-
-      if (challengeName === 'LOGIN_SUCCESS' || redirect) {
-        handleAuthenticationSuccess(redirect);
-      } else {
+      if (challenge) {
         setIsLoading(false);
       }
     } catch (err) {
@@ -247,7 +193,6 @@ const Login: FC = () => {
       : 'Next';
   return (
     <AuthCardLayout>
-      <TransitionOverlay isVisible={isAuthenticating} />
       <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60">
         <CardHeader className="items-center text-center gap-3 p-6 pb-4 sm:p-8 sm:pb-4">
           <div className="h-16 w-16">

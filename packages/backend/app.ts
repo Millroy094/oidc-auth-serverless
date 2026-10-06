@@ -28,16 +28,9 @@ class Application {
   }
 
   private setupMiddleware(): void {
-    // CORS is handled entirely by API Gateway's native cors_configuration
-    // (see infra/modules/api_gateway) - setting it here too would cause
-    // duplicate Access-Control-Allow-* headers, which browsers reject.
     this.expressApp.use(cookieParser());
     this.expressApp.use(bodyParser.json());
     this.expressApp.use(addOIDCProvider);
-
-    // Disable ETag/conditional-GET: a repeat GET for the same resource (e.g.
-    // re-opening the same client/user record) would otherwise get a 304 with
-    // an empty body instead of the JSON payload.
     this.expressApp.set('etag', false);
     this.expressApp.use((_req, res, next) => {
       res.set('Cache-Control', 'no-store');

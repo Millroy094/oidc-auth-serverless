@@ -1,13 +1,14 @@
 import { useSnackbar } from 'notistack';
 import { useContext, createContext, useState, FC, ReactElement } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import authenticateInteraction from '@/api/oidc/authenticate-interaction';
+import { AuthenticateCredentialsArgs } from '@/api/shared/auth-types';
 import authenticateUser from '@/api/user/authenticate-user';
 import isAuthenticated from '@/api/user/is-authenticated-user';
 import logoutUser from '@/api/user/logout-user';
 import TransitionOverlay from '@/components/TransitionOverlay';
 import { ACCOUNT_ACTIVE_TAB_STORAGE_KEY } from '@/constants';
 import useFeedback from '@/hooks/useFeedback';
-import { ILoginFormInput } from '@/pages/Login/types';
 
 interface IUser {
   userId: string;
@@ -15,12 +16,35 @@ interface IUser {
   roles: string[];
 }
 
+export interface ChallengeParameters {
+  mfaType?: string;
+  userId?: string;
+  email?: string;
+}
+
+export interface LoginChallenge {
+  challengeName: string;
+  challengeParameters?: ChallengeParameters;
+}
+
+interface LoginResponseLike {
+  challengeName?: string;
+  challengeParameters?: ChallengeParameters;
+  redirect?: string;
+  user?: IUser;
+}
+
 interface IAuthContext {
   user: IUser | null;
-  login: (data: ILoginFormInput) => Promise<void>;
+  login: (
+    data: AuthenticateCredentialsArgs,
+    interactionId?: string,
+  ) => Promise<LoginChallenge | void>;
+  completeLogin: (responseData: LoginResponseLike) => LoginChallenge | void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   isLoggingOut?: boolean;
+  isSigningIn?: boolean;
 }
 
 const AuthContext = createContext<IAuthContext | null>(null);
@@ -28,30 +52,52 @@ const AuthContext = createContext<IAuthContext | null>(null);
 const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
   const [user, setUser] = useState<IUser | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
+  const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { feedbackAxiosError } = useFeedback();
   const { enqueueSnackbar } = useSnackbar();
 
-  const login = async (data: ILoginFormInput): Promise<void> => {
-    try {
-      const response = await authenticateUser({
-        ...data,
-        captchaToken: data.captchaToken ?? '',
-      });
-      // Only set user and navigate if we got LOGIN_SUCCESS
-      if (response.data.challengeName === 'LOGIN_SUCCESS') {
-        setUser(response.data.user);
-        await navigate('/account');
+  const completeLogin = (
+    responseData: LoginResponseLike,
+  ): LoginChallenge | void => {
+    const {
+      challengeName,
+      challengeParameters,
+      redirect,
+      user: authUser,
+    } = responseData;
+
+    if (challengeName === 'LOGIN_SUCCESS' || redirect) {
+      if (authUser) {
+        setUser(authUser);
       }
-      // For MFA_REQUIRED or EMAIL_VERIFICATION_REQUIRED challenges,
-      // the Login component handles the stage transitions
-    } catch (err) {
-      feedbackAxiosError(
-        err,
-        'Failed to authenticate credentials, please try again.',
-      );
+      setIsSigningIn(true);
+      setTimeout(() => {
+        if (redirect) {
+          window.location.href = redirect;
+        } else {
+          setIsSigningIn(false);
+          void navigate('/account');
+        }
+      }, 500);
+      return;
     }
+
+    if (challengeName) {
+      return { challengeName, challengeParameters };
+    }
+  };
+
+  const login = async (
+    data: AuthenticateCredentialsArgs,
+    interactionId?: string,
+  ): Promise<LoginChallenge | void> => {
+    const response = interactionId
+      ? await authenticateInteraction({ ...data, interactionId })
+      : await authenticateUser(data);
+
+    return completeLogin(response.data);
   };
 
   const refreshUser = async (): Promise<void> => {
@@ -90,9 +136,18 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ login, logout, refreshUser, user, isLoggingOut }}
+      value={{
+        login,
+        completeLogin,
+        logout,
+        refreshUser,
+        user,
+        isLoggingOut,
+        isSigningIn,
+      }}
     >
       <TransitionOverlay isVisible={isLoggingOut} message="Logging out..." />
+      <TransitionOverlay isVisible={isSigningIn} message="Signing in..." />
       {children}
     </AuthContext.Provider>
   );
@@ -101,6 +156,10 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
 export default AuthProvider;
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const useAuth = () => {
-  return useContext(AuthContext);
+export const useAuth = (): IAuthContext => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
