@@ -301,7 +301,12 @@ const Login: FC = () => {
             {showButton && (
               <Button
                 onClick={onNextStep}
-                disabled={isLoading || (!!turnstileSiteKey && !captchaToken)}
+                disabled={
+                  isLoading ||
+                  (loginStage === USERNAME_LOGIN_STAGE &&
+                    !!turnstileSiteKey &&
+                    !captchaToken)
+                }
                 className="w-full sm:w-auto whitespace-nowrap"
               >
                 {isLoading ? (

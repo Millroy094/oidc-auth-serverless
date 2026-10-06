@@ -79,7 +79,8 @@ const Turnstile: FC<TurnstileProps> = ({ siteKey, onVerify, onExpire }) => {
         window.turnstile.remove(widgetIdRef.current);
       }
     };
-  }, [siteKey, onVerify, onExpire]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteKey]);
 
   return <div ref={containerRef} className="min-h-16.25 w-full" />;
 };
