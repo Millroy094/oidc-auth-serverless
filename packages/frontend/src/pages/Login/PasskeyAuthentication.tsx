@@ -10,14 +10,19 @@ import useFeedback from '@/hooks/useFeedback';
 interface PasskeyAuthenticationProps {
   email: string;
   handleSubmit: () => Promise<void>;
+  onStateChange?: (state: { loading: boolean; error: boolean }) => void;
 }
 
 const PasskeyAuthentication: FC<PasskeyAuthenticationProps> = (props) => {
-  const { email } = props;
+  const { email, onStateChange } = props;
   const auth = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const { feedbackAxiosError } = useFeedback();
+
+  useEffect(() => {
+    onStateChange?.({ loading, error });
+  }, [loading, error, onStateChange]);
 
   const handleLogin = async (email: string) => {
     try {

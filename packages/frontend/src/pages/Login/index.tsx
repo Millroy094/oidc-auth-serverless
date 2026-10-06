@@ -34,6 +34,10 @@ const Login: FC = () => {
   const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [passkeyState, setPasskeyState] = useState({
+    loading: true,
+    error: false,
+  });
   const { interactionId } = useParams();
   const navigate = useNavigate();
   const auth = useAuth();
@@ -186,6 +190,7 @@ const Login: FC = () => {
   };
 
   const showButton = !(mfaType === 'passkey' && loginStage === MFA_LOGIN_STAGE);
+  const isPasskeyLoading = mfaType === 'passkey' && passkeyState.loading;
   const buttonText =
     [MFA_LOGIN_STAGE, RECOVERY_CODE_STAGE].includes(loginStage) ||
     (loginStage === PASSWORD_LOGIN_STAGE && !mfaType)
@@ -251,6 +256,7 @@ const Login: FC = () => {
             <PasskeyAuthentication
               email={email}
               handleSubmit={handleSubmit(onSubmit)}
+              onStateChange={setPasskeyState}
             />
           )}
           {loginStage === RECOVERY_CODE_STAGE && (
@@ -281,7 +287,7 @@ const Login: FC = () => {
               <Button
                 variant="outline"
                 onClick={goBackToPassword}
-                disabled={isLoading || mfaType === 'passkey'}
+                disabled={isLoading || isPasskeyLoading}
                 className="w-full sm:w-auto text-sm"
               >
                 Back
@@ -306,7 +312,7 @@ const Login: FC = () => {
               <Button
                 variant="link"
                 onClick={loginViaRecoveryCode}
-                disabled={isLoading || mfaType === 'passkey'}
+                disabled={isLoading || isPasskeyLoading}
                 className="text-xs sm:text-sm"
               >
                 Having trouble with MFA?
