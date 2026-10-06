@@ -6,6 +6,7 @@ import {
   FC,
   ReactElement,
   useEffect,
+  useRef,
 } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import authenticateInteraction from '@/api/oidc/authenticate-interaction';
@@ -60,6 +61,7 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
   const [user, setUser] = useState<IUser | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
   const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
+  const isLoggingOutRef = useRef<boolean>(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { feedbackAxiosError } = useFeedback();
@@ -115,9 +117,15 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
   const refreshUser = async (): Promise<void> => {
     try {
       const response = await isAuthenticated();
+      if (isLoggingOutRef.current) {
+        return;
+      }
       setUser(response.data.user);
       await navigate('/account');
     } catch {
+      if (isLoggingOutRef.current) {
+        return;
+      }
       const hadUser = user !== null;
       setUser(null);
       localStorage.removeItem(ACCOUNT_ACTIVE_TAB_STORAGE_KEY);
@@ -131,6 +139,7 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
   };
 
   const logout = async (): Promise<void> => {
+    isLoggingOutRef.current = true;
     try {
       await logoutUser();
       setUser(null);
@@ -138,9 +147,11 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
       setIsLoggingOut(true);
       setTimeout(() => {
         setIsLoggingOut(false);
+        isLoggingOutRef.current = false;
         void navigate('/login');
       }, 500);
     } catch (err) {
+      isLoggingOutRef.current = false;
       feedbackAxiosError(err, 'Failed to logout user, please try again.');
       setIsLoggingOut(false);
     }
