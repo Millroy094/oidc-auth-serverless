@@ -66,10 +66,11 @@ function Pages() {
   const Auth = useAuth();
   globalRouter.navigate = navigate;
 
-  // The `/interaction/:interactionId` entry route kicks off an OIDC
-  // interaction and shouldn't trigger a refreshUser() call before the
-  // interaction status redirect has had a chance to run.
-  const isDynamicInteractionEntry = pathname.startsWith('/interaction/');
+  // Entry routes reached before/without an authenticated session and
+  // shouldn't trigger a refreshUser() redirect.
+  const isDynamicInteractionEntry =
+    pathname.startsWith('/interaction/') ||
+    pathname.startsWith('/passkey-register/');
 
   useEffect(() => {
     if (
