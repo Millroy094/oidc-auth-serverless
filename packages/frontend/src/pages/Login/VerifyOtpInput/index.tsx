@@ -70,7 +70,7 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = React.memo(
             control={control}
             render={({ field: { onChange, value }, fieldState: { error } }) => (
               <div className="flex flex-col items-center gap-2">
-                <div className="flex justify-center overflow-x-auto">
+                <div className="flex justify-center overflow-hidden">
                   <OTPInput
                     value={value}
                     onChange={onChange}
@@ -86,7 +86,7 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = React.memo(
                           }
                           props.onKeyDown?.(e);
                         }}
-                        className="w-10 h-10 sm:w-12 sm:h-12 text-lg sm:text-xl border border-input rounded-md text-center focus:outline-none focus:ring-2 focus:ring-ring shrink-0"
+                        className="w-10 h-10 sm:w-12 sm:h-12 text-lg sm:text-xl border border-input rounded-md text-center focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 shrink-0 box-border"
                       />
                     )}
                     inputType="tel"
