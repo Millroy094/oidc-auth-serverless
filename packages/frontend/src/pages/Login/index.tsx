@@ -134,7 +134,6 @@ const Login: FC = () => {
         err,
         'Failed to authenticate credentials, please try again.',
       );
-      setValue('captchaToken', '');
       setIsLoading(false);
     }
   };
@@ -155,7 +154,6 @@ const Login: FC = () => {
       }
     } catch (err) {
       feedbackAxiosError(err, 'Failed to authenticate, please try again.');
-      setValue('captchaToken', '');
       setIsLoading(false);
     }
   };
@@ -190,7 +188,6 @@ const Login: FC = () => {
     setLoginStage(PASSWORD_LOGIN_STAGE);
     setValue('otp', '');
     setValue('recoveryCode', '');
-    setValue('captchaToken', '');
   };
 
   const showButton = !(mfaType === 'passkey' && loginStage === MFA_LOGIN_STAGE);
