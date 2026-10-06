@@ -36,7 +36,13 @@ function Pages() {
   globalRouter.navigate = navigate;
 
   useEffect(() => {
-    if (
+    if (pathname === '/') {
+      if (auth.user) {
+        void navigate('/account', { replace: true });
+      } else {
+        void navigate('/login', { replace: true });
+      }
+    } else if (
       !PUBLIC_ROUTES.includes(pathname) &&
       !DYNAMIC_PUBLIC_ROUTES.some((route) => pathname.startsWith(route)) &&
       pathname !== '/login' &&
