@@ -192,7 +192,11 @@ Focus on simplicity and speed.
 - ✅ Authentication blocked if counter doesn't increase
 
 ### 3. Duplicate Detection
-- ✅ Prevents same authenticator registered twice
+- ✅ Prevents same authenticator registered twice via WebAuthn `excludeCredentials`:
+  registration options list the user's existing credential IDs, so an
+  authenticator/device that already holds one of them refuses to create a
+  duplicate (`InvalidStateError`). This applies to same-device registration
+  and the cross-platform/QR flow alike.
 - ✅ Prevents duplicate device names
 - ✅ Enforces maximum passkeys per user via admin settings
 
@@ -283,6 +287,14 @@ npm test
 **Error**: "Authenticator not allowed"
 **Cause**: `PASSKEY_AUTHENTICATOR_ATTACHMENT` doesn't match device type
 **Solution**: Set to `'all'` or use compatible device type
+
+### Authenticator Already Registered
+**Error**: "This device already has a passkey for this account."
+**Cause**: The authenticator/device already holds a credential for the user
+(blocked via `excludeCredentials`), including when registering through the
+cross-device QR flow.
+**Solution**: Use a different device/authenticator, or delete the existing
+passkey first if you intend to replace it.
 
 ---
 

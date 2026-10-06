@@ -62,7 +62,9 @@ const getDisplayName = (
 ) => [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
 
 // WebAuthn has no "all" value, so it must be omitted to allow any type.
-const getRegistrationOptionDefaults = async () => {
+const getRegistrationOptionDefaults = async (
+  existingCredentials: Pick<MFACredential, 'id'>[] = [],
+) => {
   const { attestationType, authenticatorAttachment } =
     await SettingsService.getPasskeySettings();
 
@@ -72,6 +74,13 @@ const getRegistrationOptionDefaults = async () => {
       ...(authenticatorAttachment !== 'all' ? { authenticatorAttachment } : {}),
       userVerification: 'required' as const,
     },
+    // Tells the authenticator which credentials already exist for this user
+    // so it can refuse (InvalidStateError) to create a duplicate on a
+    // device/authenticator that already holds one of them.
+    excludeCredentials: existingCredentials.map((credential) => ({
+      id: credential.id,
+      type: 'public-key' as const,
+    })),
   };
 };
 
@@ -151,7 +160,7 @@ class PasskeyController {
         rpName: config.get('authentication.issuer'),
         userName: user.email,
         userDisplayName: getDisplayName(user),
-        ...(await getRegistrationOptionDefaults()),
+        ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
       });
 
       await PasskeyService.createChallenge(userId, options.challenge);
@@ -431,7 +440,7 @@ class PasskeyController {
         rpName: config.get('authentication.issuer'),
         userName: user.email,
         userDisplayName: getDisplayName(user),
-        ...(await getRegistrationOptionDefaults()),
+        ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
       });
 
       // Create a passkey session for cross-device registration
@@ -475,7 +484,7 @@ class PasskeyController {
         rpName: config.get('authentication.issuer'),
         userName: user.email,
         userDisplayName: getDisplayName(user),
-        ...(await getRegistrationOptionDefaults()),
+        ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
       });
 
       // Update the session with new challenge

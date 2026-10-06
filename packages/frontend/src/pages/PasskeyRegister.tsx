@@ -107,7 +107,11 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
       }
     } catch (err) {
       const errorMsg =
-        err instanceof Error ? err.message : 'Registration failed';
+        err instanceof Error && err.name === 'InvalidStateError'
+          ? 'This device already has a passkey for this account.'
+          : err instanceof Error
+            ? err.message
+            : 'Registration failed';
       setError(errorMsg);
       feedback(`Registration error: ${errorMsg}`, 'error');
     } finally {

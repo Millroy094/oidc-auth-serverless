@@ -146,8 +146,12 @@ const Passkeys: FC<PasskeysProps> = (props) => {
       await fetchPasskeys(userId);
       await fetchMFASettings();
     } catch (error) {
+      const message =
+        error instanceof Error && error.name === 'InvalidStateError'
+          ? 'This device already has a passkey for this account.'
+          : (error as Error).message;
       feedback(
-        `An error occurred during passkey registration: ${(error as Error).message}`,
+        `An error occurred during passkey registration: ${message}`,
         'error',
       );
     }
