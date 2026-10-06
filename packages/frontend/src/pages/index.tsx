@@ -40,13 +40,30 @@ function Pages() {
       !PUBLIC_ROUTES.includes(pathname) &&
       !DYNAMIC_PUBLIC_ROUTES.some((route) => pathname.startsWith(route)) &&
       pathname !== '/login' &&
-      pathname !== '/' &&
       pathname !== '/account'
     ) {
       void auth.refreshUser();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (pathname === '/') {
+    return (
+      <div className="max-w-2xl mx-auto min-h-125 flex justify-center items-center">
+        <MutatingDots
+          visible
+          height="100"
+          width="100"
+          color="hsl(var(--primary))"
+          secondaryColor="hsl(var(--primary))"
+          radius="12.5"
+          ariaLabel="mutating-dots-loading"
+          wrapperStyle={{}}
+          wrapperClass=""
+        />
+      </div>
+    );
+  }
 
   return (
     <Suspense
