@@ -33,23 +33,40 @@ class UserService {
     );
 
     if (!passwordCompare) {
-      userAccount.failedLogins += 1;
-
-      if (userAccount.failedLogins >= 3) {
-        userAccount.suspended = true;
-      }
-
-      await userAccount.save();
-
+      await this.recordFailedLogin(userAccount);
       throw new Error('Invalid password');
+    }
+
+    return userAccount;
+  }
+
+  public static async recordFailedLogin(
+    userAccount: UserItem | undefined,
+  ): Promise<void> {
+    if (!userAccount) {
+      return;
+    }
+
+    userAccount.failedLogins += 1;
+
+    if (userAccount.failedLogins >= 3) {
+      userAccount.suspended = true;
+    }
+
+    await userAccount.save();
+  }
+
+  public static async resetFailedLogins(
+    userAccount: UserItem | undefined,
+  ): Promise<void> {
+    if (!userAccount) {
+      return;
     }
 
     userAccount.failedLogins = 0;
     userAccount.lastLoggedIn = Date.now();
 
     await userAccount.save();
-
-    return userAccount;
   }
 
   public static async createUser(fields: {

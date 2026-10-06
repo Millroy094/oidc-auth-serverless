@@ -9,7 +9,7 @@ import {
 import { Request, Response } from 'express';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants/authentication.ts';
 import HTTP_STATUSES from '../constants/http-status.ts';
-import User, { MFACredential } from '../models/User.ts';
+import User, { MFACredential, UserItem } from '../models/User.ts';
 import PasskeySession from '../models/PasskeySession.ts';
 import PasskeyService from '../services/passkey.ts';
 import UserService from '../services/user.ts';
@@ -232,6 +232,10 @@ class PasskeyController {
       const userEmail = req.body.email;
       const user = await UserService.getUserByEmail(userEmail);
 
+      if (user.suspended) {
+        throw new Error('User is suspended');
+      }
+
       const options = await generateAuthenticationOptions({
         rpID: config.get('authentication.rpId'),
         allowCredentials:
@@ -259,9 +263,11 @@ class PasskeyController {
     req: Request<Record<string, string>, unknown, VerifyLoginPasskeyBody>,
     res: Response,
   ) {
+    let user: UserItem | undefined;
+
     try {
       const userEmail = req.body.email;
-      const user = await UserService.getUserByEmail(userEmail);
+      user = await UserService.getUserByEmail(userEmail);
 
       const credential = user.mfa.passkey.credentials.find(
         (cred: MFACredential) => cred.id === req.body.credential.id,
@@ -297,72 +303,74 @@ class PasskeyController {
         },
       });
 
-      if (verification.verified) {
-        user.mfa.passkey.credentials = user.mfa.passkey.credentials.map(
-          (cred: MFACredential) =>
-            req.body.credential.id === cred.id
-              ? { ...cred, counter: verification.authenticationInfo.newCounter }
-              : cred,
-        );
-
-        await PasskeyService.deleteChallenge(user.userId, storedChallenge);
-
-        await user.save();
-
-        if (req.body.interactionId) {
-          const redirect = await req.oidcProvider.interactionResult(
-            req,
-            res,
-            { login: { accountId: user.userId } },
-            { mergeWithLastSubmission: false },
-          );
-          res.status(HTTP_STATUSES.ok).json({
-            challengeName: 'LOGIN_SUCCESS',
-            redirect,
-            message: 'Login successful!',
-          });
-          return;
-        }
-
-        const payload = {
-          userId: user.userId,
-          email: user.email,
-          roles: user.roles,
-        };
-
-        const accessToken = await signJwt(
-          payload,
-          config.get('authentication.accessTokenSecret'),
-          config.get('authentication.accessTokenExpiry'),
-        );
-
-        const refreshToken = await signJwt(
-          payload,
-          config.get('authentication.refreshTokenSecret'),
-          config.get('authentication.refreshTokenExpiry'),
-        );
-
-        res
-          .cookie(ACCESS_TOKEN, accessToken, {
-            httpOnly: true,
-            secure: config.get('deploymentEnvironment') !== 'local',
-            maxAge: getJwtExpiryMs(accessToken),
-          })
-          .cookie(REFRESH_TOKEN, refreshToken, {
-            httpOnly: true,
-            secure: config.get('deploymentEnvironment') !== 'local',
-            maxAge: getJwtExpiryMs(refreshToken),
-          })
-          .status(HTTP_STATUSES.ok)
-          .json({
-            challengeName: 'LOGIN_SUCCESS',
-            user: payload,
-            message: 'Login Successful',
-          });
-      } else {
-        res.status(HTTP_STATUSES.ok).send({ verified: false });
+      if (!verification.verified) {
+        throw new Error('Passkey verification failed');
       }
+
+      user.mfa.passkey.credentials = user.mfa.passkey.credentials.map(
+        (cred: MFACredential) =>
+          req.body.credential.id === cred.id
+            ? { ...cred, counter: verification.authenticationInfo.newCounter }
+            : cred,
+      );
+
+      await PasskeyService.deleteChallenge(user.userId, storedChallenge);
+
+      await UserService.resetFailedLogins(user);
+
+      if (req.body.interactionId) {
+        const redirect = await req.oidcProvider.interactionResult(
+          req,
+          res,
+          { login: { accountId: user.userId } },
+          { mergeWithLastSubmission: false },
+        );
+        res.status(HTTP_STATUSES.ok).json({
+          challengeName: 'LOGIN_SUCCESS',
+          redirect,
+          message: 'Login successful!',
+        });
+        return;
+      }
+
+      const payload = {
+        userId: user.userId,
+        email: user.email,
+        roles: user.roles,
+      };
+
+      const accessToken = await signJwt(
+        payload,
+        config.get('authentication.accessTokenSecret'),
+        config.get('authentication.accessTokenExpiry'),
+      );
+
+      const refreshToken = await signJwt(
+        payload,
+        config.get('authentication.refreshTokenSecret'),
+        config.get('authentication.refreshTokenExpiry'),
+      );
+
+      res
+        .cookie(ACCESS_TOKEN, accessToken, {
+          httpOnly: true,
+          secure: config.get('deploymentEnvironment') !== 'local',
+          maxAge: getJwtExpiryMs(accessToken),
+        })
+        .cookie(REFRESH_TOKEN, refreshToken, {
+          httpOnly: true,
+          secure: config.get('deploymentEnvironment') !== 'local',
+          maxAge: getJwtExpiryMs(refreshToken),
+        })
+        .status(HTTP_STATUSES.ok)
+        .json({
+          challengeName: 'LOGIN_SUCCESS',
+          user: payload,
+          message: 'Login Successful',
+        });
     } catch (error) {
+      await UserService.recordFailedLogin(user);
+
       logger.error(
         `Failed verifying login credentials for passkey ${(error as Error).message}`,
       );

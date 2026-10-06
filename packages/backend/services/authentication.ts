@@ -1,5 +1,6 @@
 import MFAService from './mfa/index.ts';
 import UserService from './user.ts';
+import { UserItem } from '../models/User.ts';
 import {
   ChallengeResponseUser,
   requiresEmailVerification,
@@ -34,51 +35,56 @@ export class AuthenticationService {
         throw new Error('MFA_REQUIRED');
       }
 
+      await UserService.resetFailedLogins(user);
       await onSuccess(user);
       return;
     }
 
-    if (body.stage === 'MFA') {
+    if (body.stage === 'MFA' || body.stage === 'RECOVERY_CODE') {
       const user = await UserService.getUserByEmail(body.email);
 
-      if (!user) {
-        throw new Error('User not found');
+      if (user.suspended) {
+        throw new Error('User is suspended');
       }
 
-      if (!user.emailVerified) {
-        await UserService.verifyEmail(user.userId, body.otp!);
-      }
-
-      if (user.mfa.preference) {
-        await MFAService.verifyMFA(
-          user.userId,
-          user.mfa.preference as 'app' | 'sms' | 'email',
-          body.otp!,
-        );
-      }
-
-      await onSuccess(user);
-      return;
-    }
-
-    if (body.stage === 'RECOVERY_CODE') {
-      const user = await UserService.getUserByEmail(body.email);
-
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      await MFAService.validateRecoveryCode(
-        user.userId,
-        body.recoveryCode!,
-        body.resetMfa ?? false,
-      );
-
+      await this.verifyChallenge(user, body);
       await onSuccess(user);
       return;
     }
 
     throw new Error('Invalid login stage');
+  }
+
+  private static async verifyChallenge(
+    user: UserItem,
+    body: LoginBody,
+  ): Promise<void> {
+    try {
+      if (body.stage === 'MFA') {
+        if (!user.emailVerified) {
+          await UserService.verifyEmail(user.userId, body.otp!);
+        }
+
+        if (user.mfa.preference) {
+          await MFAService.verifyMFA(
+            user.userId,
+            user.mfa.preference as 'app' | 'sms' | 'email',
+            body.otp!,
+          );
+        }
+      } else {
+        await MFAService.validateRecoveryCode(
+          user.userId,
+          body.recoveryCode!,
+          body.resetMfa ?? false,
+        );
+      }
+    } catch (err) {
+      await UserService.recordFailedLogin(user);
+      throw err;
+    }
+
+    await UserService.resetFailedLogins(user);
   }
 
   static getErrorMessage(errorMessage: string): string {
