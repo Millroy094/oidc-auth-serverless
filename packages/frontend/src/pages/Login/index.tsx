@@ -202,6 +202,17 @@ const Login: FC = () => {
     (loginStage === PASSWORD_LOGIN_STAGE && !mfaType)
       ? 'Sign in'
       : 'Next';
+
+  const getButtonAlignment = () => {
+    if (loginStage === USERNAME_LOGIN_STAGE) {
+      return 'justify-end';
+    }
+    if (loginStage === MFA_LOGIN_STAGE && mfaType === 'passkey') {
+      return 'justify-center';
+    }
+    return 'justify-between';
+  };
+
   return (
     <AuthCardLayout>
       <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60">
@@ -277,7 +288,7 @@ const Login: FC = () => {
         </CardContent>
         <div className="px-6 pb-5 sm:px-8 sm:pb-6">
           <div
-            className={`flex gap-3 ${loginStage === MFA_LOGIN_STAGE && mfaType === 'passkey' ? 'justify-center mb-3' : loginStage === MFA_LOGIN_STAGE ? 'justify-between mb-3' : loginStage === 'USERNAME' ? 'justify-end' : 'justify-between'}`}
+            className={`flex gap-3 ${getButtonAlignment()} ${loginStage === MFA_LOGIN_STAGE ? 'mb-3' : ''}`}
           >
             {loginStage !== USERNAME_LOGIN_STAGE && (
               <Button
