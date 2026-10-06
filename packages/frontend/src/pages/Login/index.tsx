@@ -277,7 +277,7 @@ const Login: FC = () => {
         </CardContent>
         <div className="px-6 pb-5 sm:px-8 sm:pb-6">
           <div
-            className={`flex gap-3 ${loginStage === MFA_LOGIN_STAGE ? 'justify-between mb-3' : loginStage === 'USERNAME' ? 'justify-end' : 'justify-between'}`}
+            className={`flex gap-3 ${loginStage === MFA_LOGIN_STAGE && mfaType === 'passkey' ? 'justify-center mb-3' : loginStage === MFA_LOGIN_STAGE ? 'justify-between mb-3' : loginStage === 'USERNAME' ? 'justify-end' : 'justify-between'}`}
           >
             {loginStage !== USERNAME_LOGIN_STAGE && (
               <Button
