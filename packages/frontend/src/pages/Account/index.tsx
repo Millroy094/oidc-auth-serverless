@@ -25,7 +25,7 @@ const Resources = lazy(() => import('./Resources'));
 const Settings = lazy(() => import('./Settings'));
 
 const tabFallback = (
-  <div className="flex justify-center items-center min-h-[300px]">
+  <div className="flex justify-center items-center min-h-75">
     <MutatingDots
       visible
       height="80"
@@ -52,8 +52,8 @@ export default function Account() {
   const [active, setActive] = React.useState(
     () => localStorage.getItem(ACCOUNT_ACTIVE_TAB_STORAGE_KEY) ?? 'profile',
   );
-  const Auth = useAuth();
-  const isAdmin = !!Auth?.user?.roles?.includes('admin');
+  const auth = useAuth();
+  const isAdmin = !!auth.user?.roles?.includes('admin');
 
   const navItems: INavItem[] = [
     { value: 'profile', label: 'Profile', icon: User, content: <Profile /> },
@@ -88,7 +88,7 @@ export default function Account() {
     },
   ].filter((item) => !item.adminOnly || isAdmin);
 
-  const initials = Auth?.user?.email?.slice(0, 2).toUpperCase() ?? 'MF';
+  const initials = auth.user?.email?.slice(0, 2).toUpperCase() ?? 'MF';
   const activeItem =
     navItems.find((item) => item.value === active) ?? navItems[0];
 
@@ -98,7 +98,7 @@ export default function Account() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-slate-50">
       <div className="bg-primary text-primary-foreground shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -112,7 +112,7 @@ export default function Account() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={Auth?.logout}
+            onClick={auth.logout}
             className="gap-2 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground md:hidden"
           >
             <LogOut className="h-4 w-4" />
@@ -147,11 +147,9 @@ export default function Account() {
               {initials}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">
-                {Auth?.user?.email}
-              </p>
+              <p className="truncate text-sm font-medium">{auth.user?.email}</p>
               <p className="text-xs text-muted-foreground capitalize">
-                {Auth?.user?.roles?.join(', ') ?? 'User'}
+                {auth.user?.roles?.join(', ') ?? 'User'}
               </p>
             </div>
           </div>
@@ -178,7 +176,7 @@ export default function Account() {
           <div className="mt-2 border-t pt-2">
             <button
               type="button"
-              onClick={Auth?.logout}
+              onClick={auth.logout}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
             >
               <LogOut className="h-4 w-4" />

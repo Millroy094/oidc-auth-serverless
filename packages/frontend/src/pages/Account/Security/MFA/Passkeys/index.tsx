@@ -175,13 +175,12 @@ const Passkeys: FC<PasskeysProps> = (props) => {
     }
   };
 
-  // eslint-disable react-hooks/exhaustive-deps
   useEffect(() => {
-    if (auth?.user?.userId) {
+    if (auth.user?.userId) {
       void fetchPasskeys(auth.user.userId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth?.user?.userId]);
+  }, [auth.user?.userId]);
 
   return (
     <Card className="border-t-4 border-t-primary shadow-sm">
@@ -239,7 +238,7 @@ const Passkeys: FC<PasskeysProps> = (props) => {
                   <p className="text-sm">{device}</p>
                   <button
                     onClick={() =>
-                      handleDeletePasskey(auth?.user?.userId ?? '', device)
+                      handleDeletePasskey(auth.user?.userId ?? '', device)
                     }
                     className="p-1 text-destructive hover:bg-destructive/10 rounded"
                     title="Delete"
@@ -256,14 +255,14 @@ const Passkeys: FC<PasskeysProps> = (props) => {
         {import.meta.env.VITE_ENVIRONMENT !== 'local' && (
           <Button
             variant="outline"
-            onClick={() => initiatePasskey(auth?.user?.userId ?? '')}
+            onClick={() => initiatePasskey(auth.user?.userId ?? '')}
             title="Register passkey on another device via QR code"
           >
             <QrCode className="w-4 h-4 mr-2" />
             Register on Another Device
           </Button>
         )}
-        <Button onClick={() => register(auth?.user?.userId ?? '')}>
+        <Button onClick={() => register(auth.user?.userId ?? '')}>
           Add Passkey
         </Button>
       </CardFooter>

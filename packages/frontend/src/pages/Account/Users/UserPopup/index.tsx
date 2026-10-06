@@ -51,8 +51,8 @@ const UserPopup: FC<UserPopupProps> = (props) => {
   const [resources, setResources] = useState<IAdminResourceListItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { feedbackAxiosResponse, feedbackAxiosError } = useFeedback();
-  const Auth = useAuth();
-  const isSelf = !!userIdentifier && userIdentifier === Auth?.user?.userId;
+  const auth = useAuth();
+  const isSelf = !!userIdentifier && userIdentifier === auth.user?.userId;
   const {
     watch,
     control,

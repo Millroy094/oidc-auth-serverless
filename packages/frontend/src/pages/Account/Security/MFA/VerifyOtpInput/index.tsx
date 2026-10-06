@@ -48,7 +48,7 @@ const VerifyOtpInput: FC<IVerifyOtpInput> = ({
 
   const handleResendOtp = async () => {
     try {
-      await sendOtp({ type, email: auth!.user!.email });
+      await sendOtp({ type, email: auth.user?.email ?? '' });
       resetTimer();
     } catch (err) {
       feedbackAxiosError(err, 'Failed to resend OTP');
