@@ -197,7 +197,9 @@ Focus on simplicity and speed.
   authenticator/device that already holds one of them refuses to create a
   duplicate (`InvalidStateError`). This applies to same-device registration
   and the cross-platform/QR flow alike.
-- ✅ Prevents duplicate device names
+- ✅ Prevents duplicate device names: the backend auto-suffixes a colliding
+  `deviceName` with " (2)", " (3)", etc. so every stored passkey name is
+  unique per user, regardless of what the client submits.
 - ✅ Enforces maximum passkeys per user via admin settings
 
 ### 4. Origin & RP ID Validation

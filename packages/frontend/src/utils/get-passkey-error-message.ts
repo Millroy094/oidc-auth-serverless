@@ -4,15 +4,10 @@ interface ErrorResponseData {
   error?: string;
 }
 
-/**
- * Resolves a user-facing message for a passkey registration/authentication
- * error. Axios errors carry the backend's specific `error` message in the
- * response body (e.g. "session expired"), which `error.message` does not
- * include (it's just "Request failed with status code 4xx"), so it must be
- * read from `error.response.data` explicitly. WebAuthn's `InvalidStateError`
- * (thrown by the browser when the authenticator already holds a credential
- * for the user) is special-cased with a friendlier message.
- */
+// Resolves a user-facing message for a passkey error: special-cases
+// WebAuthn's InvalidStateError with a friendlier message, else prefers the
+// backend's `error` field (axios `error.message` is just "Request failed
+// with status code 4xx"), else falls back to Error.message, else `fallback`.
 const getPasskeyErrorMessage = (error: unknown, fallback: string): string => {
   if (error instanceof Error && error.name === 'InvalidStateError') {
     return 'This device already has a passkey for this account.';

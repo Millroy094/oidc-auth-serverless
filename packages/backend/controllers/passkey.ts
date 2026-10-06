@@ -53,22 +53,13 @@ export interface CheckPasskeyExistsBody {
   deviceName: string;
 }
 
-// Shared across the cross-device registration endpoints so an expired or
-// already-consumed session (DynamoDB TTL deletes it, or it was already used
-// to complete registration) gives the user an actionable message instead of
-// a bare "Invalid session".
 const SESSION_EXPIRED_MESSAGE =
   'This registration link has expired or already been used. Please request a new QR code and try again.';
 
-// Browsers surface the WebAuthn user entity's `name` (passed below as
-// `userName`) in passkey management UIs, so it must be a human-recognisable
-// identifier (email) rather than the internal userId. `displayName` is shown
-// alongside it where supported, so prefer the user's full name.
 const getDisplayName = (
   user: Pick<UserItem, 'firstName' | 'lastName' | 'email'>,
 ) => [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
 
-// WebAuthn has no "all" value, so it must be omitted to allow any type.
 const getRegistrationOptionDefaults = async (
   existingCredentials: Pick<MFACredential, 'id'>[] = [],
 ) => {
@@ -81,14 +72,36 @@ const getRegistrationOptionDefaults = async (
       ...(authenticatorAttachment !== 'all' ? { authenticatorAttachment } : {}),
       userVerification: 'required' as const,
     },
-    // Tells the authenticator which credentials already exist for this user
-    // so it can refuse (InvalidStateError) to create a duplicate on a
-    // device/authenticator that already holds one of them.
     excludeCredentials: existingCredentials.map((credential) => ({
       id: credential.id,
       type: 'public-key' as const,
     })),
   };
+};
+
+// Appends " (n)" on collision so stored deviceNames stay unique per user.
+const getUniqueDeviceName = (
+  existingCredentials: Pick<MFACredential, 'deviceName'>[],
+  requestedName: string,
+) => {
+  const existingNames = new Set(
+    existingCredentials.map((credential) =>
+      credential.deviceName.toLowerCase(),
+    ),
+  );
+
+  if (!existingNames.has(requestedName.toLowerCase())) {
+    return requestedName;
+  }
+
+  let suffix = 2;
+  let candidate = `${requestedName} (${suffix})`;
+  while (existingNames.has(candidate.toLowerCase())) {
+    suffix += 1;
+    candidate = `${requestedName} (${suffix})`;
+  }
+
+  return candidate;
 };
 
 class PasskeyController {
@@ -221,7 +234,10 @@ class PasskeyController {
             verification?.registrationInfo?.credential?.publicKey ?? '',
           ),
           counter: verification?.registrationInfo?.credential?.counter,
-          deviceName: req.body.deviceName,
+          deviceName: getUniqueDeviceName(
+            user.mfa.passkey.credentials,
+            req.body.deviceName,
+          ),
         });
 
         await PasskeyService.deleteChallenge(userId, storedChallenge);
@@ -450,7 +466,6 @@ class PasskeyController {
         ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
       });
 
-      // Create a passkey session for cross-device registration
       const session = await PasskeySession.create({
         userId,
         challenge: options.challenge,
@@ -494,7 +509,6 @@ class PasskeyController {
         ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
       });
 
-      // Update the session with new challenge
       session.challenge = options.challenge;
       await session.save();
 
@@ -548,7 +562,10 @@ class PasskeyController {
             verification?.registrationInfo?.credential?.publicKey ?? '',
           ),
           counter: verification?.registrationInfo?.credential?.counter,
-          deviceName,
+          deviceName: getUniqueDeviceName(
+            user.mfa.passkey.credentials,
+            deviceName,
+          ),
         });
 
         user.mfa.passkey.verified = true;
