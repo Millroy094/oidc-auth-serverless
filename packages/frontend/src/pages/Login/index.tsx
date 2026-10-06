@@ -36,7 +36,7 @@ const Login: FC = () => {
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [passkeyState, setPasskeyState] = useState({
-    loading: true,
+    loading: false,
     error: false,
   });
   const { interactionId } = useParams();
