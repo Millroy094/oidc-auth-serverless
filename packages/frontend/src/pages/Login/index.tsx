@@ -194,12 +194,6 @@ const Login: FC = () => {
     setValue('loginWithRecoveryCode', true);
     setLoginStage(RECOVERY_CODE_STAGE);
   };
-  const goBackToPassword = () => {
-    setLoginStage(PASSWORD_LOGIN_STAGE);
-    setValue('otp', '');
-    setValue('recoveryCode', '');
-    setValue('captchaToken', '');
-  };
 
   const showButton = !(mfaType === 'passkey' && loginStage === MFA_LOGIN_STAGE);
   const isPasskeyLoading = mfaType === 'passkey' && passkeyState.loading;
@@ -285,25 +279,14 @@ const Login: FC = () => {
           <div
             className={`flex gap-3 ${loginStage === MFA_LOGIN_STAGE ? 'justify-between mb-3' : loginStage === 'USERNAME' ? 'justify-end' : 'justify-between'}`}
           >
-            {loginStage !== USERNAME_LOGIN_STAGE &&
-              loginStage !== MFA_LOGIN_STAGE && (
-                <Button
-                  variant="outline"
-                  onClick={onReset}
-                  disabled={isLoading}
-                  className="w-full sm:w-auto"
-                >
-                  Sign in with a different user
-                </Button>
-              )}
-            {loginStage === MFA_LOGIN_STAGE && (
+            {loginStage !== USERNAME_LOGIN_STAGE && (
               <Button
                 variant="outline"
-                onClick={goBackToPassword}
+                onClick={onReset}
                 disabled={isLoading || isPasskeyLoading}
-                className="w-full sm:w-auto text-sm"
+                className="w-full sm:w-auto"
               >
-                Back
+                Sign in with a different user
               </Button>
             )}
             {showButton && (
