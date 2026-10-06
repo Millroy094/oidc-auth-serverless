@@ -10,11 +10,16 @@ const Confirm: FC = () => {
   const { interactionId } = useParams();
   const { feedbackAxiosError } = useFeedback();
   const onAuthorize = async (authorize: boolean): Promise<void> => {
-    try {
-      const response = await authorizeInteraction(
-        interactionId ?? '',
-        authorize,
+    if (!interactionId) {
+      feedbackAxiosError(
+        undefined,
+        'Invalid or missing interaction, please restart the sign-in process.',
       );
+      return;
+    }
+
+    try {
+      const response = await authorizeInteraction(interactionId, authorize);
       if (response.data.redirect) {
         window.location.href = response.data.redirect;
       }
@@ -25,7 +30,7 @@ const Confirm: FC = () => {
 
   return (
     <AuthCardLayout>
-      <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60 dark:shadow-none">
+      <Card className="w-full max-w-sm border-t-4 border-t-primary shadow-xl shadow-slate-200/60">
         <CardHeader className="p-6 pb-4 sm:p-8 sm:pb-4">
           <h1 className="text-2xl font-semibold tracking-tight">Authorize</h1>
         </CardHeader>
