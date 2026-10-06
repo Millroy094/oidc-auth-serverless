@@ -53,6 +53,14 @@ export interface CheckPasskeyExistsBody {
   deviceName: string;
 }
 
+// Browsers surface the WebAuthn user entity's `name` (passed below as
+// `userName`) in passkey management UIs, so it must be a human-recognisable
+// identifier (email) rather than the internal userId. `displayName` is shown
+// alongside it where supported, so prefer the user's full name.
+const getDisplayName = (
+  user: Pick<UserItem, 'firstName' | 'lastName' | 'email'>,
+) => [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+
 // WebAuthn has no "all" value, so it must be omitted to allow any type.
 const getRegistrationOptionDefaults = async () => {
   const { attestationType, authenticatorAttachment } =
@@ -141,8 +149,8 @@ class PasskeyController {
       const options = await generateRegistrationOptions({
         rpID: config.get('authentication.rpId'),
         rpName: config.get('authentication.issuer'),
-        userName: userId,
-        userDisplayName: user.email,
+        userName: user.email,
+        userDisplayName: getDisplayName(user),
         ...(await getRegistrationOptionDefaults()),
       });
 
@@ -421,8 +429,8 @@ class PasskeyController {
       const options = await generateRegistrationOptions({
         rpID: config.get('authentication.rpId'),
         rpName: config.get('authentication.issuer'),
-        userName: userId,
-        userDisplayName: user.email,
+        userName: user.email,
+        userDisplayName: getDisplayName(user),
         ...(await getRegistrationOptionDefaults()),
       });
 
@@ -465,8 +473,8 @@ class PasskeyController {
       const options = await generateRegistrationOptions({
         rpID: config.get('authentication.rpId'),
         rpName: config.get('authentication.issuer'),
-        userName: session.userId,
-        userDisplayName: user.email,
+        userName: user.email,
+        userDisplayName: getDisplayName(user),
         ...(await getRegistrationOptionDefaults()),
       });
 
