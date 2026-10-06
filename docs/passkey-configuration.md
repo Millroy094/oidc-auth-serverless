@@ -192,8 +192,14 @@ Focus on simplicity and speed.
 - ✅ Authentication blocked if counter doesn't increase
 
 ### 3. Duplicate Detection
-- ✅ Prevents same authenticator registered twice
-- ✅ Prevents duplicate device names
+- ✅ Prevents same authenticator registered twice via WebAuthn `excludeCredentials`:
+  registration options list the user's existing credential IDs, so an
+  authenticator/device that already holds one of them refuses to create a
+  duplicate (`InvalidStateError`). This applies to same-device registration
+  and the cross-platform/QR flow alike.
+- ✅ Prevents duplicate device names: the backend auto-suffixes a colliding
+  `deviceName` with " (2)", " (3)", etc. so every stored passkey name is
+  unique per user, regardless of what the client submits.
 - ✅ Enforces maximum passkeys per user via admin settings
 
 ### 4. Origin & RP ID Validation
@@ -283,6 +289,25 @@ npm test
 **Error**: "Authenticator not allowed"
 **Cause**: `PASSKEY_AUTHENTICATOR_ATTACHMENT` doesn't match device type
 **Solution**: Set to `'all'` or use compatible device type
+
+### Authenticator Already Registered
+**Error**: "This device already has a passkey for this account."
+**Cause**: The authenticator/device already holds a credential for the user
+(blocked via `excludeCredentials`), including when registering through the
+cross-device QR flow.
+**Solution**: Use a different device/authenticator, or delete the existing
+passkey first if you intend to replace it.
+
+### Cross-Device Registration Link Expired
+**Error**: "This registration link has expired or already been used. Please
+request a new QR code and try again."
+**Cause**: The cross-device session (created by `initiatePasskeyRegistration`)
+has passed its `crossDeviceSessionTimeout`, or registration already completed
+with it.
+**Solution**: Generate a new QR code from the originating device and complete
+registration within the timeout window. The frontend now surfaces this exact
+backend message (and other specific registration errors, such as verification
+failures) instead of a generic HTTP status code.
 
 ---
 

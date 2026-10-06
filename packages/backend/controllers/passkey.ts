@@ -53,16 +53,16 @@ export interface CheckPasskeyExistsBody {
   deviceName: string;
 }
 
-// Browsers surface the WebAuthn user entity's `name` (passed below as
-// `userName`) in passkey management UIs, so it must be a human-recognisable
-// identifier (email) rather than the internal userId. `displayName` is shown
-// alongside it where supported, so prefer the user's full name.
+const SESSION_EXPIRED_MESSAGE =
+  'This registration link has expired or already been used. Please request a new QR code and try again.';
+
 const getDisplayName = (
   user: Pick<UserItem, 'firstName' | 'lastName' | 'email'>,
 ) => [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
 
-// WebAuthn has no "all" value, so it must be omitted to allow any type.
-const getRegistrationOptionDefaults = async () => {
+const getRegistrationOptionDefaults = async (
+  existingCredentials: Pick<MFACredential, 'id'>[] = [],
+) => {
   const { attestationType, authenticatorAttachment } =
     await SettingsService.getPasskeySettings();
 
@@ -72,7 +72,36 @@ const getRegistrationOptionDefaults = async () => {
       ...(authenticatorAttachment !== 'all' ? { authenticatorAttachment } : {}),
       userVerification: 'required' as const,
     },
+    excludeCredentials: existingCredentials.map((credential) => ({
+      id: credential.id,
+      type: 'public-key' as const,
+    })),
   };
+};
+
+// Appends " (n)" on collision so stored deviceNames stay unique per user.
+const getUniqueDeviceName = (
+  existingCredentials: Pick<MFACredential, 'deviceName'>[],
+  requestedName: string,
+) => {
+  const existingNames = new Set(
+    existingCredentials.map((credential) =>
+      credential.deviceName.toLowerCase(),
+    ),
+  );
+
+  if (!existingNames.has(requestedName.toLowerCase())) {
+    return requestedName;
+  }
+
+  let suffix = 2;
+  let candidate = `${requestedName} (${suffix})`;
+  while (existingNames.has(candidate.toLowerCase())) {
+    suffix += 1;
+    candidate = `${requestedName} (${suffix})`;
+  }
+
+  return candidate;
 };
 
 class PasskeyController {
@@ -151,7 +180,7 @@ class PasskeyController {
         rpName: config.get('authentication.issuer'),
         userName: user.email,
         userDisplayName: getDisplayName(user),
-        ...(await getRegistrationOptionDefaults()),
+        ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
       });
 
       await PasskeyService.createChallenge(userId, options.challenge);
@@ -205,7 +234,10 @@ class PasskeyController {
             verification?.registrationInfo?.credential?.publicKey ?? '',
           ),
           counter: verification?.registrationInfo?.credential?.counter,
-          deviceName: req.body.deviceName,
+          deviceName: getUniqueDeviceName(
+            user.mfa.passkey.credentials,
+            req.body.deviceName,
+          ),
         });
 
         await PasskeyService.deleteChallenge(userId, storedChallenge);
@@ -431,10 +463,9 @@ class PasskeyController {
         rpName: config.get('authentication.issuer'),
         userName: user.email,
         userDisplayName: getDisplayName(user),
-        ...(await getRegistrationOptionDefaults()),
+        ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
       });
 
-      // Create a passkey session for cross-device registration
       const session = await PasskeySession.create({
         userId,
         challenge: options.challenge,
@@ -464,7 +495,7 @@ class PasskeyController {
       if (!session) {
         res
           .status(HTTP_STATUSES.unauthorised)
-          .send({ error: 'Invalid session' });
+          .send({ error: SESSION_EXPIRED_MESSAGE });
         return;
       }
 
@@ -475,10 +506,9 @@ class PasskeyController {
         rpName: config.get('authentication.issuer'),
         userName: user.email,
         userDisplayName: getDisplayName(user),
-        ...(await getRegistrationOptionDefaults()),
+        ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
       });
 
-      // Update the session with new challenge
       session.challenge = options.challenge;
       await session.save();
 
@@ -488,9 +518,10 @@ class PasskeyController {
       logger.error(
         `Failed passkey registration with session ${(error as Error).message}`,
       );
-      res
-        .status(HTTP_STATUSES.badRequest)
-        .send({ error: 'There was an issue registering passkey with session' });
+      res.status(HTTP_STATUSES.badRequest).send({
+        error:
+          'There was an issue registering passkey with session. Please request a new QR code and try again.',
+      });
     }
   }
 
@@ -509,7 +540,7 @@ class PasskeyController {
       if (!session) {
         res
           .status(HTTP_STATUSES.unauthorised)
-          .send({ error: 'Invalid session' });
+          .send({ error: SESSION_EXPIRED_MESSAGE });
         return;
       }
 
@@ -531,7 +562,10 @@ class PasskeyController {
             verification?.registrationInfo?.credential?.publicKey ?? '',
           ),
           counter: verification?.registrationInfo?.credential?.counter,
-          deviceName,
+          deviceName: getUniqueDeviceName(
+            user.mfa.passkey.credentials,
+            deviceName,
+          ),
         });
 
         user.mfa.passkey.verified = true;
@@ -545,15 +579,19 @@ class PasskeyController {
 
         res.status(HTTP_STATUSES.ok).send({ verified: true });
       } else {
-        res.status(HTTP_STATUSES.unauthorised).send({ verified: false });
+        res.status(HTTP_STATUSES.unauthorised).send({
+          verified: false,
+          error: 'Passkey verification failed. Please try again.',
+        });
       }
     } catch (error) {
       logger.error(
         `Failed completing passkey registration ${(error as Error).message}`,
       );
-      res
-        .status(HTTP_STATUSES.badRequest)
-        .send({ error: 'There was an issue completing passkey registration' });
+      res.status(HTTP_STATUSES.badRequest).send({
+        error:
+          'There was an issue completing passkey registration. If this registration link has expired, request a new QR code and try again.',
+      });
     }
   }
 

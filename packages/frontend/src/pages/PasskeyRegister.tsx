@@ -2,6 +2,7 @@ import { startRegistration } from '@simplewebauthn/browser';
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState, FC } from 'react';
 import axios from '@/utils/axios-instance';
+import getPasskeyErrorMessage from '@/utils/get-passkey-error-message';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -106,8 +107,7 @@ const PasskeyRegisterComponent: FC<PasskeyRegisterProps> = ({
         throw new Error('Verification failed');
       }
     } catch (err) {
-      const errorMsg =
-        err instanceof Error ? err.message : 'Registration failed';
+      const errorMsg = getPasskeyErrorMessage(err, 'Registration failed');
       setError(errorMsg);
       feedback(`Registration error: ${errorMsg}`, 'error');
     } finally {
