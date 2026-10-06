@@ -66,11 +66,8 @@ function Pages() {
   const Auth = useAuth();
   globalRouter.navigate = navigate;
 
-  // The `/interaction/:interactionId` entry route kicks off an OIDC
-  // interaction and shouldn't trigger a refreshUser() call before the
-  // interaction status redirect has had a chance to run. Likewise,
-  // `/passkey-register/:sessionId` is reached by an unauthenticated,
-  // cross-device browser, so it must not be redirected away either.
+  // Entry routes reached before/without an authenticated session and
+  // shouldn't trigger a refreshUser() redirect.
   const isDynamicInteractionEntry =
     pathname.startsWith('/interaction/') ||
     pathname.startsWith('/passkey-register/');
