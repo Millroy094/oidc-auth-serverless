@@ -296,6 +296,17 @@ cross-device QR flow.
 **Solution**: Use a different device/authenticator, or delete the existing
 passkey first if you intend to replace it.
 
+### Cross-Device Registration Link Expired
+**Error**: "This registration link has expired or already been used. Please
+request a new QR code and try again."
+**Cause**: The cross-device session (created by `initiatePasskeyRegistration`)
+has passed its `crossDeviceSessionTimeout`, or registration already completed
+with it.
+**Solution**: Generate a new QR code from the originating device and complete
+registration within the timeout window. The frontend now surfaces this exact
+backend message (and other specific registration errors, such as verification
+failures) instead of a generic HTTP status code.
+
 ---
 
 ## Monitoring & Alerts

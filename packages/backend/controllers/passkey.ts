@@ -53,6 +53,13 @@ export interface CheckPasskeyExistsBody {
   deviceName: string;
 }
 
+// Shared across the cross-device registration endpoints so an expired or
+// already-consumed session (DynamoDB TTL deletes it, or it was already used
+// to complete registration) gives the user an actionable message instead of
+// a bare "Invalid session".
+const SESSION_EXPIRED_MESSAGE =
+  'This registration link has expired or already been used. Please request a new QR code and try again.';
+
 // Browsers surface the WebAuthn user entity's `name` (passed below as
 // `userName`) in passkey management UIs, so it must be a human-recognisable
 // identifier (email) rather than the internal userId. `displayName` is shown
@@ -473,7 +480,7 @@ class PasskeyController {
       if (!session) {
         res
           .status(HTTP_STATUSES.unauthorised)
-          .send({ error: 'Invalid session' });
+          .send({ error: SESSION_EXPIRED_MESSAGE });
         return;
       }
 
@@ -497,9 +504,10 @@ class PasskeyController {
       logger.error(
         `Failed passkey registration with session ${(error as Error).message}`,
       );
-      res
-        .status(HTTP_STATUSES.badRequest)
-        .send({ error: 'There was an issue registering passkey with session' });
+      res.status(HTTP_STATUSES.badRequest).send({
+        error:
+          'There was an issue registering passkey with session. Please request a new QR code and try again.',
+      });
     }
   }
 
@@ -518,7 +526,7 @@ class PasskeyController {
       if (!session) {
         res
           .status(HTTP_STATUSES.unauthorised)
-          .send({ error: 'Invalid session' });
+          .send({ error: SESSION_EXPIRED_MESSAGE });
         return;
       }
 
@@ -554,15 +562,19 @@ class PasskeyController {
 
         res.status(HTTP_STATUSES.ok).send({ verified: true });
       } else {
-        res.status(HTTP_STATUSES.unauthorised).send({ verified: false });
+        res.status(HTTP_STATUSES.unauthorised).send({
+          verified: false,
+          error: 'Passkey verification failed. Please try again.',
+        });
       }
     } catch (error) {
       logger.error(
         `Failed completing passkey registration ${(error as Error).message}`,
       );
-      res
-        .status(HTTP_STATUSES.badRequest)
-        .send({ error: 'There was an issue completing passkey registration' });
+      res.status(HTTP_STATUSES.badRequest).send({
+        error:
+          'There was an issue completing passkey registration. If this registration link has expired, request a new QR code and try again.',
+      });
     }
   }
 

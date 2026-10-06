@@ -19,6 +19,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthProvider';
 import useFeedback from '@/hooks/useFeedback';
+import getPasskeyErrorMessage from '@/utils/get-passkey-error-message';
 import CrossDevicePasskeyModal from './CrossDeviceModal';
 
 function getDetailedDeviceInfo(): string {
@@ -146,10 +147,7 @@ const Passkeys: FC<PasskeysProps> = (props) => {
       await fetchPasskeys(userId);
       await fetchMFASettings();
     } catch (error) {
-      const message =
-        error instanceof Error && error.name === 'InvalidStateError'
-          ? 'This device already has a passkey for this account.'
-          : (error as Error).message;
+      const message = getPasskeyErrorMessage(error, 'Unknown error');
       feedback(
         `An error occurred during passkey registration: ${message}`,
         'error',
@@ -171,10 +169,10 @@ const Passkeys: FC<PasskeysProps> = (props) => {
       setShowCrossDeviceModal(true);
       feedback('QR code generated. Scan from another device.', 'success');
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Failed to initiate registration';
+      const errorMessage = getPasskeyErrorMessage(
+        error,
+        'Failed to initiate registration',
+      );
       feedback(`An error occurred: ${errorMessage}`, 'error');
     }
   };
