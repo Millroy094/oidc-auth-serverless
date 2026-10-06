@@ -9,12 +9,13 @@ import useFeedback from '@/hooks/useFeedback';
 
 interface PasskeyAuthenticationProps {
   email: string;
+  interactionId?: string;
   handleSubmit: () => Promise<void>;
   onStateChange?: (state: { loading: boolean; error: boolean }) => void;
 }
 
 const PasskeyAuthentication: FC<PasskeyAuthenticationProps> = (props) => {
-  const { email, onStateChange } = props;
+  const { email, interactionId, onStateChange } = props;
   const auth = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
@@ -36,6 +37,7 @@ const PasskeyAuthentication: FC<PasskeyAuthenticationProps> = (props) => {
       const verificationResponse = await verifyPasskeyLogin({
         email,
         credential: authResponse,
+        interactionId,
       });
 
       const response = verificationResponse.data;
@@ -44,8 +46,6 @@ const PasskeyAuthentication: FC<PasskeyAuthenticationProps> = (props) => {
         response.challengeName === 'LOGIN_SUCCESS'
       ) {
         auth.completeLogin(response);
-      } else if ('redirect' in response && response.redirect) {
-        auth.completeLogin({ redirect: response.redirect as string });
       } else {
         throw new Error('There was issue login in with your passkey');
       }

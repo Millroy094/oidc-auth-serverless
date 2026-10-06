@@ -45,6 +45,7 @@ export interface LoginWithPasskeyBody {
 export interface VerifyLoginPasskeyBody {
   email: string;
   credential: AuthenticationResponseJSON;
+  interactionId?: string;
 }
 
 export interface CheckPasskeyExistsBody {
@@ -307,6 +308,21 @@ class PasskeyController {
         await PasskeyService.deleteChallenge(user.userId, storedChallenge);
 
         await user.save();
+
+        if (req.body.interactionId) {
+          const redirect = await req.oidcProvider.interactionResult(
+            req,
+            res,
+            { login: { accountId: user.userId } },
+            { mergeWithLastSubmission: false },
+          );
+          res.status(HTTP_STATUSES.ok).json({
+            challengeName: 'LOGIN_SUCCESS',
+            redirect,
+            message: 'Login successful!',
+          });
+          return;
+        }
 
         const payload = {
           userId: user.userId,

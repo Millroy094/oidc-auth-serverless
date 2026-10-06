@@ -4,6 +4,7 @@ import axios from '@/utils/axios-instance';
 type loginPasskeyVerificationArgs = {
   email: string;
   credential: unknown;
+  interactionId?: string;
 };
 
 export interface IAuthenticatedUser {
@@ -14,7 +15,8 @@ export interface IAuthenticatedUser {
 
 interface LoginSuccessResponse {
   challengeName: 'LOGIN_SUCCESS';
-  user: IAuthenticatedUser;
+  user?: IAuthenticatedUser;
+  redirect?: string;
   message: string;
 }
 
@@ -28,12 +30,13 @@ type VerifyPasskeyLoginResponseData =
 const verifyPasskeyLogin = async (
   args: loginPasskeyVerificationArgs,
 ): Promise<AxiosResponse<VerifyPasskeyLoginResponseData>> => {
-  const { email, credential } = args;
+  const { email, credential, interactionId } = args;
   const response = await axios.post<VerifyPasskeyLoginResponseData>(
     '/api/user/verify-passkey-login',
     {
       email,
       credential,
+      ...(interactionId ? { interactionId } : {}),
     },
     { withCredentials: true },
   );

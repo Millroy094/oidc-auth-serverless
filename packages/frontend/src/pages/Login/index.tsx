@@ -255,6 +255,7 @@ const Login: FC = () => {
           {loginStage === MFA_LOGIN_STAGE && mfaType === 'passkey' && (
             <PasskeyAuthentication
               email={email}
+              interactionId={interactionId}
               handleSubmit={handleSubmit(onSubmit)}
               onStateChange={setPasskeyState}
             />
