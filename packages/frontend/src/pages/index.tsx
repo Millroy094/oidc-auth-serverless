@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { MutatingDots } from 'react-loader-spinner';
 import {
+  Navigate,
   Route,
   Routes,
   useLocation,
@@ -74,6 +75,7 @@ function Pages() {
           path={`/passkey-register/:sessionId`}
           element={<PasskeyRegisterRoute />}
         />
+        <Route path="*" element={<Navigate to="/account" replace />} />
       </Routes>
     </Suspense>
   );
