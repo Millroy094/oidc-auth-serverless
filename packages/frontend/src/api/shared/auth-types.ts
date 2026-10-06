@@ -15,12 +15,30 @@ export interface MfaRequiredResponse {
   };
 }
 
-export interface AuthenticateCredentialsArgs {
+export interface PasswordStageArgs {
   email: string;
   password: string;
-  otp?: string;
-  loginWithRecoveryCode?: boolean;
-  recoveryCode?: string;
-  resetMfa?: boolean;
   captchaToken: string;
+  stage: 'PASSWORD';
 }
+
+export interface MfaStageArgs {
+  email: string;
+  otp: string;
+  stage: 'MFA';
+}
+
+export interface RecoveryCodeStageArgs {
+  email: string;
+  recoveryCode: string;
+  resetMfa?: boolean;
+  stage: 'RECOVERY_CODE';
+}
+
+export interface PasskeyStageArgs {
+  email: string;
+  stage: 'PASSKEY';
+}
+
+export type AuthenticateCredentialsArgs =
+  PasswordStageArgs | MfaStageArgs | RecoveryCodeStageArgs | PasskeyStageArgs;

@@ -1,11 +1,9 @@
 import { Request, Response } from 'express';
 import HTTP_STATUSES from '../constants/http-status.ts';
-import MFAService from '../services/mfa/index.ts';
 import UserService from '../services/user.ts';
+import { AuthenticationService } from '../services/authentication.ts';
 import {
   ChallengeResponseUser,
-  requiresEmailVerification,
-  requiresMfa,
   respondEmailVerificationRequired,
   respondMfaRequired,
 } from '../utils/auth-helper.ts';
@@ -14,15 +12,30 @@ import {
   isOidcProviderError,
 } from '../utils/oidc-error.ts';
 
-export interface AuthenticateInteractionBody {
+export interface PasswordStageAuthenticateInteractionBody {
   email: string;
   password: string;
-  otp?: string;
-  loginWithRecoveryCode?: boolean;
-  recoveryCode?: string;
-  resetMfa?: boolean;
   captchaToken: string;
+  stage: 'PASSWORD';
 }
+
+export interface MfaStageAuthenticateInteractionBody {
+  email: string;
+  otp: string;
+  stage: 'MFA';
+}
+
+export interface RecoveryCodeStageAuthenticateInteractionBody {
+  email: string;
+  recoveryCode: string;
+  resetMfa?: boolean;
+  stage: 'RECOVERY_CODE';
+}
+
+export type AuthenticateInteractionBody =
+  | PasswordStageAuthenticateInteractionBody
+  | MfaStageAuthenticateInteractionBody
+  | RecoveryCodeStageAuthenticateInteractionBody;
 
 export interface AuthorizeInteractionBody {
   authorize: boolean;
@@ -43,40 +56,9 @@ class OIDCController {
         throw new Error('Interaction is not at login stage');
       }
 
-      const user = await UserService.validateUserCredentials(
-        req.body.email,
-        req.body.password,
+      await AuthenticationService.authenticateByStage(req.body, (user) =>
+        this.respondOidcLoginSuccess(res, req, user),
       );
-
-      if (requiresEmailVerification(user, req.body.otp)) {
-        return respondEmailVerificationRequired(res, user);
-      }
-
-      if (req.body.otp && !user.emailVerified) {
-        await UserService.verifyEmail(user.userId, req.body.otp);
-      }
-
-      if (req.body.loginWithRecoveryCode && req.body.recoveryCode) {
-        await MFAService.validateRecoveryCode(
-          user.userId,
-          req.body.recoveryCode,
-          req.body.resetMfa ?? false,
-        );
-      }
-
-      if (user.mfa.preference && req.body.otp) {
-        await MFAService.verifyMFA(
-          user.userId,
-          user.mfa.preference as 'app' | 'sms' | 'email',
-          req.body.otp,
-        );
-      }
-
-      if (requiresMfa(user, req.body.otp, req.body.loginWithRecoveryCode)) {
-        return respondMfaRequired(res, user);
-      }
-
-      return this.respondOidcLoginSuccess(res, req, user);
     } catch (err) {
       if ((err as Error).message === 'Interaction is not at login stage') {
         return this.respondOidcError(res, req, {
@@ -85,17 +67,30 @@ class OIDCController {
         });
       }
 
-      // interactionDetails() failed (expired/invalid interaction), not the
-      // credentials - avoid the misleading "Invalid email or password".
       if (isOidcProviderError(err)) {
         return res.status(HTTP_STATUSES.badRequest).json({
           error: `Unable to process authentication: ${getOidcErrorMessage(err)}`,
         });
       }
 
-      res
-        .status(HTTP_STATUSES.unauthorised)
-        .json({ error: 'Invalid email or password' });
+      const errorMessage = (err as Error).message;
+
+      if (errorMessage === 'EMAIL_VERIFICATION_REQUIRED') {
+        const user = await UserService.getUserByEmail(req.body.email);
+        if (user) {
+          return respondEmailVerificationRequired(res, user);
+        }
+      }
+
+      if (errorMessage === 'MFA_REQUIRED') {
+        const user = await UserService.getUserByEmail(req.body.email);
+        if (user) {
+          return respondMfaRequired(res, user);
+        }
+      }
+
+      const errorMsg = AuthenticationService.getErrorMessage(errorMessage);
+      res.status(HTTP_STATUSES.unauthorised).json({ error: errorMsg });
     }
   }
 

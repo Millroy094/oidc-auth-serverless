@@ -6,11 +6,10 @@ import MFAService from '../services/mfa/index.ts';
 import OIDCService from '../services/oidc.ts';
 import SettingsService from '../services/settings.ts';
 import UserService from '../services/user.ts';
+import { AuthenticationService } from '../services/authentication.ts';
 import config from '../support/env-config.ts';
 import {
   ChallengeResponseUser,
-  requiresEmailVerification,
-  requiresMfa,
   respondEmailVerificationRequired,
   respondMfaRequired,
 } from '../utils/auth-helper.ts';
@@ -26,15 +25,28 @@ export interface RegisterBody {
   captchaToken: string;
 }
 
-export interface LoginBody {
+export interface PasswordStageLoginBody {
   email: string;
   password: string;
-  otp?: string;
-  loginWithRecoveryCode?: boolean;
-  recoveryCode?: string;
-  resetMfa?: boolean;
   captchaToken: string;
+  stage: 'PASSWORD';
 }
+
+export interface MfaStageLoginBody {
+  email: string;
+  otp: string;
+  stage: 'MFA';
+}
+
+export interface RecoveryCodeStageLoginBody {
+  email: string;
+  recoveryCode: string;
+  resetMfa?: boolean;
+  stage: 'RECOVERY_CODE';
+}
+
+export type LoginBody =
+  PasswordStageLoginBody | MfaStageLoginBody | RecoveryCodeStageLoginBody;
 
 export interface SessionIdParams {
   [key: string]: string;
@@ -109,43 +121,30 @@ class UserController {
     res: Response,
   ) {
     try {
-      const user = await UserService.validateUserCredentials(
-        req.body.email,
-        req.body.password,
+      const body = req.body;
+      await AuthenticationService.authenticateByStage(body, (user) =>
+        this.respondLoginSuccess(res, user, req),
       );
-
-      if (requiresEmailVerification(user, req.body.otp)) {
-        return respondEmailVerificationRequired(res, user);
-      }
-
-      if (req.body.otp && !user.emailVerified) {
-        await UserService.verifyEmail(user.userId, req.body.otp);
-      }
-
-      if (req.body.loginWithRecoveryCode && req.body.recoveryCode) {
-        await MFAService.validateRecoveryCode(
-          user.userId,
-          req.body.recoveryCode,
-          req.body.resetMfa ?? false,
-        );
-      }
-
-      if (user.mfa.preference && req.body.otp) {
-        await MFAService.verifyMFA(
-          user.userId,
-          user.mfa.preference as 'app' | 'sms' | 'email',
-          req.body.otp,
-        );
-      }
-
-      if (requiresMfa(user, req.body.otp, req.body.loginWithRecoveryCode)) {
-        return respondMfaRequired(res, user);
-      }
-
-      return this.respondLoginSuccess(res, user, req);
     } catch (err) {
       logger.error((err as Error).message);
-      this.respondLoginError(res, err);
+      const errorMessage = (err as Error).message;
+
+      if (errorMessage === 'EMAIL_VERIFICATION_REQUIRED') {
+        const user = await UserService.getUserByEmail(req.body.email);
+        if (user) {
+          return respondEmailVerificationRequired(res, user);
+        }
+      }
+
+      if (errorMessage === 'MFA_REQUIRED') {
+        const user = await UserService.getUserByEmail(req.body.email);
+        if (user) {
+          return respondMfaRequired(res, user);
+        }
+      }
+
+      const errorMsg = AuthenticationService.getErrorMessage(errorMessage);
+      this.respondLoginError(res, errorMsg);
     }
   }
 
@@ -191,9 +190,9 @@ class UserController {
       });
   }
 
-  private static respondLoginError(res: Response, _err: unknown): void {
+  private static respondLoginError(res: Response, message: string): void {
     res.status(HTTP_STATUSES.unauthorised).json({
-      error: 'Invalid username or password',
+      error: message,
     });
   }
 

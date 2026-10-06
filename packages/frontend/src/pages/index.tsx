@@ -39,7 +39,9 @@ function Pages() {
     if (
       !PUBLIC_ROUTES.includes(pathname) &&
       !DYNAMIC_PUBLIC_ROUTES.some((route) => pathname.startsWith(route)) &&
-      pathname !== '/login'
+      pathname !== '/login' &&
+      pathname !== '/' &&
+      pathname !== '/account'
     ) {
       void auth.refreshUser();
     }

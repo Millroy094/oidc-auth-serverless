@@ -28,26 +28,9 @@ export type AuthenticateUserResponseData =
 const authenticateUser = async (
   args: AuthenticateUserArgs,
 ): Promise<AxiosResponse<AuthenticateUserResponseData>> => {
-  const {
-    email,
-    password,
-    otp,
-    loginWithRecoveryCode,
-    recoveryCode,
-    resetMfa,
-    captchaToken,
-  } = args;
   const response = await axios.post<AuthenticateUserResponseData>(
     '/api/user/login',
-    {
-      email,
-      password,
-      otp,
-      loginWithRecoveryCode,
-      recoveryCode,
-      resetMfa,
-      captchaToken,
-    },
+    args,
     { withCredentials: true },
   );
   return response;

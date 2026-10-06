@@ -8,7 +8,7 @@ import {
   Clock,
 } from 'lucide-react';
 import * as React from 'react';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { MutatingDots } from 'react-loader-spinner';
 import Logo from '@/assets/logo.svg';
 import { Button } from '@/components/ui/button';
@@ -96,6 +96,21 @@ export default function Account() {
     setActive(value);
     localStorage.setItem(ACCOUNT_ACTIVE_TAB_STORAGE_KEY, value);
   };
+
+  useEffect(() => {
+    void auth.refreshUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === ACCOUNT_ACTIVE_TAB_STORAGE_KEY) {
+        setActive(e.newValue ?? 'profile');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50">

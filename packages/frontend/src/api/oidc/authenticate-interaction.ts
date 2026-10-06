@@ -30,27 +30,10 @@ export type AuthenticateInteractionResponseData =
 const authenticateInteraction = async (
   args: validateCredentialsArgs,
 ): Promise<AxiosResponse<AuthenticateInteractionResponseData>> => {
-  const {
-    email,
-    password,
-    otp,
-    loginWithRecoveryCode,
-    recoveryCode,
-    resetMfa,
-    interactionId,
-    captchaToken,
-  } = args;
+  const { interactionId, ...credentials } = args;
   const response = await axios.post<AuthenticateInteractionResponseData>(
     `/api/oidc/interaction/${interactionId}/authenticate`,
-    {
-      email,
-      password,
-      otp,
-      loginWithRecoveryCode,
-      recoveryCode,
-      resetMfa,
-      captchaToken,
-    },
+    credentials,
     { withCredentials: true },
   );
   return response;

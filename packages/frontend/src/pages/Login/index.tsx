@@ -12,6 +12,7 @@ import UsernameInput from './UsernameInput';
 import VerifyMFAOtpInput from './VerifyOtpInput';
 import getLoginConfiguration from '@/api/user/get-login-configuration';
 import getPublicConfig from '@/api/user/get-public-config';
+import { AuthenticateCredentialsArgs } from '@/api/shared/auth-types';
 import Logo from '@/assets/logo.svg';
 import AuthCardLayout from '@/components/AuthCardLayout';
 import Turnstile from '@/components/Turnstile';
@@ -106,11 +107,13 @@ const Login: FC = () => {
     if (challengeName === 'EMAIL_VERIFICATION_REQUIRED') {
       setLoginStage(MFA_LOGIN_STAGE);
       setValue('mfaType', EMAIL_VERIFICATION);
+      setValue('captchaToken', '');
       setIsLoading(false);
     } else if (challengeName === 'MFA_REQUIRED') {
       const mfaType = challengeParameters?.mfaType ?? '';
       setValue('mfaType', mfaType);
       setLoginStage(MFA_LOGIN_STAGE);
+      setValue('captchaToken', '');
       setIsLoading(false);
     }
   };
@@ -118,13 +121,13 @@ const Login: FC = () => {
   const authenticatePasswordStage = async () => {
     setIsLoading(true);
     try {
-      const challenge = await auth.login(
-        {
-          ...getValues(),
-          captchaToken: getValues('captchaToken') ?? '',
-        },
-        interactionId,
-      );
+      const data: AuthenticateCredentialsArgs = {
+        email: getValues('email'),
+        password: getValues('password'),
+        captchaToken: getValues('captchaToken') ?? '',
+        stage: 'PASSWORD',
+      };
+      const challenge = await auth.login(data, interactionId);
 
       if (challenge) {
         handleChallenge(challenge.challengeName, challenge.challengeParameters);
@@ -141,13 +144,20 @@ const Login: FC = () => {
   const authenticateMfaOrRecovery = async (data: ILoginFormInput) => {
     setIsLoading(true);
     try {
-      const challenge = await auth.login(
-        {
-          ...data,
-          captchaToken: data.captchaToken ?? '',
-        },
-        interactionId,
-      );
+      const loginData: AuthenticateCredentialsArgs = data.loginWithRecoveryCode
+        ? {
+            email: data.email,
+            recoveryCode: data.recoveryCode!,
+            resetMfa: data.resetMfa,
+            stage: 'RECOVERY_CODE',
+          }
+        : {
+            email: data.email,
+            otp: data.otp!,
+            stage: 'MFA',
+          };
+
+      const challenge = await auth.login(loginData, interactionId);
 
       if (challenge) {
         setIsLoading(false);
@@ -188,6 +198,7 @@ const Login: FC = () => {
     setLoginStage(PASSWORD_LOGIN_STAGE);
     setValue('otp', '');
     setValue('recoveryCode', '');
+    setValue('captchaToken', '');
   };
 
   const showButton = !(mfaType === 'passkey' && loginStage === MFA_LOGIN_STAGE);
