@@ -7,10 +7,8 @@ import {
   useNavigate,
   useParams,
 } from 'react-router-dom';
-import getInteractionStatus from '@/api/oidc/get-interaction-status';
-import { PUBLIC_ROUTES } from '@/constants';
 import { useAuth } from '@/context/AuthProvider';
-import useFeedback from '@/hooks/useFeedback';
+import { PUBLIC_ROUTES, DYNAMIC_PUBLIC_ROUTES } from '@/constants';
 import globalRouter from '@/utils/global-router';
 import PasskeyRegisterComponent from './PasskeyRegister';
 
@@ -19,36 +17,6 @@ const Confirm = lazy(() => import('./Confirm'));
 const Register = lazy(() => import('./Register'));
 const ForgotPassword = lazy(() => import('./ForgotPassword'));
 const Account = lazy(() => import('./Account'));
-
-function InteractionEntry() {
-  const { interactionId } = useParams();
-  const navigate = useNavigate();
-  const { feedbackAxiosError } = useFeedback();
-
-  useEffect(() => {
-    const navigateByInteractionStage = async (): Promise<void> => {
-      if (!interactionId) {
-        return;
-      }
-
-      try {
-        const response = await getInteractionStatus(interactionId);
-        if (response.data.status) {
-          await navigate(`/oauth/${response.data.status}/${interactionId}`);
-        }
-      } catch (err) {
-        feedbackAxiosError(err, 'Failed to process authentication');
-        // Interaction is gone (expired/completed/invalid) - start over.
-        await navigate('/login');
-      }
-    };
-
-    void navigateByInteractionStage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [interactionId]);
-
-  return null;
-}
 
 function PasskeyRegisterRoute() {
   const { sessionId } = useParams();
@@ -63,22 +31,16 @@ function PasskeyRegisterRoute() {
 function Pages() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const Auth = useAuth();
+  const auth = useAuth();
   globalRouter.navigate = navigate;
-
-  // Entry routes reached before/without an authenticated session and
-  // shouldn't trigger a refreshUser() redirect.
-  const isDynamicInteractionEntry =
-    pathname.startsWith('/interaction/') ||
-    pathname.startsWith('/passkey-register/');
 
   useEffect(() => {
     if (
-      !isDynamicInteractionEntry &&
       !PUBLIC_ROUTES.includes(pathname) &&
+      !DYNAMIC_PUBLIC_ROUTES.some((route) => pathname.startsWith(route)) &&
       pathname !== '/login'
     ) {
-      void Auth?.refreshUser();
+      void auth.refreshUser();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -106,15 +68,11 @@ function Pages() {
         <Route path={`/login`} element={<Login />} />
         <Route path={`/forgot-password`} element={<ForgotPassword />} />
         <Route path={`/account`} element={<Account />} />
-        <Route path={`/oauth/login/:interactionId`} element={<Login />} />
-        <Route path={`/oauth/consent/:interactionId`} element={<Confirm />} />
+        <Route path={`/oidc/login/:interactionId`} element={<Login />} />
+        <Route path={`/oidc/consent/:interactionId`} element={<Confirm />} />
         <Route
           path={`/passkey-register/:sessionId`}
           element={<PasskeyRegisterRoute />}
-        />
-        <Route
-          path={`/interaction/:interactionId`}
-          element={<InteractionEntry />}
         />
       </Routes>
     </Suspense>

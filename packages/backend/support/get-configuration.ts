@@ -88,8 +88,11 @@ const getConfiguration = async (): Promise<Configuration> => {
     ...(rotateRefreshTokenOnUse ? { rotateRefreshToken: true } : {}),
     cookies: {
       keys: cookieSecrets,
-      long: { httpOnly: true, sameSite: 'lax' },
-      short: { httpOnly: true, sameSite: 'lax' },
+      // Forces Path=/ on the `_interaction` cookie, which oidc-provider
+      // otherwise scopes to our frontend route (e.g. /oidc/login/:id),
+      // so it's still sent to our disjoint /api/oidc/* routes.
+      long: { httpOnly: true, sameSite: 'lax', path: '/' },
+      short: { httpOnly: true, sameSite: 'lax', path: '/' },
     },
     features: {
       devInteractions: { enabled: false },
@@ -192,7 +195,7 @@ const getConfiguration = async (): Promise<Configuration> => {
           );
         }
 
-        return `${frontendOrigin}/interaction/${interaction.jti}`;
+        return `${frontendOrigin}/oidc/${interaction.prompt.name}/${interaction.jti}`;
       },
     },
   };

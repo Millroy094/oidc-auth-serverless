@@ -54,7 +54,7 @@ const ForgotPassword = () => {
 
   const navigateToLogin = () => {
     if (searchParams.has('interactionId')) {
-      void navigate(`/oauth/login/${searchParams.get('interactionId')}`);
+      void navigate(`/oidc/login/${searchParams.get('interactionId')}`);
     } else {
       void navigate('/login');
     }

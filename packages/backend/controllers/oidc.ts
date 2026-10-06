@@ -29,22 +29,6 @@ export interface AuthorizeInteractionBody {
 }
 
 class OIDCController {
-  public static async getInteractionStatus(req: Request, res: Response) {
-    try {
-      const {
-        prompt: { name },
-      } = await req.oidcProvider.interactionDetails(req, res);
-      res.status(HTTP_STATUSES.ok).json({ status: name });
-    } catch (err) {
-      const message = isOidcProviderError(err)
-        ? getOidcErrorMessage(err)
-        : (err as Error).message;
-      res.status(HTTP_STATUSES.badRequest).json({
-        error: `Unable to process authentication: ${message}`,
-      });
-    }
-  }
-
   public static async authenticateInteraction(
     req: Request<Record<string, string>, unknown, AuthenticateInteractionBody>,
     res: Response,

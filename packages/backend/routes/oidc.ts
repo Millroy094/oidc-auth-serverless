@@ -12,9 +12,6 @@ const router = Router();
 // UI, so they're gated behind verifyOrigin. Everything else on this router
 // (authorize, token, jwks, userinfo, discovery, via setupOidc) is the actual
 // OIDC protocol surface external relying parties call directly.
-router.get('/interaction/:interactionId/status', verifyOrigin, (req, res) =>
-  OIDCController.getInteractionStatus(req, res),
-);
 
 router.post<Record<string, string>, unknown, AuthenticateInteractionBody>(
   '/interaction/:interactionId/authenticate',

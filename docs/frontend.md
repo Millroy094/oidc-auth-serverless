@@ -13,9 +13,9 @@ Vite + React 19 + TypeScript SPA, Tailwind CSS v4, shadcn/Radix-style UI compone
 - **`api/`** — typed `axios` wrappers per backend endpoint, with shared type definitions in `api/shared/auth-types.ts` for authentication responses used across multiple endpoints.
 - **`components/ui/`** — shared design-system primitives (dialog, popover, tooltip, select, tabs, etc.), thin wrappers around Radix.
 - Routing is driven by `pages/index.tsx`, which handles:
-  - Initial `refreshUser()`/OIDC-interaction-status check on mount
+  - Initial `refreshUser()` check on mount
   - `/passkey-register/:sessionId` — dedicated route rendering `PasskeyRegisterComponent` for cross-device registration
-  - `/interaction/:interactionId` — entry route rendering `InteractionEntry`, which looks up the OIDC interaction status and redirects to the matching `/oauth/:stage/:interactionId` route
+  - `/oidc/login/:interactionId` and `/oidc/consent/:interactionId` — the OIDC provider's `interactions.url` callback (see `backend.md`) computes the exact stage (`interaction.prompt.name`) and redirects the browser straight to one of these, so the frontend never needs to look up interaction status itself
 
 ## Cross-Device Passkey Registration Flow
 

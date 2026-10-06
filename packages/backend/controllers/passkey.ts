@@ -52,6 +52,20 @@ export interface CheckPasskeyExistsBody {
   deviceName: string;
 }
 
+// WebAuthn has no "all" value, so it must be omitted to allow any type.
+const getRegistrationOptionDefaults = async () => {
+  const { attestationType, authenticatorAttachment } =
+    await SettingsService.getPasskeySettings();
+
+  return {
+    attestationType,
+    authenticatorSelection: {
+      ...(authenticatorAttachment !== 'all' ? { authenticatorAttachment } : {}),
+      userVerification: 'required' as const,
+    },
+  };
+};
+
 class PasskeyController {
   public static async getPasskeys(
     req: Request<Record<string, string>, unknown, unknown, GetPasskeysQuery>,
@@ -128,11 +142,7 @@ class PasskeyController {
         rpName: config.get('authentication.issuer'),
         userName: userId,
         userDisplayName: user.email,
-        attestationType: 'none',
-        authenticatorSelection: {
-          authenticatorAttachment: 'platform',
-          userVerification: 'required',
-        },
+        ...(await getRegistrationOptionDefaults()),
       });
 
       await PasskeyService.createChallenge(userId, options.challenge);
@@ -389,11 +399,7 @@ class PasskeyController {
         rpName: config.get('authentication.issuer'),
         userName: userId,
         userDisplayName: user.email,
-        attestationType: 'none',
-        authenticatorSelection: {
-          authenticatorAttachment: 'cross-platform',
-          userVerification: 'required',
-        },
+        ...(await getRegistrationOptionDefaults()),
       });
 
       // Create a passkey session for cross-device registration
@@ -437,11 +443,7 @@ class PasskeyController {
         rpName: config.get('authentication.issuer'),
         userName: session.userId,
         userDisplayName: user.email,
-        attestationType: 'none',
-        authenticatorSelection: {
-          authenticatorAttachment: 'cross-platform',
-          userVerification: 'required',
-        },
+        ...(await getRegistrationOptionDefaults()),
       });
 
       // Update the session with new challenge

@@ -1,4 +1,4 @@
-export { default as PUBLIC_ROUTES } from './public-routes';
+export { PUBLIC_ROUTES, DYNAMIC_PUBLIC_ROUTES } from './public-routes';
 export { default as ADMIN_EMAIL } from './admin-email';
 export { default as ACCOUNT_ACTIVE_TAB_STORAGE_KEY } from './account-active-tab';
 
