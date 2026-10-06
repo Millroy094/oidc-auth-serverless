@@ -1,5 +1,12 @@
 import { useSnackbar } from 'notistack';
-import { useContext, createContext, useState, FC, ReactElement } from 'react';
+import {
+  useContext,
+  createContext,
+  useState,
+  FC,
+  ReactElement,
+  useEffect,
+} from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import authenticateInteraction from '@/api/oidc/authenticate-interaction';
 import { AuthenticateCredentialsArgs } from '@/api/shared/auth-types';
@@ -58,6 +65,12 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
   const { feedbackAxiosError } = useFeedback();
   const { enqueueSnackbar } = useSnackbar();
 
+  useEffect(() => {
+    if (isSigningIn && pathname === '/account') {
+      setIsSigningIn(false);
+    }
+  }, [isSigningIn, pathname]);
+
   const completeLogin = (
     responseData: LoginResponseLike,
   ): LoginChallenge | void => {
@@ -77,7 +90,6 @@ const AuthProvider: FC<{ children: ReactElement }> = ({ children }) => {
         if (redirect) {
           window.location.href = redirect;
         } else {
-          setIsSigningIn(false);
           void navigate('/account');
         }
       }, 500);
