@@ -19,7 +19,7 @@ export const verifyAppMFA = async (
     algorithm: 'SHA1',
     digits: 6,
     period: 30,
-    secret: Secret.fromUTF8(user.mfa.app.secret),
+    secret: Secret.fromBase32(user.mfa.app.secret),
   });
   if (totp.validate({ token: otp, window: 1 }) === null) {
     throw new Error('Invalid OTP');
