@@ -1,5 +1,4 @@
 import { Secret, TOTP } from 'otpauth';
-import { v4 as uuid } from 'uuid';
 import User from '../../models/User.ts';
 import config from '../../support/env-config.ts';
 import { sendEmailOtp, sendSMSOtp } from './send.ts';
@@ -14,7 +13,7 @@ export const setupAppMFA = async (
     throw new Error('User does not exist');
   }
 
-  const secret = uuid();
+  const secret = new Secret({ size: 20 });
 
   const totp = new TOTP({
     issuer: config.get('authentication.issuer'),
@@ -22,10 +21,10 @@ export const setupAppMFA = async (
     algorithm: 'SHA1',
     digits: 6,
     period: 30,
-    secret: Secret.fromUTF8(secret),
+    secret,
   });
 
-  user.mfa.app.secret = secret;
+  user.mfa.app.secret = secret.base32;
   user.mfa.app.subscriber = subscriber;
   await user.save();
 
