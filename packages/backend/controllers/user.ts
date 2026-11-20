@@ -161,25 +161,25 @@ class UserController {
 
     const accessToken = await signJwt(
       payload,
-      config.get('authentication.accessTokenSecret'),
-      config.get('authentication.accessTokenExpiry'),
+      config.authentication.accessTokenSecret,
+      config.authentication.accessTokenExpiry,
     );
 
     const refreshToken = await signJwt(
       payload,
-      config.get('authentication.refreshTokenSecret'),
-      config.get('authentication.refreshTokenExpiry'),
+      config.authentication.refreshTokenSecret,
+      config.authentication.refreshTokenExpiry,
     );
 
     res
       .cookie(ACCESS_TOKEN, accessToken, {
         httpOnly: true,
-        secure: config.get('deploymentEnvironment') !== 'local',
+        secure: config.deploymentEnvironment !== 'local',
         maxAge: getJwtExpiryMs(accessToken),
       })
       .cookie(REFRESH_TOKEN, refreshToken, {
         httpOnly: true,
-        secure: config.get('deploymentEnvironment') !== 'local',
+        secure: config.deploymentEnvironment !== 'local',
         maxAge: getJwtExpiryMs(refreshToken),
       })
       .status(200)
@@ -476,7 +476,7 @@ class UserController {
     const registrationEnabled = await SettingsService.getRegistrationEnabled();
 
     res.status(HTTP_STATUSES.ok).json({
-      turnstileSiteKey: config.get('captcha.turnstileSiteKey'),
+      turnstileSiteKey: config.captcha.turnstileSiteKey,
       registrationEnabled,
     });
   }

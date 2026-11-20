@@ -17,7 +17,7 @@ const verifyCaptcha = async (
   };
   const token = body?.captchaToken;
   const stage = body?.stage;
-  const deploymentEnv = config.get('deploymentEnvironment');
+  const deploymentEnv = config.deploymentEnvironment;
 
   if (deploymentEnv === 'local') {
     next();
@@ -40,7 +40,7 @@ const verifyCaptcha = async (
   logger.debug(`Verifying captcha token: ${token.substring(0, 20)}...`);
 
   try {
-    const secretKey = config.get('captcha.turnstileSecretKey');
+    const secretKey = config.captcha.turnstileSecretKey;
     if (!secretKey || secretKey.startsWith('1x00000000')) {
       logger.warn(
         'Turnstile secret key is not properly configured. Using test key.',

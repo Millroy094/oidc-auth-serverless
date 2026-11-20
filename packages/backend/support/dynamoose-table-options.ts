@@ -9,7 +9,7 @@ import config from './env-config.ts';
 // every request that touches a model - dynamoose treats any failure while
 // checking the table (including an AccessDenied on DescribeTable) as "table
 // missing" and tries to create it, which then also fails.
-const isLocal = config.get('deploymentEnvironment') === 'local';
+const isLocal = config.deploymentEnvironment === 'local';
 
 const tableOptions: TableOptionsOptional = {
   create: isLocal,

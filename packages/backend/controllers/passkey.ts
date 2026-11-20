@@ -176,8 +176,8 @@ class PasskeyController {
       const user = await User.get(userId);
 
       const options = await generateRegistrationOptions({
-        rpID: config.get('authentication.rpId'),
-        rpName: config.get('authentication.issuer'),
+        rpID: config.authentication.rpId,
+        rpName: config.authentication.issuer,
         userName: user.email,
         userDisplayName: getDisplayName(user),
         ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
@@ -223,8 +223,8 @@ class PasskeyController {
         expectedChallenge: storedChallenge,
         expectedOrigin:
           req.headers.origin ??
-          `${req.protocol}://${config.get('authentication.rpId')}`,
-        expectedRPID: config.get('authentication.rpId'),
+          `${req.protocol}://${config.authentication.rpId}`,
+        expectedRPID: config.authentication.rpId,
       });
 
       if (verification.verified) {
@@ -277,7 +277,7 @@ class PasskeyController {
       }
 
       const options = await generateAuthenticationOptions({
-        rpID: config.get('authentication.rpId'),
+        rpID: config.authentication.rpId,
         allowCredentials:
           user?.mfa?.passkey?.credentials?.map((cred: MFACredential) => ({
             id: cred.id,
@@ -334,8 +334,8 @@ class PasskeyController {
         expectedChallenge: storedChallenge,
         expectedOrigin:
           req.headers.origin ??
-          `${req.protocol}://${config.get('authentication.rpId')}`,
-        expectedRPID: config.get('authentication.rpId'),
+          `${req.protocol}://${config.authentication.rpId}`,
+        expectedRPID: config.authentication.rpId,
         credential: {
           id: credential.id,
           publicKey: new Uint8Array(credential.publicKey),
@@ -381,25 +381,25 @@ class PasskeyController {
 
       const accessToken = await signJwt(
         payload,
-        config.get('authentication.accessTokenSecret'),
-        config.get('authentication.accessTokenExpiry'),
+        config.authentication.accessTokenSecret,
+        config.authentication.accessTokenExpiry,
       );
 
       const refreshToken = await signJwt(
         payload,
-        config.get('authentication.refreshTokenSecret'),
-        config.get('authentication.refreshTokenExpiry'),
+        config.authentication.refreshTokenSecret,
+        config.authentication.refreshTokenExpiry,
       );
 
       res
         .cookie(ACCESS_TOKEN, accessToken, {
           httpOnly: true,
-          secure: config.get('deploymentEnvironment') !== 'local',
+          secure: config.deploymentEnvironment !== 'local',
           maxAge: getJwtExpiryMs(accessToken),
         })
         .cookie(REFRESH_TOKEN, refreshToken, {
           httpOnly: true,
-          secure: config.get('deploymentEnvironment') !== 'local',
+          secure: config.deploymentEnvironment !== 'local',
           maxAge: getJwtExpiryMs(refreshToken),
         })
         .status(HTTP_STATUSES.ok)
@@ -459,8 +459,8 @@ class PasskeyController {
       const user = await User.get(userId);
 
       const options = await generateRegistrationOptions({
-        rpID: config.get('authentication.rpId'),
-        rpName: config.get('authentication.issuer'),
+        rpID: config.authentication.rpId,
+        rpName: config.authentication.issuer,
         userName: user.email,
         userDisplayName: getDisplayName(user),
         ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
@@ -502,8 +502,8 @@ class PasskeyController {
       const user = await User.get(session.userId);
 
       const options = await generateRegistrationOptions({
-        rpID: config.get('authentication.rpId'),
-        rpName: config.get('authentication.issuer'),
+        rpID: config.authentication.rpId,
+        rpName: config.authentication.issuer,
         userName: user.email,
         userDisplayName: getDisplayName(user),
         ...(await getRegistrationOptionDefaults(user.mfa.passkey.credentials)),
@@ -551,8 +551,8 @@ class PasskeyController {
         expectedChallenge: session.challenge,
         expectedOrigin:
           req.headers.origin ??
-          `${req.protocol}://${config.get('authentication.rpId')}`,
-        expectedRPID: config.get('authentication.rpId'),
+          `${req.protocol}://${config.authentication.rpId}`,
+        expectedRPID: config.authentication.rpId,
       });
 
       if (verification.verified) {

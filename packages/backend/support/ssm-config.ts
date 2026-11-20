@@ -5,7 +5,7 @@ import { SSMClient, GetParametersByPathCommand } from '@aws-sdk/client-ssm';
  * them into `process.env`, keyed by the parameter's leaf name (e.g.
  * "/oidc-auth/local/ACCESS_JWT_SECRET" -> process.env.ACCESS_JWT_SECRET).
  *
- * Must run before `env-config.ts` builds its convict schema, since some
+ * Must run before `env-config.ts` parses environment variables, since some
  * modules (e.g. utils/encryption.ts) read config values at import time.
  */
 export const loadSsmParameters = async (prefix: string): Promise<void> => {

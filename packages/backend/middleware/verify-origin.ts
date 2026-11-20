@@ -10,12 +10,12 @@ const verifyOrigin = (
   res: Response,
   next: NextFunction,
 ): void => {
-  if (config.get('deploymentEnvironment') === 'local') {
+  if (config.deploymentEnvironment === 'local') {
     next();
     return;
   }
 
-  const expected = config.get('security.originVerifySecret');
+  const expected = config.security.originVerifySecret;
   const received = req.headers['x-origin-verify'];
 
   if (!expected || received !== expected) {

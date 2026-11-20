@@ -14,8 +14,8 @@ export const verifyAppMFA = async (
   }
 
   const totp = new TOTP({
-    issuer: config.get('authentication.issuer'),
-    label: config.get('authentication.issuer'),
+    issuer: config.authentication.issuer,
+    label: config.authentication.issuer,
     algorithm: 'SHA1',
     digits: 6,
     period: 30,

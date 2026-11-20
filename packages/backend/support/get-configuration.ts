@@ -6,7 +6,7 @@ import User from '../models/User.ts';
 import SettingsService, { TtlSettings } from '../services/settings.ts';
 import config from './env-config.ts';
 
-const cookieSecrets = config.get('oidc.cookieSecrets');
+const cookieSecrets = config.oidc.cookieSecrets;
 
 let jwksCache: JWKS | null = null;
 
@@ -17,7 +17,7 @@ const getJwks = async (): Promise<JWKS> => {
     return jwksCache;
   }
 
-  const key = await jose.JWK.asKey(config.get('oidc.jwksPrivateKey'), 'pem', {
+  const key = await jose.JWK.asKey(config.oidc.jwksPrivateKey, 'pem', {
     alg: 'RS256',
     use: 'sig',
   });
@@ -182,7 +182,7 @@ const getConfiguration = async (): Promise<Configuration> => {
       // origin, since the frontend is served from the same domain root
       // while issuerUrl includes the /api/oidc mount path.
       url: (_ctx, interaction) => {
-        const issuerUrl = config.get('oidc.issuerUrl');
+        const issuerUrl = config.oidc.issuerUrl;
         const frontendOrigin =
           process.env.FRONTEND_URL ??
           (issuerUrl && new URL(issuerUrl).origin) ??

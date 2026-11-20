@@ -16,8 +16,8 @@ export const setupAppMFA = async (
   const secret = new Secret({ size: 20 });
 
   const totp = new TOTP({
-    issuer: config.get('authentication.issuer'),
-    label: `${user.email} (${config.get('authentication.issuer')})`,
+    issuer: config.authentication.issuer,
+    label: `${user.email} (${config.authentication.issuer})`,
     algorithm: 'SHA1',
     digits: 6,
     period: 30,

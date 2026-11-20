@@ -9,7 +9,7 @@ const addOIDCProvider = async (
   next: NextFunction,
 ) => {
   const configuration = await getConfiguration();
-  const issuerUrl = config.get('oidc.issuerUrl');
+  const issuerUrl = config.oidc.issuerUrl;
 
   // oidc-provider derives endpoint URLs and cookie scoping from the request's
   // Host/protocol, not just the configured issuer. CloudFront doesn't forward

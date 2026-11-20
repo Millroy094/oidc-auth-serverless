@@ -10,10 +10,10 @@ import {
 } from '../utils/jwt.ts';
 import logger from '../utils/logger.ts';
 
-const accessTokenSecret = config.get('authentication.accessTokenSecret');
-const accessTokenExpiry = config.get('authentication.accessTokenExpiry');
-const refreshTokenSecret = config.get('authentication.refreshTokenSecret');
-const refreshTokenExpiry = config.get('authentication.refreshTokenExpiry');
+const accessTokenSecret = config.authentication.accessTokenSecret;
+const accessTokenExpiry = config.authentication.accessTokenExpiry;
+const refreshTokenSecret = config.authentication.refreshTokenSecret;
+const refreshTokenExpiry = config.authentication.refreshTokenExpiry;
 
 const generateNewTokensFromRefreshToken = async (
   refreshToken: string,
@@ -36,12 +36,12 @@ const generateNewTokensFromRefreshToken = async (
     res
       .cookie(ACCESS_TOKEN, newAccessToken, {
         httpOnly: true,
-        secure: config.get('deploymentEnvironment') !== 'local',
+        secure: config.deploymentEnvironment !== 'local',
         maxAge: getJwtExpiryMs(newAccessToken),
       })
       .cookie(REFRESH_TOKEN, newRefreshToken, {
         httpOnly: true,
-        secure: config.get('deploymentEnvironment') !== 'local',
+        secure: config.deploymentEnvironment !== 'local',
         maxAge: getJwtExpiryMs(newRefreshToken),
       });
 

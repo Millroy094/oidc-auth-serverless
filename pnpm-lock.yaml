@@ -285,9 +285,6 @@ importers:
       body-parser:
         specifier: ^2.4.0
         version: 2.4.0(supports-color@7.2.0)
-      convict:
-        specifier: ^6.2.5
-        version: 6.2.5
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -315,6 +312,9 @@ importers:
       uuid:
         specifier: ^14.0.3
         version: 14.0.3
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
     devDependencies:
       '@types/aws-lambda':
         specifier: ^8.10.164
@@ -322,9 +322,6 @@ importers:
       '@types/body-parser':
         specifier: ^1.19.6
         version: 1.19.6
-      '@types/convict':
-        specifier: ^6.1.6
-        version: 6.1.6
       '@types/cookie-parser':
         specifier: ^1.4.10
         version: 1.4.10(@types/express@5.0.6)
@@ -3691,12 +3688,6 @@ packages:
         integrity: sha512-8uYXI3Gw35MhiVYhG3s295oihrxRyytcRHjSjqnqZVDDy/xcGBRny7+Xj1Wgfhv5QzRtN2hB2dVRBUX9XW3UcQ==,
       }
 
-  '@types/convict@6.1.6':
-    resolution:
-      {
-        integrity: sha512-1B6jqWHWQud+7yyWAqbxnPmzlHrrOtJzZr1DhhYJ/NbpS4irfZSnq+N5Fm76J9LNRlUZvCmYxTVhhohWRvtqHw==,
-      }
-
   '@types/cookie-parser@1.4.10':
     resolution:
       {
@@ -4543,13 +4534,6 @@ packages:
       {
         integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==,
       }
-
-  convict@6.2.5:
-    resolution:
-      {
-        integrity: sha512-JtXpxqDqJ8P0UwEHwhxLzCIXQy97vlYBZR222Sbzb1q1Erex9ASrztJ29SyhWFQjod1AeFBaPzEEC8YvtZMIYg==,
-      }
-    engines: { node: '>=6' }
 
   cookie-parser@1.4.7:
     resolution:
@@ -6073,12 +6057,6 @@ packages:
       }
     engines: { node: '>=10' }
 
-  lodash.clonedeep@4.5.0:
-    resolution:
-      {
-        integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==,
-      }
-
   lodash.debounce@4.0.8:
     resolution:
       {
@@ -7564,13 +7542,6 @@ packages:
       }
     engines: { node: '>= 14.6' }
     hasBin: true
-
-  yargs-parser@20.2.9:
-    resolution:
-      {
-        integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==,
-      }
-    engines: { node: '>=10' }
 
   yocto-queue@0.1.0:
     resolution:
@@ -9817,10 +9788,6 @@ snapshots:
 
   '@types/content-disposition@0.5.9': {}
 
-  '@types/convict@6.1.6':
-    dependencies:
-      '@types/node': 26.6.6
-
   '@types/cookie-parser@1.4.10(@types/express@5.0.6)':
     dependencies:
       '@types/express': 5.0.6
@@ -10337,11 +10304,6 @@ snapshots:
   content-type@2.1.0: {}
 
   convert-source-map@2.0.0: {}
-
-  convict@6.2.5:
-    dependencies:
-      lodash.clonedeep: 4.5.0
-      yargs-parser: 20.2.9
 
   cookie-parser@1.4.7:
     dependencies:
@@ -11393,8 +11355,6 @@ snapshots:
     dependencies:
       p-locate: 5.0.0
 
-  lodash.clonedeep@4.5.0: {}
-
   lodash.debounce@4.0.8: {}
 
   lodash@4.18.1: {}
@@ -12374,8 +12334,6 @@ snapshots:
 
   yaml@2.9.1:
     optional: true
-
-  yargs-parser@20.2.9: {}
 
   yocto-queue@0.1.0: {}
 
