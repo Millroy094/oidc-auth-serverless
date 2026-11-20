@@ -1,10 +1,8 @@
-import { PhoneNumberUtil } from 'google-libphonenumber';
-
-const phoneUtil = PhoneNumberUtil.getInstance();
+import { isValidPhoneNumber } from 'libphonenumber-js/max';
 
 const isPhoneValid = (phone: string) => {
   try {
-    return phoneUtil.isValidNumber(phoneUtil.parseAndKeepRawInput(phone));
+    return isValidPhoneNumber(phone);
   } catch {
     return false;
   }
