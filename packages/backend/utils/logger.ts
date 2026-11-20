@@ -1,27 +1,5 @@
-import winston from 'winston';
+import { Logger } from '@aws-lambda-powertools/logger';
 
-const logger = winston.createLogger({
-  level: 'info',
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        winston.format.printf(({ level, message, timestamp, stack }) => {
-          const safeTimestamp =
-            typeof timestamp === 'string' ? timestamp : String(timestamp);
-          const safeMessage =
-            typeof message === 'string' ? message : JSON.stringify(message);
-          if (stack) {
-            const safeStack =
-              typeof stack === 'string' ? stack : JSON.stringify(stack);
-            return `${safeTimestamp} [${level.toLocaleUpperCase()}]: ${safeMessage} - ${safeStack}`;
-          }
-          return `${safeTimestamp} [${level.toUpperCase()}]: ${safeMessage}`;
-        }),
-        winston.format.colorize({ all: true }),
-      ),
-    }),
-  ],
-});
+const logger = new Logger({ serviceName: 'oauth-server' });
 
 export default logger;
